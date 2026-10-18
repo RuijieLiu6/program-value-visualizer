@@ -428,6 +428,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
   // FSR check (brief)
   const fsr = fsrCheck(items, settings, data);
 
+  if (fsr.requiredNonres && fsr.pass === false) reasons.push(`Does not meet the brief's ${fsr.minNonresFsr} FSR non-residential rule (${(settings.hotelAsNonResidential ? fsr.nonresFsrWithHotel : fsr.nonresFsrWithoutHotel).toFixed(1)} as hotel is counted now): the verdict is about money only.`);
   // rules: intensity buffer, F1, high-building flags
   for (let k = 1; k < floorOut.length; k++) {
     const a = floorOut[k - 1], b = floorOut[k];

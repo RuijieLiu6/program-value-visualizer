@@ -225,6 +225,20 @@ canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 
 tr.chosen td { background: var(--accent-soft); font-weight: 600; }
 .opt-bar { justify-content: flex-start; }
 .lock-tag { font: 600 10px var(--mono); color: var(--warn); }
+#presets { width: min(980px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet); color: var(--ink); }
+#presets::backdrop { background: rgba(10, 14, 18, .45); }
+.pgallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+.pcard { display: flex; gap: 10px; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px; background: var(--paper); }
+.pcard-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pwhy { margin: 0; font-size: 12.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.mini-sec { flex: none; color: var(--ink); line-height: 0; }
+.chk.small { font-size: 12px; }
+.pill.scenario { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); gap: 4px; }
+.pill.scenario button { border: 0; background: none; padding: 0 2px; color: inherit; font-size: 14px; line-height: 1; }
+.scenario-note { font-size: 12.5px; padding: 6px 10px; border-left: 3px solid var(--warn); background: var(--warn-soft); border-radius: 4px; margin: 0; }
+.rely { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+.rely-head { display: flex; gap: 10px; align-items: center; }
+.rely ul { margin: 2px 0 0; padding-left: 18px; }
 .ph-btn { margin-left: auto; font-size: 12px; padding: 3px 10px; }
 #diagram { width: min(860px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet); color: var(--ink); }
 #diagram::backdrop { background: rgba(10, 14, 18, .45); }
@@ -261,6 +275,8 @@ tr.chosen td { background: var(--accent-soft); font-weight: 600; }
     <span class="spacer"></span>
     <div class="ctrls">
       <span id="topVerdict" class="pill">…</span>
+      <span id="scenarioChip" class="pill scenario" hidden></span>
+      <button id="presetsBtn" title="Start from a built or approved tower">Presets</button>
       <label class="sr" for="briefSel">Rule set</label>
       <select id="briefSel" title="Rule set"><option value="vtc-2026">Vancouver Tall Challenge 2026</option><option value="none">No brief</option></select>
       <button id="optTopBtn" class="primary" title="Keep this building form and search the uses for a mix that works" aria-haspopup="dialog">Find a mix that works</button>
@@ -323,5 +339,6 @@ tr.chosen td { background: var(--accent-soft); font-weight: 600; }
 <dialog id="help" aria-labelledby="helpTitle"></dialog>
 <dialog id="diagram" class="dg-dialog" aria-labelledby="diagramTitle"></dialog>
 <dialog id="optimise" aria-labelledby="optTitle"></dialog>
+<dialog id="presets" aria-labelledby="presetsTitle"></dialog>
 <div id="tip" hidden></div>
 <script type="module" src="app/app.js"></script>

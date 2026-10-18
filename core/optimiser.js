@@ -132,6 +132,13 @@ export function scoreTable(slots, data, settings, opts) {
     const r = evaluate(fl, data, settings);
     slots.forEach((sl, k) => { if (ok[k]) read(r, k, ui); });
   });
+  // seeded run (e.g. from a precedent): moving away from the seed's main use on a floor costs a penalty, so the character stays
+  if (opts.seed) {
+    const seedMain = new Map(opts.seed.map(f => [f.level, [...f.mix].sort((a, b) => b.share - a.share)[0]?.programme_id]));
+    const avg = table.reduce((a, m) => a + [...m.values()].reduce((b, x) => b + Math.abs(x.value), 0) / Math.max(1, m.size), 0) / Math.max(1, table.length);
+    const pen = (opts.seedPenaltyShare ?? 0.05) * avg;
+    slots.forEach((sl, k) => { if (sl.role !== 'free') return; const want = seedMain.get(sl.floor.level); for (const [ui, x] of table[k]) if (ui >= 0 && units[ui].mixArr[0].programme_id !== want && !units[ui].mixArr.some(m => m.programme_id === want)) x.s -= pen; });
+  }
   return { units, table };
 }
 
@@ -328,7 +335,8 @@ export function optimiseMix(floorsIn, data, settingsIn = {}, optsIn = {}) {
   const curBreaches = breaches(current, data, opts, null, floors);
   const lockedMoved = best && floors.some((f, k) => f.locked && mixKey(f.mix) !== mixKey(best.floors[k].mix));
   if (!curBreaches.length && (!best || better(current, best.result) > 0 || lockedMoved)) best = { strategy: { id: 'current', name: 'Keep the current stack' }, feasible: true, floors: floors.map(f => ({ ...f, mix: f.mix.map(m => ({ ...m })) })), result: current, slots: skeleton(floors, data, settings, opts), headroom: headroomOf(current), keptCurrent: true };
-  const report = best ? reportText(best, strategies, current, data, settings, opts) : `No mix meets the rules on these floors: ${strategies.map(s => s.reason).filter(Boolean)[0] || 'every option breaks a cap'}. Try fewer floors, larger plates or a different brief setting.\n\nIndicative early-design estimate; a starting point, not a recommendation.`;
+  const curNote = curBreaches.length ? `The current stack breaks: ${curBreaches.join('; ')}${opts.respectFsr ? ' (untick the FSR option to search on money alone)' : ''}.\n\n` : '';
+  const report = best ? curNote + reportText(best, strategies, current, data, settings, opts) : `No mix meets the rules on these floors: ${strategies.map(s => s.reason).filter(Boolean)[0] || 'every option breaks a cap'}. Try fewer floors, larger plates or a different brief setting.\n\nIndicative early-design estimate; a starting point, not a recommendation.`;
   return { best, strategies, current, report, ms: Date.now() - t0, options: opts };
 }
 

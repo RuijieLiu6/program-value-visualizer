@@ -562,6 +562,26 @@
       "checked": "summary",
       "local_copy": false,
       "note": "Land transaction volume $1.2 billion, down 14% year over year; buyers favour sites with clear policy support and predictable density."
+    },
+    {
+      "id": "rennie-presale-2021",
+      "title": "Concrete pre-sale pricing snapshot as of April 2021",
+      "publisher": "rennie",
+      "url": "https://rennie.com/intelligence/pre-sale-resale/concrete-pre-sale-pricing-snapshot-as-of-april-2021",
+      "published": "2021-04",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Metro Vancouver concrete presale launches averaged about $1,106/ft² in early 2021."
+    },
+    {
+      "id": "remi-caprates-q4-2021",
+      "title": "Vancouver at epicentre of record low cap rates (CBRE Q4 2021)",
+      "publisher": "Real Estate Magazine (REMI), citing CBRE",
+      "url": "https://www.reminetwork.com/?p=12807",
+      "published": "2022-01",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Vancouver multifamily cap rates 2.00-2.75% in Q4 2021."
     }
   ]
 }

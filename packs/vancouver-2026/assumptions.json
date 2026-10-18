@@ -509,5 +509,86 @@
         0.4
       ]
     }
+  },
+  "scenarios": {
+    "note": "Named market scenarios. Optional overlays on the 2026 defaults; the page shows which one is on.",
+    "now_2026": {
+      "label": "2026 now",
+      "items": []
+    },
+    "strong_2021": {
+      "label": "Strong market (about 2021)",
+      "items": [
+        {
+          "setting": "presaleMarket",
+          "source": "rennie-presale-2021",
+          "grade": "B",
+          "note": "Concrete presales sold steadily in 2021 (average about $1,106/ft² across Metro Vancouver launches).",
+          "to": "normal",
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R4",
+          "source": "remi-caprates-q4-2021",
+          "grade": "B",
+          "note": "Vancouver multifamily cap rates were 2.00-2.75% in Q4 2021 (CBRE via REMI), against 4.25% in the pack: rental values about 1.5x (rounded down).",
+          "to": 1.5,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R5",
+          "source": "remi-caprates-q4-2021",
+          "grade": "B",
+          "note": "Same cap-rate shift for below-market rental.",
+          "to": 1.5,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "hardCostScale",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Construction costs were roughly 12% lower in 2021 (assumption; Altus guides rose year on year since).",
+          "to": 0.88,
+          "as_of": "2026-10-18"
+        }
+      ]
+    },
+    "recovery_2028": {
+      "label": "Recovery (about 2028)",
+      "items": [
+        {
+          "setting": "presaleMarket",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Assumes presales recover to lender thresholds.",
+          "to": "normal",
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R1",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Condo prices about 5% higher (assumption).",
+          "to": 1.05,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R4",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Cap rates about 0.25 points lower (assumption).",
+          "to": 1.06,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.O1",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Office leasing recovers a little (assumption).",
+          "to": 1.05,
+          "as_of": "2026-10-18"
+        }
+      ]
+    }
   }
 }

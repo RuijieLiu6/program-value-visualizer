@@ -1,0 +1,1114 @@
+{
+  "meta": {
+    "name": "Precedent presets",
+    "as_of": "2026-10-18",
+    "basis": "Public summaries of built or approved towers, read 18 Oct 2026. Bands are fractions of the above-grade floors, mapped to this catalogue; ranges are approximate where sources differ (see each preset's approximation). Contexts are optional scenarios, never defaults.",
+    "not_included": "Oakridge Park (Vancouver): no reliable floor-by-floor data found."
+  },
+  "presets": [
+    {
+      "id": "living-shangri-la",
+      "name": "Living Shangri-La",
+      "city": "Vancouver",
+      "country": "Canada",
+      "height_m": 201,
+      "floors": 62,
+      "year_launch": 2005,
+      "year_complete": 2009,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.2419,
+          "mix": [
+            {
+              "programme_id": "ST1",
+              "share": 1
+            }
+          ],
+          "note": "five-star hotel on floors 1-15"
+        },
+        {
+          "from": 0.2419,
+          "to": 0.6935,
+          "mix": [
+            {
+              "programme_id": "LV1",
+              "share": 1
+            }
+          ],
+          "note": "live-work and residential floors 16-43"
+        },
+        {
+          "from": 0.6935,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV2",
+              "share": 1
+            }
+          ],
+          "note": "private residences 44-60 and two duplex penthouses 61-62"
+        }
+      ],
+      "why": "A luxury hotel brand at the base and very high condo prices above (reported near $1,500/ft²) in a strong presale market.",
+      "relied_on": [
+        "Strong mid-2000s presales: largely sold out at record prices per ft² (reported about $1,500).",
+        "A five-star hotel brand (Shangri-La) on the lower 15 floors, sharing the podium and amenities.",
+        "Renovation of the neighbouring Coastal Church, tied in reports to the extra height and density."
+      ],
+      "context": {
+        "label": "Living Shangri-La, mid-2000s market",
+        "items": [
+          {
+            "setting": "presaleMarket",
+            "source": "globe-trump-2014",
+            "grade": "C",
+            "note": "The condos were reported largely sold out: presales were not the constraint they are in 2026.",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "wiki-living-shangri-la",
+        "globe-trump-2014"
+      ],
+      "approximation": "Floor ranges from Wikipedia; floor count reported as 60-62."
+    },
+    {
+      "id": "trump-vancouver",
+      "name": "1151 West Georgia (launched as Trump International Hotel & Tower)",
+      "city": "Vancouver",
+      "country": "Canada",
+      "height_m": 188,
+      "floors": 63,
+      "year_launch": 2013,
+      "year_complete": 2017,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.2381,
+          "mix": [
+            {
+              "programme_id": "ST1",
+              "share": 1
+            }
+          ],
+          "note": "147-room hotel on the first 15 floors"
+        },
+        {
+          "from": 0.2381,
+          "to": 0.9524,
+          "mix": [
+            {
+              "programme_id": "LV3",
+              "share": 1
+            }
+          ],
+          "note": "218 branded residences"
+        },
+        {
+          "from": 0.9524,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV2",
+              "share": 1
+            }
+          ],
+          "note": "penthouses"
+        }
+      ],
+      "why": "A licensed luxury brand let condos sell at a premium; about 60% presold in 2014 before completion.",
+      "relied_on": [
+        "A licensed hotel and residence brand (branded-residence premium).",
+        "About 60% of condos presold within a year of the 2013 launch.",
+        "A hotel operator for the lower 15 floors."
+      ],
+      "context": {
+        "label": "Branded tower, 2013-14 market",
+        "items": [
+          {
+            "setting": "presaleMarket",
+            "source": "globe-trump-2014",
+            "grade": "B",
+            "note": "About 60% presold in 2014 (Globe and Mail).",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "globe-trump-2014"
+      ],
+      "approximation": "Penthouse floors assumed as the top 3; height approximate."
+    },
+    {
+      "id": "vancouver-house",
+      "name": "Vancouver House",
+      "city": "Vancouver",
+      "country": "Canada",
+      "height_m": 150,
+      "floors": 59,
+      "year_launch": 2015,
+      "year_complete": 2020,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.05,
+          "mix": [
+            {
+              "programme_id": "SE2",
+              "share": 0.6
+            },
+            {
+              "programme_id": "SE1",
+              "share": 0.4
+            }
+          ],
+          "note": "grocery and retail at the base (in the podium buildings)"
+        },
+        {
+          "from": 0.05,
+          "to": 0.15,
+          "mix": [
+            {
+              "programme_id": "LV4",
+              "share": 1
+            }
+          ],
+          "note": "market rental (in the podium buildings, about 106 units)"
+        },
+        {
+          "from": 0.15,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV1",
+              "share": 1
+            }
+          ],
+          "note": "condos in the tower (about 388 units)"
+        }
+      ],
+      "why": "Condos on a tight triangular site, with market rental and a grocery in the podium making a mixed urban village.",
+      "relied_on": [
+        "Condo presales in a strong 2015-16 market.",
+        "Market rental and grocery-anchored retail in low podium buildings.",
+        "Public realm under the Granville Bridge (art, plazas) delivered with the project."
+      ],
+      "context": {
+        "label": "Vancouver House, mid-2010s market",
+        "items": [
+          {
+            "setting": "presaleMarket",
+            "source": "ci-vancouver-house",
+            "grade": "C",
+            "note": "Built through the strong 2015-19 market.",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "ci-vancouver-house"
+      ],
+      "approximation": "The rental and retail sit in separate podium buildings; shown here as the lower floors of one stack."
+    },
+    {
+      "id": "butterfly",
+      "name": "The Butterfly (First Baptist Church)",
+      "city": "Vancouver",
+      "country": "Canada",
+      "height_m": 169,
+      "floors": 57,
+      "year_launch": 2017,
+      "year_complete": 2026,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.04,
+          "mix": [
+            {
+              "programme_id": "GP5",
+              "share": 0.6
+            },
+            {
+              "programme_id": "CH1",
+              "share": 0.4
+            }
+          ],
+          "note": "church hall, daycare and community programmes"
+        },
+        {
+          "from": 0.04,
+          "to": 0.12,
+          "mix": [
+            {
+              "programme_id": "LV6",
+              "share": 0.6
+            },
+            {
+              "programme_id": "LV5",
+              "share": 0.4
+            }
+          ],
+          "note": "61 social and below-market homes (a separate 7-storey building)"
+        },
+        {
+          "from": 0.12,
+          "to": 0.85,
+          "mix": [
+            {
+              "programme_id": "LV1",
+              "share": 1
+            }
+          ],
+          "note": "condos"
+        },
+        {
+          "from": 0.85,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV2",
+              "share": 1
+            }
+          ],
+          "note": "upper condos and penthouses"
+        }
+      ],
+      "why": "Market condos paid for restoring a 1911 church, a daycare, a pool and 61 affordable homes on the church's own land.",
+      "relied_on": [
+        "Land owned by the church partner: no market land purchase.",
+        "Condo sales funding in-kind public benefits (heritage restoration, daycare, social housing).",
+        "A four-year rezoning under the West End Community Plan."
+      ],
+      "context": {
+        "label": "Church-land partnership",
+        "items": [
+          {
+            "setting": "presaleMarket",
+            "source": "macleans-butterfly",
+            "grade": "C",
+            "note": "Launched in a strong market.",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          },
+          {
+            "setting": "landPrice",
+            "source": "macleans-butterfly",
+            "grade": "C",
+            "note": "Church-owned land: no market land price (the church's share is paid in kind).",
+            "to": 0,
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "macleans-butterfly",
+        "revery-butterfly"
+      ],
+      "approximation": "Social housing is a separate low building; shown as low floors."
+    },
+    {
+      "id": "bay-parkade",
+      "name": "Bay Parkade hotel tower (approved)",
+      "city": "Vancouver",
+      "country": "Canada",
+      "height_m": 315,
+      "floors": 68,
+      "year_launch": 2026,
+      "year_complete": null,
+      "status": "approved",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.08,
+          "mix": [
+            {
+              "programme_id": "GP4",
+              "share": 0.7
+            },
+            {
+              "programme_id": "SE1",
+              "share": 0.3
+            }
+          ],
+          "note": "conference centre (about 70,000 ft², three ballrooms) and retail"
+        },
+        {
+          "from": 0.08,
+          "to": 0.95,
+          "mix": [
+            {
+              "programme_id": "ST2",
+              "share": 1
+            }
+          ],
+          "note": "about 920 hotel rooms"
+        },
+        {
+          "from": 0.95,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LE1",
+              "share": 0.6
+            },
+            {
+              "programme_id": "LE2",
+              "share": 0.4
+            }
+          ],
+          "note": "glass-domed observation deck above 1,000 ft, free for Vancouver residents"
+        }
+      ],
+      "why": "A hotel and conference supertall that leans on two condo towers on the same site and a City-owned social housing tower.",
+      "relied_on": [
+        "Two residential towers on the same site (1,270 condos, 276 rentals) carrying the land and the public deck.",
+        "Conference and hotel demand downtown.",
+        "A separate City-owned tower with 237 social homes and a 37-space childcare, to be occupied first."
+      ],
+      "context": {
+        "label": "Bay Parkade site economics (hotel tower only)",
+        "items": [
+          {
+            "setting": "publicPayer",
+            "source": "storeys-bay-parkade",
+            "grade": "C",
+            "note": "Visitors pay; residents enter free.",
+            "to": "ticketed_deck",
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "storeys-bay-parkade",
+        "globalnews-bay-parkade"
+      ],
+      "approximation": "Approved July 2026, not built. Only the hotel tower is shown; the condo towers that carry it are not in this stack."
+    },
+    {
+      "id": "shangri-la-toronto",
+      "name": "Shangri-La Toronto",
+      "city": "Toronto",
+      "country": "Canada",
+      "height_m": 214.6,
+      "floors": 66,
+      "year_launch": 2007,
+      "year_complete": 2012,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.2576,
+          "mix": [
+            {
+              "programme_id": "ST1",
+              "share": 1
+            }
+          ],
+          "note": "220-room hotel, spa and restaurants, levels 1-17"
+        },
+        {
+          "from": 0.2576,
+          "to": 0.7273,
+          "mix": [
+            {
+              "programme_id": "LV1",
+              "share": 1
+            }
+          ],
+          "note": "279 residences, floors 18-48"
+        },
+        {
+          "from": 0.7273,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV2",
+              "share": 1
+            }
+          ],
+          "note": "73 private estates, floors 49-65"
+        }
+      ],
+      "why": "The Vancouver formula repeated: luxury hotel base, condos above, sold in a strong Toronto market.",
+      "relied_on": [
+        "A five-star hotel brand on the lower 17 floors.",
+        "Condos and private estates sold before completion.",
+        "Developer experience from the Vancouver tower."
+      ],
+      "context": {
+        "label": "Shangri-La Toronto, late-2000s market",
+        "items": [
+          {
+            "setting": "presaleMarket",
+            "source": "urbantoronto-shangri-la",
+            "grade": "C",
+            "note": "Sold through a strong Toronto market.",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "urbantoronto-shangri-la"
+      ],
+      "approximation": "Floor split from a 2007 report; later sources give 18-49 and 50-66."
+    },
+    {
+      "id": "one-yonge-skytower",
+      "name": "Pinnacle One Yonge, SkyTower",
+      "city": "Toronto",
+      "country": "Canada",
+      "height_m": 345,
+      "floors": 105,
+      "year_launch": 2017,
+      "year_complete": null,
+      "status": "under construction",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.08,
+          "mix": [
+            {
+              "programme_id": "ST2",
+              "share": 0.6
+            },
+            {
+              "programme_id": "GP5",
+              "share": 0.4
+            }
+          ],
+          "note": "podium hotel and a City-run community centre"
+        },
+        {
+          "from": 0.08,
+          "to": 0.85,
+          "mix": [
+            {
+              "programme_id": "LV1",
+              "share": 1
+            }
+          ],
+          "note": "condos"
+        },
+        {
+          "from": 0.85,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV2",
+              "share": 1
+            }
+          ],
+          "note": "upper condos"
+        }
+      ],
+      "why": "Condo presales in Toronto's late-2010s market, with a City-run community centre delivered in the podium.",
+      "relied_on": [
+        "Large condo presales (2017-19 market).",
+        "A community centre delivered in kind for the City.",
+        "Office buildings and a hotel on the same multi-block site."
+      ],
+      "context": {
+        "label": "Toronto 2017-19 market",
+        "items": [
+          {
+            "setting": "presaleMarket",
+            "source": "urbantoronto-one-yonge",
+            "grade": "C",
+            "note": "Launched in a strong presale market.",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "urbantoronto-one-yonge"
+      ],
+      "approximation": "Under construction; the hotel and community centre sit in the podium and neighbouring phases."
+    },
+    {
+      "id": "rainier-square",
+      "name": "Rainier Square Tower",
+      "city": "Seattle",
+      "country": "USA",
+      "height_m": 258,
+      "floors": 58,
+      "year_launch": 2016,
+      "year_complete": 2020,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.05,
+          "mix": [
+            {
+              "programme_id": "SE1",
+              "share": 0.5
+            },
+            {
+              "programme_id": "AM4",
+              "share": 0.5
+            }
+          ],
+          "note": "retail and lobbies"
+        },
+        {
+          "from": 0.05,
+          "to": 0.6897,
+          "mix": [
+            {
+              "programme_id": "WK1",
+              "share": 1
+            }
+          ],
+          "note": "about 722,000-734,000 ft² of offices, fully leased to one tenant"
+        },
+        {
+          "from": 0.6897,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV4",
+              "share": 1
+            }
+          ],
+          "note": "about 189 luxury rental apartments, floors ~41-58"
+        }
+      ],
+      "why": "One anchor tenant leased all the offices, and the land is leased, not bought.",
+      "relied_on": [
+        "One tenant (Amazon) leased all the office space.",
+        "Land on a long ground lease from the University of Washington (Metropolitan Tract): no land purchase.",
+        "Luxury rental apartments on the top floors."
+      ],
+      "context": {
+        "label": "Anchor lease and ground lease",
+        "items": [
+          {
+            "setting": "landPrice",
+            "source": "wr-rainier",
+            "grade": "C",
+            "note": "Ground lease: no upfront land price (ground rent is not modelled).",
+            "to": 0,
+            "as_of": "2026-10-18"
+          },
+          {
+            "setting": "valueScale.O1",
+            "source": "wr-rainier",
+            "grade": "C",
+            "note": "A fully pre-leased anchor tenant: about 10% more value than speculative office (assumption).",
+            "to": 1.1,
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "ctbuh-rainier",
+        "wr-rainier",
+        "djc-rainier"
+      ],
+      "approximation": "Office-to-residential break reported at floors 39-41."
+    },
+    {
+      "id": "30-hudson-yards",
+      "name": "30 Hudson Yards (Edge)",
+      "city": "New York",
+      "country": "USA",
+      "height_m": 387,
+      "floors": 101,
+      "year_launch": 2015,
+      "year_complete": 2019,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.05,
+          "mix": [
+            {
+              "programme_id": "SE1",
+              "share": 0.5
+            },
+            {
+              "programme_id": "AM4",
+              "share": 0.5
+            }
+          ],
+          "note": "lobby and the deck entrance on floor 4"
+        },
+        {
+          "from": 0.05,
+          "to": 0.98,
+          "mix": [
+            {
+              "programme_id": "WK1",
+              "share": 1
+            }
+          ],
+          "note": "offices (WarnerMedia, Wells Fargo floors 60-66, KKR 74-83)"
+        },
+        {
+          "from": 0.98,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LE1",
+              "share": 0.6
+            },
+            {
+              "programme_id": "LE3",
+              "share": 0.4
+            }
+          ],
+          "note": "Edge outdoor deck on floor 100 and a restaurant above"
+        }
+      ],
+      "why": "Pre-leased anchor office tenants plus a deck so valuable that a 75% stake sold for about US$509 M.",
+      "relied_on": [
+        "Large anchor office tenants signed before completion.",
+        "The Edge deck: KKR paid about US$509 M for a 75% stake.",
+        "A master-planned district (Hudson Yards) around it."
+      ],
+      "context": {
+        "label": "Anchor tenants and a landmark deck",
+        "items": [
+          {
+            "setting": "valueScale.O1",
+            "source": "wiki-30hy",
+            "grade": "C",
+            "note": "Pre-leased anchors (assumption, +10%).",
+            "to": 1.1,
+            "as_of": "2026-10-18"
+          },
+          {
+            "setting": "valueScale.A1",
+            "source": "bisnow-edge",
+            "grade": "C",
+            "note": "A landmark deck: about US$680 M implied for 100% of Edge; here +50% on the pack's deck value (assumption).",
+            "to": 1.5,
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "wiki-30hy",
+        "bisnow-edge"
+      ],
+      "approximation": "Floor 100 deck on a 101-floor stack; office floors approximate."
+    },
+    {
+      "id": "central-park-tower",
+      "name": "Central Park Tower",
+      "city": "New York",
+      "country": "USA",
+      "height_m": 472,
+      "floors": 98,
+      "year_launch": 2018,
+      "year_complete": 2020,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.0714,
+          "mix": [
+            {
+              "programme_id": "SE2",
+              "share": 1
+            }
+          ],
+          "note": "seven-floor department store (Nordstrom)"
+        },
+        {
+          "from": 0.0714,
+          "to": 0.102,
+          "mix": [
+            {
+              "programme_id": "SB9",
+              "share": 1
+            }
+          ],
+          "note": "residents' club (about 50,000 ft² over three floors)"
+        },
+        {
+          "from": 0.102,
+          "to": 0.3163,
+          "mix": [
+            {
+              "programme_id": "SB2",
+              "share": 0.5
+            },
+            {
+              "programme_id": "LV2",
+              "share": 0.5
+            }
+          ],
+          "note": "tall mechanical and structural levels; residences start on floor 32"
+        },
+        {
+          "from": 0.3163,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LV2",
+              "share": 1
+            }
+          ],
+          "note": "179 ultra-luxury condos"
+        }
+      ],
+      "why": "A department-store anchor below and some of the highest condo prices in the world above (units up to about US$95 M).",
+      "relied_on": [
+        "Ultra-luxury condo prices (20 units above US$60 M).",
+        "A department-store anchor in the base.",
+        "Very tall floors and voids to lift homes above neighbouring towers."
+      ],
+      "context": {
+        "label": "Billionaires' Row luxury market",
+        "items": [
+          {
+            "setting": "presaleMarket",
+            "source": "6sqft-cpt",
+            "grade": "C",
+            "note": "Ultra-luxury buyers, not ordinary presales.",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          },
+          {
+            "setting": "valueScale.R2",
+            "source": "6sqft-cpt",
+            "grade": "C",
+            "note": "Prices far above Vancouver luxury condos (assumption, +50%).",
+            "to": 1.5,
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "6sqft-cpt",
+        "therealdeal-cpt"
+      ],
+      "approximation": "Floors 11-31 split as half plant/structure, half homes, to stand in for the tall voids."
+    },
+    {
+      "id": "lotte-world-tower",
+      "name": "Lotte World Tower",
+      "city": "Seoul",
+      "country": "South Korea",
+      "height_m": 555,
+      "floors": 123,
+      "year_launch": 2010,
+      "year_complete": 2017,
+      "status": "built",
+      "bands": [
+        {
+          "from": 0,
+          "to": 0.0976,
+          "mix": [
+            {
+              "programme_id": "SE1",
+              "share": 0.4
+            },
+            {
+              "programme_id": "MP1",
+              "share": 0.2
+            },
+            {
+              "programme_id": "GP6",
+              "share": 0.2
+            },
+            {
+              "programme_id": "SE3",
+              "share": 0.2
+            }
+          ],
+          "note": "podium: retail, finance centre, fitness, art museum, duty-free (floors 5-12)"
+        },
+        {
+          "from": 0.0976,
+          "to": 0.3089,
+          "mix": [
+            {
+              "programme_id": "WK1",
+              "share": 1
+            }
+          ],
+          "note": "offices, floors 14-38"
+        },
+        {
+          "from": 0.3089,
+          "to": 0.3333,
+          "mix": [
+            {
+              "programme_id": "SB2",
+              "share": 1
+            }
+          ],
+          "note": "plant and transfer"
+        },
+        {
+          "from": 0.3333,
+          "to": 0.5772,
+          "mix": [
+            {
+              "programme_id": "LV2",
+              "share": 1
+            }
+          ],
+          "note": "Signiel residences, floors 42-71"
+        },
+        {
+          "from": 0.5772,
+          "to": 0.6098,
+          "mix": [
+            {
+              "programme_id": "SB2",
+              "share": 1
+            }
+          ],
+          "note": "plant and transfer"
+        },
+        {
+          "from": 0.6098,
+          "to": 0.8211,
+          "mix": [
+            {
+              "programme_id": "ST1",
+              "share": 1
+            }
+          ],
+          "note": "Signiel Seoul hotel (about 223 rooms), floors 76-101"
+        },
+        {
+          "from": 0.8211,
+          "to": 0.9268,
+          "mix": [
+            {
+              "programme_id": "WK1",
+              "share": 1
+            }
+          ],
+          "note": "premium offices, floors 108-114"
+        },
+        {
+          "from": 0.9268,
+          "to": 1,
+          "mix": [
+            {
+              "programme_id": "LE1",
+              "share": 0.8
+            },
+            {
+              "programme_id": "LE3",
+              "share": 0.2
+            }
+          ],
+          "note": "Seoul Sky observatory, floors 117-123"
+        }
+      ],
+      "why": "A conglomerate built and kept it on land it already held, next to its own mall; the observatory and hotel add income.",
+      "relied_on": [
+        "The owner (Lotte) held the land for decades: no land purchase.",
+        "Long-term ownership instead of presales.",
+        "An observatory, hotel and mall complex earning together."
+      ],
+      "context": {
+        "label": "Owner-held land, long-term hold",
+        "items": [
+          {
+            "setting": "landPrice",
+            "source": "kpf-lotte",
+            "grade": "C",
+            "note": "Land held by the owner for decades (no purchase).",
+            "to": 0,
+            "as_of": "2026-10-18"
+          },
+          {
+            "setting": "presaleMarket",
+            "source": "kpf-lotte",
+            "grade": "C",
+            "note": "Residences sold without relying on lender presale thresholds.",
+            "to": "normal",
+            "as_of": "2026-10-18"
+          }
+        ]
+      },
+      "sources": [
+        "kpf-lotte",
+        "trazy-lotte"
+      ],
+      "approximation": "Floor ranges from a visitor listing; gaps treated as plant."
+    }
+  ],
+  "sources": [
+    {
+      "id": "wiki-living-shangri-la",
+      "title": "Living Shangri-La",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/Living_Shangri-La",
+      "published": null,
+      "checked": "summary",
+      "note": "Hotel floors 1-15; 234 live-work homes 16-43; 63 residences 44-60; penthouses 61-62; about 201 m."
+    },
+    {
+      "id": "globe-trump-2014",
+      "title": "Trump's trumpet: Vancouver luxury tower",
+      "publisher": "The Globe and Mail",
+      "url": "https://www.theglobeandmail.com/real-estate/the-market/trumps-trumpet-vancouver-luxury-tower/article21333552/",
+      "published": "2014",
+      "checked": "summary",
+      "note": "147-room hotel on the first 15 floors; condo portion nearly 60% presold; marketing from October 2013. Also reports Living Shangri-La largely sold out near $1,500/ft²."
+    },
+    {
+      "id": "ci-vancouver-house",
+      "title": "International Icon: Vancouver House",
+      "publisher": "Canadian Architect",
+      "url": "https://staging7.canadianarchitect.com/international-icon-vancouver-house-vancouver-british-columbia/",
+      "published": "2020",
+      "checked": "summary",
+      "note": "59-storey tower on a podium with market rental and a grocery; 388 units."
+    },
+    {
+      "id": "macleans-butterfly",
+      "title": "Vancouver's Butterfly building and affordable housing",
+      "publisher": "Maclean's",
+      "url": "https://macleans.ca/society/vancouver-butterfly-building-affordable-housing/",
+      "published": "2025",
+      "checked": "summary",
+      "note": "57 storeys; 61 affordable homes in a seven-storey building; church restored with daycare and shelter programmes."
+    },
+    {
+      "id": "revery-butterfly",
+      "title": "The Butterfly",
+      "publisher": "Revery Architecture",
+      "url": "https://reveryarchitecture.com/projects/butterfly/",
+      "published": "2026",
+      "checked": "summary",
+      "note": "Completed 2026; first tower under the West End Community Plan; rezoning took four years."
+    },
+    {
+      "id": "storeys-bay-parkade",
+      "title": "Holborn Vancouver supertall council approved",
+      "publisher": "STOREYS",
+      "url": "https://storeys.com/holborn-vancouver-supertall-council-approved/",
+      "published": "2026-07",
+      "checked": "summary",
+      "note": "Approved 27 July 2026: 315 m hotel tower, 920 rooms, conference centre, observation deck free for residents; 1,270 condos and 276 rentals in two towers; City-owned social housing tower with 237 homes."
+    },
+    {
+      "id": "globalnews-bay-parkade",
+      "title": "Vancouver council approves mega tower project",
+      "publisher": "Global News",
+      "url": "https://globalnews.ca/news/11995642/vancouver-council-approves-mega-tower-project/",
+      "published": "2026-07",
+      "checked": "summary",
+      "note": "7-3 vote; same programme."
+    },
+    {
+      "id": "urbantoronto-shangri-la",
+      "title": "Living Shangri-La Toronto",
+      "publisher": "UrbanToronto",
+      "url": "https://urbantoronto.ca/news/2012/02/living-shangri-la-officially-tops-66-storeys",
+      "published": "2012",
+      "checked": "summary",
+      "note": "66 storeys, 214.57 m; hotel levels 1-17; residences 18-48; private estates 49-65 (2007 plan)."
+    },
+    {
+      "id": "urbantoronto-one-yonge",
+      "title": "Pinnacle One Yonge",
+      "publisher": "UrbanToronto database",
+      "url": "https://urbantoronto.ca/database/projects/pinnacle-one-yonge",
+      "published": "2024",
+      "checked": "summary",
+      "note": "SkyTower 105 storeys, about 345 m; hotel and community centre on the site."
+    },
+    {
+      "id": "ctbuh-rainier",
+      "title": "Rainier Square Tower",
+      "publisher": "CTBUH Skyscraper Center",
+      "url": "https://www.skyscrapercenter.com/building/rainier-square-tower/16751",
+      "published": null,
+      "checked": "summary",
+      "note": "58 storeys, about 258 m, 2020."
+    },
+    {
+      "id": "wr-rainier",
+      "title": "Rainier Square",
+      "publisher": "Wright Runstad",
+      "url": "https://wrightrunstad.com/properties/rainier-square-rainier-tower/rainier-square/",
+      "published": null,
+      "checked": "summary",
+      "note": "About 734,000 ft² office leased by one tenant; about 189 apartments; Metropolitan Tract (University of Washington land)."
+    },
+    {
+      "id": "djc-rainier",
+      "title": "Rainier Square Tower",
+      "publisher": "Daily Journal of Commerce",
+      "url": "https://www.djc.com/news/co/12124487.html",
+      "published": null,
+      "checked": "summary",
+      "note": "191 apartments on floors 39-58."
+    },
+    {
+      "id": "wiki-30hy",
+      "title": "30 Hudson Yards",
+      "publisher": "Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/30_Hudson_Yards",
+      "published": null,
+      "checked": "summary",
+      "note": "Edge on floor 100 (opened March 2020); tenants include WarnerMedia, Wells Fargo (60-66), KKR (74-83)."
+    },
+    {
+      "id": "bisnow-edge",
+      "title": "KKR buys majority stake in Hudson Yards observation deck",
+      "publisher": "Bisnow",
+      "url": "https://www.bisnow.com/news/new-york/capital-markets/kkr-drops-500m-for-majority-stake-in-hudson-yards-observation-deck-110612",
+      "published": null,
+      "checked": "summary",
+      "note": "About US$509 M for a 75% stake in Edge."
+    },
+    {
+      "id": "6sqft-cpt",
+      "title": "Sales launch at Extell's Central Park Tower",
+      "publisher": "6sqft",
+      "url": "https://www.6sqft.com/sales-launch-at-extells-central-park-tower/",
+      "published": "2018",
+      "checked": "summary",
+      "note": "Residences from floor 32 above a seven-floor Nordstrom and a three-floor club; 179 condos; about 472 m."
+    },
+    {
+      "id": "therealdeal-cpt",
+      "title": "Extell goes public with Central Park Tower listings",
+      "publisher": "The Real Deal",
+      "url": "https://therealdeal.com/new-york/2019/05/21/extell-goes-public-with-central-park-tower-listings/",
+      "published": "2019",
+      "checked": "summary",
+      "note": "Twenty units above US$60 M; penthouse US$95 M."
+    },
+    {
+      "id": "kpf-lotte",
+      "title": "Lotte World Tower",
+      "publisher": "KPF",
+      "url": "https://www.kpf.com/projects/lotte-world-tower",
+      "published": null,
+      "checked": "summary",
+      "note": "Retail base, offices about half the height, residences with their own entrance, hotel, observatory."
+    },
+    {
+      "id": "trazy-lotte",
+      "title": "Lotte World Tower Seoul Sky",
+      "publisher": "Trazy (visitor listing)",
+      "url": "https://www.trazy.com/spot/3533",
+      "published": null,
+      "checked": "summary",
+      "note": "Floors 5-12 podium, 14-38 offices, 42-71 residences, 76-101 hotel, 108-114 offices, 117-123 observatory; adult ticket 27,000 won."
+    }
+  ]
+}

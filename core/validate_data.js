@@ -181,9 +181,45 @@ export function validate(root) {
   const area = brief.site?.area_m2?.value, dims = brief.site?.width_m * brief.site?.length_m;
   if (area && dims && Math.abs(area - dims) / dims > 0.01) errors.push({ code: 'brief_area', where: 'brief.site', msg: `${area} vs ${dims.toFixed(1)}` });
 
+  // ---- scenario overlays (assumptions.scenarios) and precedent presets ----
+  const SETTABLE = new Set(['presaleMarket', 'landPrice', 'publicPayer', 'hardCostScale', 'cacShare']);
+  const checkItems = (items, where, srcOk) => (items || []).forEach((it, k) => {
+    const w = `${where}.items[${k}]`;
+    const okSetting = SETTABLE.has(it.setting) || (/^valueScale\.[A-Z0-9a-z]+$/.test(it.setting || '') && valueRows.has(it.setting.split('.')[1]));
+    if (!okSetting) errors.push({ code: 'bad_setting', where: w, msg: String(it.setting) });
+    if (!('to' in it)) errors.push({ code: 'missing_field', where: w, msg: 'to' });
+    if (!GRADES.has(it.grade)) errors.push({ code: 'bad_grade', where: w, msg: String(it.grade) });
+    if (!it.note) errors.push({ code: 'missing_field', where: w, msg: 'note' });
+    if (!(it.source === 'assumption' || srcOk(it.source))) errors.push({ code: 'unknown_source', where: w, msg: String(it.source) });
+    if (it.source === 'assumption' && it.grade !== 'C') errors.push({ code: 'assumption_grade', where: w, msg: 'assumptions must be grade C' });
+  });
+  for (const [id, sc] of Object.entries(assumptions.scenarios || {})) if (sc && typeof sc === 'object' && sc.label) checkItems(sc.items, `assumptions.scenarios.${id}`, x => sourceIds.has(x));
+  const precedents = fs.existsSync(path.join(root, 'catalogue/precedents.json')) ? readJSON(root, 'catalogue/precedents.json', errors) : null;
+  if (precedents) {
+    const pSrc = new Set((precedents.sources || []).map(x => x.id));
+    const seen = new Set();
+    for (const p of precedents.presets || []) {
+      const w = `precedents.${p.id}`;
+      if (seen.has(p.id)) errors.push({ code: 'duplicate_id', where: w, msg: p.id });
+      seen.add(p.id);
+      for (const k of ['name', 'city', 'height_m', 'floors', 'why', 'relied_on', 'bands', 'sources']) if (p[k] == null) errors.push({ code: 'missing_field', where: w, msg: k });
+      const bands = p.bands || [];
+      if (!bands.length || Math.abs(bands[0].from) > 1e-9 || Math.abs(bands[bands.length - 1].to - 1) > 1e-9) errors.push({ code: 'bands_cover', where: w, msg: 'bands must run from 0 to 1' });
+      bands.forEach((b, k) => {
+        if (!(b.to > b.from)) errors.push({ code: 'bad_band', where: `${w}.bands[${k}]`, msg: `${b.from}-${b.to}` });
+        if (k && Math.abs(b.from - bands[k - 1].to) > 1e-9) errors.push({ code: 'bands_gap', where: `${w}.bands[${k}]`, msg: 'bands must touch' });
+        const sum = (b.mix || []).reduce((a, m) => a + m.share, 0);
+        if (Math.abs(sum - 1) > 0.005) errors.push({ code: 'share_sum', where: `${w}.bands[${k}]`, msg: String(sum) });
+        for (const m of b.mix || []) if (!progIds.has(m.programme_id)) errors.push({ code: 'unknown_programme', where: `${w}.bands[${k}]`, msg: m.programme_id });
+      });
+      for (const sid of p.sources || []) if (!pSrc.has(sid)) errors.push({ code: 'unknown_source', where: w, msg: sid });
+      if (p.context) checkItems(p.context.items, `${w}.context`, x => pSrc.has(x) || sourceIds.has(x));
+    }
+  }
+
   const stats = {
     families: families.families.length, programmes: programmes.programmes.length, value_rows: values.rows.length,
-    cost_lines: costs.lines.length, sources: sources.sources.length,
+    cost_lines: costs.lines.length, sources: sources.sources.length, precedents: precedents?.presets?.length ?? 0,
     user_to_supply: programmes.programmes.filter(p => p.needs_user_value).length + values.rows.filter(r => r.value_per_m2_gfa?.value === null).length,
   };
   return { errors, warnings, stats };

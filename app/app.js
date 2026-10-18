@@ -3,6 +3,7 @@ import { drawIcon, SPECS } from './icons/icon_specs.js';
 import { wordStackLayout, wordStackSVG, inkOf, FONT_STACK } from '../core/wordstack.js';
 import { readPrompt, normaliseDiagramRead, floorsFromBands } from '../core/diagram_read.js';
 import { optimiseMix, optimiserDefaults } from '../core/optimiser.js';
+import { applyPreset, applyScenario, scenarioItems, scenarioLabel, presetStrip } from '../core/precedents.js';
 import { PRIORITIES, PLATES, planningGuide, stackToFloors, starterStack, explainStack } from '../core/planner.js';
 import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
 import { TYPICAL_BASES, indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
@@ -31,15 +32,15 @@ const pct = (x, d = 1) => (x == null ? '—' : `${(x * 100).toFixed(d)}%`);
 const VERDICT = { works: 'Works', marginal: 'Marginal', doesnt_work: "Doesn't work", needs_land: 'Land price needed', incomplete: 'Incomplete' };
 
 let raw = null, data = null, result = null, sens = null;
-let state = { floors: [], settings: {}, brief: 'vtc-2026', sel: null, mapSite: null };
+let state = { floors: [], settings: {}, brief: 'vtc-2026', sel: null, mapSite: null, scenario: null, precedent: null };
 const history = [];
 let activeTab = 'verdict', pickFamily = null, pickProgramme = null, editMix = null;
 
 // ---------- storage (per-viewer convenience only) ----------
-const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief, mapSite: state.mapSite })); } catch (e) { /* storage unavailable */ } };
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief, mapSite: state.mapSite, scenario: state.scenario, precedent: state.precedent })); } catch (e) { /* storage unavailable */ } };
 const load = () => { try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && Array.isArray(s.floors) && s.floors.length) return s; } catch (e) { /* ignore */ } return null; };
-function pushHistory() { history.push(JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief })); if (history.length > 40) history.shift(); $('#undoBtn').disabled = false; }
-function undo() { const s = history.pop(); if (!s) return; const o = JSON.parse(s); state.floors = o.floors; state.settings = o.settings; if (o.brief && o.brief !== state.brief) { state.brief = o.brief; buildData(); $('#briefSel').value = o.brief; } editMix = null; $('#undoBtn').disabled = !history.length; refresh(); }
+function pushHistory() { history.push(JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief, scenario: state.scenario, precedent: state.precedent })); if (history.length > 40) history.shift(); $('#undoBtn').disabled = false; }
+function undo() { const s = history.pop(); if (!s) return; const o = JSON.parse(s); state.floors = o.floors; state.settings = o.settings; state.scenario = o.scenario ?? null; state.precedent = o.precedent ?? null; if (o.brief && o.brief !== state.brief) { state.brief = o.brief; buildData(); $('#briefSel').value = o.brief; } editMix = null; $('#undoBtn').disabled = !history.length; refresh(); }
 
 // ---------- input checks ----------
 const finite = (x, name) => { const n = typeof x === 'string' && x.trim() === '' ? NaN : Number(x); if (!Number.isFinite(n)) throw new Error(`${name} must be a number`); return n; };
@@ -92,10 +93,13 @@ async function loadData() {
   const [families, programmes, values, costs, charges, assumptions, codeRules, sources, vtc, none] = await Promise.all([
     get('catalogue/families.json'), get('catalogue/programmes.json'), get(PACK + 'values.json'), get(PACK + 'costs.json'), get(PACK + 'charges.json'),
     get(PACK + 'assumptions.json'), get(PACK + 'code_rules.json'), get(PACK + 'sources.json'), get('briefs/vtc-2026/brief.json'), get('briefs/none/brief.json')]);
-  raw = { families, programmes, values, costs, charges, assumptions, codeRules, sources, briefs: { 'vtc-2026': vtc, none } };
+  const precedents = await get('catalogue/precedents.json').catch(() => ({ presets: [] }));
+  raw = { families, programmes, values, costs, charges, assumptions, codeRules, sources, precedents, briefs: { 'vtc-2026': vtc, none } };
 }
 function buildData() { data = indexData({ ...raw, brief: raw.briefs[state.brief] }); }
-const settingsFull = () => ({ ...defaultSettings(data), ...state.settings });
+/** The user's settings with the active scenario overlaid (the overlay is labelled everywhere it shows). */
+const effSettings = () => (state.scenario ? applyScenario(state.settings, scenarioItems(state.scenario, data, raw.precedents)) : state.settings);
+const settingsFull = () => ({ ...defaultSettings(data), ...effSettings() });
 const famColour = id => data.families.get(id)?.colour || '#999';
 const prog = id => data.programmes.get(id);
 
@@ -118,11 +122,14 @@ function wireTips() {
 }
 
 // ---------- recompute and render ----------
-function recompute() { result = evaluate(state.floors, data, state.settings); sens = null; }
+function recompute() { result = evaluate(state.floors, data, effSettings()); sens = null; }
 function refresh() { recompute(); save(); renderTop(); renderSection(); renderTab(); }
 function renderTop() {
   const v = result.verdict, el = $('#topVerdict');
   el.className = `pill ${v}`; el.textContent = VERDICT[v];
+  const label = scenarioLabel(state.scenario, data, raw.precedents), chip = $('#scenarioChip');
+  chip.hidden = !label;
+  if (label) put(chip, `Scenario: ${label}`, h('button', { 'aria-label': 'Turn the scenario off', title: 'Back to the 2026 defaults', onclick: () => setScenario(null) }, '×'));
   el.setAttribute('data-tip', result.reasons.join('\n'));
 }
 
@@ -251,7 +258,7 @@ const num0 = x => (typeof x === 'number' && Number.isFinite(x) ? x : 0);
 function renderVerdict() {
   const r = result, t = r.totals, S = settingsFull(), A = data.assumptions;
   const el = $('#tab-verdict');
-  const optBtn = h('div', { class: 'toolbar opt-bar' }, h('button', { class: 'primary', onclick: openOptimiser }, 'Find a mix that works'), h('span', { class: 'note' }, 'keeps your form, searches the uses'));
+  const optBtn = h('div', { class: 'toolbar opt-bar' }, h('button', { class: 'primary', onclick: () => openOptimiser() }, 'Find a mix that works'), h('button', { onclick: openPresets }, 'Presets'), h('span', { class: 'note' }, 'search uses for your form, or start from a built tower'));
   const verdict = h('div', { class: `verdict ${r.verdict}` },
     h('span', { class: 'label-strip' }, 'Verdict'), h('h3', {}, VERDICT[r.verdict]),
     h('ul', {}, r.reasons.map(x => h('li', {}, x)), r.marketDependent ? h('li', {}, 'Market-dependent: the scheme relies on condo presales.') : null),
@@ -282,7 +289,7 @@ function renderVerdict() {
     h('tbody', {}, Object.entries(fam).sort((a, b) => b[1].net - a[1].net).map(([k, v]) => h('tr', {},
       h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:8px;align-items:center' }, familyIcon(k), data.families.get(k)?.name)),
       h('td', { class: 'num' }, N(v.gfa)), h('td', { class: 'num' }, M(v.value)), h('td', { class: 'num' }, M(v.cost)), h('td', { class: `num ${signCls(v.net)}` }, M(v.net)))))));
-  put(el, optBtn, verdict, land, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
+  put(el, optBtn, scenarioBanner(), verdict, relyPanel(), land, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
 }
 /** A family's icon is its first programme's icon; a colour swatch if it has none. */
 function familyIcon(famId) { const first = [...data.programmes.values()].find(p => p.family_id === famId); return first && iconSvg(first.id) ? iconEl(first.id, 26) : h('i', { class: 'sw', style: `background:${famColour(famId)}` }); }
@@ -683,7 +690,7 @@ themeQuery.addEventListener?.('change', () => { if (activeTab === 'map') renderM
 
 // ---------- Sensitivity tab ----------
 function renderSens() {
-  if (!sens) sens = sensitivity(state.floors, data, state.settings);
+  if (!sens) sens = sensitivity(state.floors, data, effSettings());
   const tests = sens.tests, base = sens.base;
   const lo0 = Math.min(base, ...tests.map(t => t.low)), hi0 = Math.max(base, ...tests.map(t => t.high)), padV = (hi0 - lo0) * 0.22 || 1;
   const lo = lo0 - padV, hi = hi0 + padV;
@@ -714,6 +721,10 @@ function renderAssume() {
   const sel = (id, label, key, options, src) => { const s = h('select', { id }, options.map(([v, l]) => h('option', { value: String(v), selected: String(S[key]) === String(v) }, l))); s.addEventListener('change', () => setSetting(key, s.value === 'true' ? true : s.value === 'false' ? false : s.value)); return h('div', { class: 'field' }, h('label', { for: id }, label, src ? gradeTag(src.grade) : null, src ? srcTag(src) : null), s); };
   const brief = data.brief;
   put($('#tab-assume'), 
+    (() => { const sel = h('select', { id: 'aScenario' }, h('option', { value: '' }, '2026 now (default)'), Object.entries(data.assumptions.scenarios || {}).filter(([, v]) => v?.label && v.items?.length).map(([k, v]) => h('option', { value: k, selected: state.scenario?.kind === 'market' && state.scenario.id === k }, v.label)), state.scenario?.kind === 'precedent' ? h('option', { value: '__p', selected: true, disabled: true }, scenarioLabel(state.scenario, data, raw.precedents)) : null);
+      sel.addEventListener('change', () => setScenario(sel.value ? { kind: 'market', id: sel.value } : null));
+      return h('div', { class: 'field' }, h('label', { for: 'aScenario' }, 'Market scenario (an optional, labelled overlay on these defaults)'), sel); })(),
+    scenarioBanner(),
     h('h4', { style: 'margin:0' }, 'Project'),
     h('div', { class: 'grid2' },
       f('aPodium', 'Podium top floor (height premium starts above it)', 'podiumTopFloor', null, { step: 1, min: 0 }),
@@ -851,6 +862,7 @@ function summaryForAI() {
   const t = result.totals, f = result.fsr;
   return { verdict: VERDICT[result.verdict], reasons: result.reasons, height_m: +result.height.toFixed(1), floors: state.floors.length,
     totals_cad_millions: Object.fromEntries(['gfa', 'gdv', 'cost', 'profit', 'publicDeduction', 'rlvBeforeCac', 'cac', 'rlvAfterCac'].map(k => [k, k === 'gfa' ? Math.round(t[k]) : +(t[k] / 1e6).toFixed(1)])),
+    scenario: scenarioLabel(state.scenario, data, raw.precedents) ?? '2026 defaults', precedent: state.precedent,
     land: { price_cad: result.totals.landPrice, price_estimated: result.totals.landEstimated, current_zoning_value_cad: result.land.currentZoningValue, current_zoning_estimated: result.land.currentZoningEstimated,
       estimate_basis: result.land.siteAreaM2 ? `${result.land.footprintProxy ? 'largest level-1 plate (no site area set)' : 'site area'} ${Math.round(result.land.siteAreaM2)} m2 x FSR ${result.land.fsr} x C$${result.land.rate}/m2 x (1 + ${result.land.premium})` : 'no site area' }, fsr: { nonres_with_hotel: Math.round(f.nonresWithHotel), nonres_without_hotel: Math.round(f.nonresWithoutHotel), required: f.requiredNonres ? Math.round(f.requiredNonres) : null, pass: f.pass ?? null },
     rules: result.rules.slice(0, 10).map(r => r.text), rule_count: result.rules.length };
@@ -933,6 +945,9 @@ function applyStackToPage(stack, { hotelNonres } = {}) {
   return built;
 }
 const PLAN_TOOLS = [
+  { name: 'list_precedents', description: 'Precedent towers that can be mapped onto the current form: id, name, city, height, floors, year, why it worked, what it relied on, and its optional market context.', execute: () => (raw.precedents?.presets || []).map(p => ({ id: p.id, name: p.name, city: p.city, height_m: p.height_m, floors: p.floors, year: p.year_complete ?? p.status, why: p.why, relied_on: p.relied_on, context: p.context ? { label: p.context.label, items: p.context.items.map(i => `${i.setting} -> ${i.to} (grade ${i.grade}): ${i.note}`) } : null, bands: p.bands.map(b => `${Math.round(b.from * 100)}-${Math.round(b.to * 100)}%: ${b.mix.map(m => `${m.programme_id} ${Math.round(m.share * 100)}%`).join(', ')}`) })) },
+  { name: 'apply_precedent', description: 'Map a precedent onto the current floors (geometry unchanged; level 1 retail and lobby, parking below grade, locked floors kept). with_context: true also turns on its labelled market scenario. One Undo reverses it. Returns the new summary.', inputSchema: { type: 'object', properties: { id: { type: 'string' }, with_context: { type: 'boolean' } }, required: ['id'] },
+    execute: ({ id, with_context }) => { const p = precedentById(String(id)); if (!p) throw new Error('unknown precedent id'); const b = applyPresetToPage(p, !!with_context); return { applied: p.name, notes: b.notes, ...summaryForAI() }; } },
   { name: 'optimise_mix', description: 'Find a mix that works for the current building form: keeps floors, heights, plates and locked floors; searches uses floor by floor with the full calculator under the brief FSR rule and market caps; compares strategies (all uses, no sale condos, employment only, no deck). Returns verdict, headroom, strategies and a report. apply: true puts the best stack on the section (one Undo reverses it).', inputSchema: { type: 'object', properties: { apply: { type: 'boolean' }, respectFsr: { type: 'boolean' }, allowSale: { type: 'boolean' }, allowDeck: { type: 'boolean' }, keepPublic: { type: 'boolean' }, inclusionary: { type: 'boolean' }, maxHotelKeys: { type: 'number' } } },
     execute: ({ apply, ...o }) => {
       const clean = {};
@@ -1132,8 +1147,9 @@ function renderAI() {
   const ui = { msgs, status, stop };
   const diagramSlot = h('div', { id: 'diagramSlot' });
   const explainBtn = h('button', { class: 'explain', onclick: () => { if (aiState !== 'busy') explainCurrent(ui); } }, 'Explain my current stack');
-  const optChip = h('button', { class: 'explain', onclick: openOptimiser }, 'Find a mix that works');
-  const chips = h('div', { class: 'chips' }, explainBtn, optChip, ['Explain the verdict in plain words', 'Which floors lose the most money, and why?', 'How could this scheme meet the 9.0 FSR non-residential rule?', 'What are the weakest numbers in the data?'].map(q => h('button', { onclick: () => { ta.value = q; ask(); } }, q)));
+  const optChip = h('button', { class: 'explain', onclick: () => openOptimiser() }, 'Find a mix that works');
+  const presetChip = h('button', { class: 'explain', onclick: openPresets }, 'Start from a precedent');
+  const chips = h('div', { class: 'chips' }, explainBtn, optChip, presetChip, ['Explain the verdict in plain words', 'Which floors lose the most money, and why?', 'How could this scheme meet the 9.0 FSR non-residential rule?', 'What are the weakest numbers in the data?'].map(q => h('button', { onclick: () => { ta.value = q; ask(); } }, q)));
   const ask = async () => {
     const q = ta.value.trim(); if (!q || aiState === 'busy') return;
     if (!sample) { status.textContent = 'Ask AI works when this tool is opened on claude.ai.'; return; }
@@ -1231,7 +1247,7 @@ function openDiagram() {
 let optOpts = null, lastOpt = null;
 const VERDICT_RANK_UI = { works: 4, marginal: 3, needs_land: 2, doesnt_work: 1, incomplete: 0 };
 function runOptimiser(o) {
-  const res = optimiseMix(state.floors, data, state.settings, o);
+  const res = optimiseMix(state.floors, data, effSettings(), o);
   lastOpt = res;
   return res;
 }
@@ -1253,10 +1269,12 @@ function optSummary(res) {
     report: res.report, ms: res.ms,
   };
 }
-function openOptimiser() {
+function openOptimiser(seedOpts = null) {
   const dlg = $('#optimise');
   const D = optimiserDefaults(data);
-  const o = optOpts || { ...D };
+  const o = { ...(optOpts || D) };
+  delete o.seed; delete o.seedLabel;
+  if (seedOpts?.seed) { o.seed = seedOpts.seed; o.seedLabel = seedOpts.seedLabel; lastOpt = null; }
   const brief = data.brief?.rules?.some(r => r.id === 'min_nonres_fsr');
   const check = (key, label, note) => { const i = h('input', { type: 'checkbox', id: `op-${key}`, checked: !!o[key] }); i.addEventListener('change', () => { o[key] = i.checked; }); return h('label', { for: `op-${key}`, class: 'chk' }, i, ' ', label, note ? h('span', { class: 'note' }, ` — ${note}`) : null); };
   const numIn = (key, label, step, min, max, unit, src) => numField(`op-${key}`, label, o[key], { step, min, max, unit, src, onchange: v => { o[key] = v == null ? D[key] : v; } });
@@ -1284,6 +1302,8 @@ function openOptimiser() {
   };
   put(dlg, h('div', { class: 'help opt' },
     h('div', { class: 'help-head' }, h('h2', { id: 'optTitle' }, 'Find a mix that works'), h('button', { class: 'close', 'aria-label': 'Close', onclick: () => dlg.close() }, '×')),
+    o.seedLabel ? h('p', { class: 'scenario-note' }, h('b', {}, 'Seeded from '), o.seedLabel, ': moving away from its uses costs a penalty, so its character stays.') : null,
+    scenarioBanner(true),
     h('p', { class: 'note' }, 'Keeps your building form (floors, heights, plates) and searches for the uses that give the best verdict and the most headroom over the land price, within the brief and market caps. Each floor is scored with the full calculator; a step-by-step search picks the stack; whole buildings are then checked again.'),
     h('details', { open: !lastOpt }, h('summary', {}, 'Options'),
       h('div', { class: 'opt-grid' },
@@ -1306,6 +1326,67 @@ function openOptimiser() {
   dlg.showModal();
 }
 
+// ---------- Precedent presets and market scenarios ----------
+const precedentById = id => (raw.precedents?.presets || []).find(p => p.id === id) || null;
+function setScenario(sc) { pushHistory(); state.scenario = sc; refresh(); }
+function scenarioBanner(compact = false) {
+  const label = scenarioLabel(state.scenario, data, raw.precedents);
+  if (!label) return null;
+  return h('div', { class: 'scenario-note' }, h('b', {}, 'Scenario: '), label, compact ? null : ' — an optional overlay, not the 2026 defaults. ', h('button', { class: 'linkish', onclick: () => setScenario(null) }, 'Turn off'));
+}
+/** A tiny section of a preset: bands coloured by the family of their main use. */
+function presetMini(p, w = 30, hgt = 96) {
+  const strip = presetStrip(p, data);
+  return h('span', { class: 'mini-sec', 'aria-hidden': 'true', html: `<svg viewBox="0 0 ${w} ${hgt}" width="${w}" height="${hgt}">${strip.map(s => `<rect x="2" y="${(hgt - 2 - s.to * (hgt - 4)).toFixed(1)}" width="${w - 4}" height="${Math.max(1, (s.to - s.from) * (hgt - 4) - 0.6).toFixed(1)}" fill="${esc(famColour(s.family))}"/>`).join('')}<line x1="0" x2="${w}" y1="${hgt - 2}" y2="${hgt - 2}" stroke="currentColor" stroke-width="1"/></svg>` });
+}
+function applyPresetToPage(p, withContext) {
+  const built = applyPreset(state.floors, p, data, { podiumTopFloor: settingsFull().podiumTopFloor });
+  pushHistory();
+  state.floors = built.floors; state.precedent = p.id; state.sel = null; editMix = null;
+  if (withContext && p.context) state.scenario = { kind: 'precedent', id: p.id };
+  else if (state.scenario?.kind === 'precedent') state.scenario = null;
+  refresh();
+  return built;
+}
+function relyPanel() {
+  const p = state.precedent ? precedentById(state.precedent) : null;
+  if (!p) return null;
+  const on = state.scenario?.kind === 'precedent' && state.scenario.id === p.id;
+  const ctxBox = p.context ? h('label', { class: 'chk' }, (() => { const i = h('input', { type: 'checkbox', checked: on }); i.addEventListener('change', () => setScenario(i.checked ? { kind: 'precedent', id: p.id } : null)); return i; })(), ' Use this precedent’s market context', h('span', { class: 'note' }, ` (${p.context.label}): `), p.context.items.map(it => h('span', { class: 'note', 'data-tip': `${it.note} · grade ${it.grade}` }, `${it.setting} → ${it.to}; `))) : null;
+  return h('div', { class: 'rely' },
+    h('div', { class: 'rely-head' }, presetMini(p, 22, 60), h('div', {}, h('strong', {}, `From a precedent: ${p.name}`), h('div', { class: 'note' }, `${p.city} · ${p.height_m} m · ${p.floors} floors · ${p.year_complete ?? p.status}`)),
+      h('button', { class: 'linkish', style: 'margin-left:auto', onclick: () => { state.precedent = null; save(); renderTab(); } }, 'Hide')),
+    h('p', { class: 'note' }, p.why),
+    h('div', {}, h('b', {}, 'What this precedent relied on'), h('ul', { class: 'note' }, p.relied_on.map(x => h('li', {}, x)))),
+    p.approximation ? h('p', { class: 'note' }, `Mapping: ${p.approximation}`) : null,
+    ctxBox,
+    h('div', { class: 'toolbar' }, h('button', { onclick: () => openOptimiser({ seed: state.floors.map(f => ({ level: f.level, mix: f.mix })), seedLabel: p.name }) }, 'Polish with Find a mix that works')));
+}
+function openPresets() {
+  const dlg = $('#presets');
+  const list = raw.precedents?.presets || [];
+  const card = p => {
+    const withCtx = p.context ? h('input', { type: 'checkbox', id: `pc-${p.id}` }) : null;
+    return h('div', { class: 'pcard' },
+      presetMini(p),
+      h('div', { class: 'pcard-body' },
+        h('strong', {}, p.name), h('div', { class: 'note' }, `${p.city} · ${p.height_m} m · ${p.floors} floors · ${p.year_complete ?? p.status}`),
+        h('p', { class: 'pwhy' }, p.why),
+        h('div', { class: 'toolbar' },
+          h('button', { class: 'primary', onclick: () => { applyPresetToPage(p, withCtx?.checked); dlg.close(); showTab('verdict'); toast(`${p.name} applied to your floors. Undo reverses it.`); } }, 'Apply to my tower'),
+          withCtx ? h('label', { for: `pc-${p.id}`, class: 'chk small' }, withCtx, ' with its market context') : null)));
+  };
+  const sel = h('select', { id: 'mktSel', 'aria-label': 'Market scenario' }, h('option', { value: '' }, '2026 now (default)'), Object.entries(data.assumptions.scenarios || {}).filter(([k, v]) => v?.label && v.items?.length).map(([k, v]) => h('option', { value: k, selected: state.scenario?.kind === 'market' && state.scenario.id === k }, v.label)));
+  sel.addEventListener('change', () => setScenario(sel.value ? { kind: 'market', id: sel.value } : null));
+  put(dlg, h('div', { class: 'help presets' },
+    h('div', { class: 'help-head' }, h('h2', { id: 'presetsTitle' }, 'Start from a precedent'), h('button', { class: 'close', 'aria-label': 'Close', onclick: () => dlg.close() }, '×')),
+    h('p', { class: 'note' }, 'Stacks of built or approved towers, mapped onto your floors by height (your geometry stays). Each card says what made it work. Its market context is optional and always labelled; it never changes the 2026 defaults by itself.'),
+    h('div', { class: 'field' }, h('label', { for: 'mktSel' }, 'Market scenario'), sel),
+    h('div', { class: 'pgallery' }, list.map(card)),
+    h('p', { class: 'note' }, `Sources and floor ranges: catalogue/precedents.json and docs/precedents.md. ${raw.precedents?.meta?.not_included || ''}`)));
+  dlg.showModal();
+}
+
 // ---------- Help guide and "Show me" tour ----------
 const HELP_KEY = 'pvv-help-seen';
 function openHelp() {
@@ -1321,7 +1402,7 @@ function openHelp() {
       step(1, 'Start with a tower.', 'A sample tower opens by default. Or answer a few questions in “Start from your concept” (Ask AI tab): it arranges a starting stack and explains why, with AI or with fixed rules. You can also set the height and plate sizes under the section, or import your floors from a CSV or JSON file.'),
       step(2, 'Select floors.', 'Click a floor in the section (the tower drawing). Shift-click a second floor to select a range.'),
       step(3, 'Set the mix.', 'In the Floors tab, press “Add a programme…” and pick from the picture list (filter by family or search; arrow keys and Enter work too). It joins the mix. Set each share (they must add to 100%), then press Apply. The programme card shows its value and cost per m². Type your own number there if you know better.'),
-      step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land. “Find a mix that works” keeps your floors and searches the uses that give the best result, and says plainly when nothing works.'),
+      step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land. “Find a mix that works” keeps your floors and searches the uses that give the best result, and says plainly when nothing works. “Presets” starts from a built tower (Living Shangri-La, Lotte World Tower and others) and shows what it relied on.'),
       step(5, 'Check, then ask.', 'The City ledger shows what the City receives. Sensitivity shows which numbers move the result most. The Map shows the neighbouring roofs around a point you click. “Diagram” (above the section) exports a programme word-stack drawing as SVG or PNG. Method & sources shows where every number comes from. Ask AI (on claude.ai) explains the result and can edit the scheme for you.')),
     h('h3', {}, 'What the verdict means'),
     h('ul', { class: 'help-list' },
@@ -1393,7 +1474,9 @@ async function boot() {
   wireTips();
   try { await loadData(); } catch (e) { put($('#tab-verdict'), h('p', { class: 'neg' }, 'Could not load the data pack: ' + e.message)); return; }
   const saved = load();
-  if (saved) { state.brief = raw.briefs[saved.brief] ? saved.brief : 'vtc-2026'; const ms = saved.mapSite; if (ms && Number.isFinite(ms.x) && Number.isFinite(ms.y) && Math.abs(ms.x) < 1e5 && Math.abs(ms.y) < 1e5) state.mapSite = { x: ms.x, y: ms.y }; }
+  if (saved) { state.brief = raw.briefs[saved.brief] ? saved.brief : 'vtc-2026'; const ms = saved.mapSite; if (ms && Number.isFinite(ms.x) && Number.isFinite(ms.y) && Math.abs(ms.x) < 1e5 && Math.abs(ms.y) < 1e5) state.mapSite = { x: ms.x, y: ms.y };
+    const sc = saved.scenario; if (sc && ['market', 'precedent'].includes(sc.kind) && typeof sc.id === 'string') state.scenario = { kind: sc.kind, id: sc.id };
+    if (typeof saved.precedent === 'string') state.precedent = saved.precedent; }
   buildData();
   if (saved) { try { state.floors = normaliseFloors(saved.floors); state.settings = saved.settings && typeof saved.settings === 'object' ? saved.settings : {}; evaluate(state.floors, data, state.settings); } catch (e) { state.floors = []; state.settings = {}; } }
   if (!state.floors.length) state.floors = sampleTower();
@@ -1402,6 +1485,7 @@ async function boot() {
   $('#undoBtn').addEventListener('click', undo);
   $('#helpBtn').addEventListener('click', openHelp);
   $('#diagramBtn').addEventListener('click', openDiagram);
+  $('#presetsBtn').addEventListener('click', openPresets);
   $('#optTopBtn').addEventListener('click', openOptimiser);
   let seen = false; try { seen = !!localStorage.getItem(HELP_KEY); } catch (e) { seen = true; }
   $('#themeBtn').addEventListener('click', () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; if (activeTab === 'map') renderMap(); });
