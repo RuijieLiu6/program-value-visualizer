@@ -365,7 +365,15 @@ async function loadBasemap() {
   if (mapView.map || mapView.loading) return mapView.loading;
   mapView.loading = (async () => {
     const manifest = await fetch(BASEMAP).then(r => { if (!r.ok) throw new Error(`${BASEMAP}: ${r.status}`); return r.json(); });
-    const buf = await fetch('basemap/' + manifest.file).then(r => { if (!r.ok) throw new Error(`${manifest.file}: ${r.status}`); return r.arrayBuffer(); });
+    // the map ships as base64 text, a type every host (including claude.ai artifacts) serves
+    const name = manifest.file_b64 || manifest.file;
+    const buf = await fetch('basemap/' + name).then(async r => {
+      if (!r.ok) throw new Error(`${name}: ${r.status}`);
+      if (!manifest.file_b64) return r.arrayBuffer();
+      const bin = atob((await r.text()).trim()), out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out.buffer;
+    });
     mapView.map = parseBasemap(manifest, buf);
     mapView.paths = buildMapPaths(mapView.map);
     const [x0, y0, x1, y1] = manifest.extent_m; mapView.cx = (x0 + x1) / 2; mapView.cy = (y0 + y1) / 2;
