@@ -1,6 +1,6 @@
 """Serve Program Value Visualizer locally.
 
-index.html is written for claude.ai, which wraps the page in a <!doctype html>
+index.html and money-book.html are written for claude.ai, which wraps a page in a <!doctype html>
 skeleton when it publishes it. This server adds the same skeleton so the page
 also runs in standards mode on your own computer.
 
@@ -21,8 +21,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*a, directory=str(ROOT), **k)
 
     def do_GET(self):
-        if self.path.split("?")[0] in ("/", "/index.html"):
-            body = (HEAD + (ROOT / "index.html").read_text(encoding="utf-8") + "</body></html>").encode("utf-8")
+        page = self.path.split("?")[0]
+        pages = {"/": "index.html", "/index.html": "index.html", "/money-book.html": "money-book.html"}
+        if page in pages:
+            body = (HEAD + (ROOT / pages[page]).read_text(encoding="utf-8") + "</body></html>").encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))

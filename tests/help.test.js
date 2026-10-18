@@ -12,7 +12,7 @@ const app = fs.readFileSync(path.join(ROOT, 'app/app.js'), 'utf8');
 test('the header has a Help button that opens a dialog', () => {
   assert.match(html, /<button id="helpBtn"[^>]*>Help<\/button>/);
   assert.match(html, /<dialog id="help"/);
-  assert.match(app, /\$\('#helpBtn'\)\.addEventListener\('click', openHelp\)/);
+  assert.match(app, /\$\('#helpBtn'\)\.addEventListener\('click', \(\) => openHelp\(\)\)/);
 });
 
 test('the guide covers the question, five steps, verdicts, grades, typical estimates and limits', () => {

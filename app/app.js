@@ -4,6 +4,9 @@ import { wordStackLayout, wordStackSVG, inkOf, FONT_STACK } from '../core/wordst
 import { readPrompt, normaliseDiagramRead, floorsFromBands } from '../core/diagram_read.js';
 import { optimiseMix, optimiserDefaults } from '../core/optimiser.js';
 import { applyPreset, applyScenario, scenarioItems, scenarioLabel, presetStrip } from '../core/precedents.js';
+import { moneySteps, moneyStackHTML, MONEY_STACK_CSS } from '../core/money_steps.js';
+import { sym, trafficLight } from './learn/symbols.js';
+import { renderMoneyStory } from './learn/money_story.js';
 import { PRIORITIES, PLATES, planningGuide, stackToFloors, starterStack, explainStack } from '../core/planner.js';
 import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
 import { TYPICAL_BASES, indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
@@ -189,6 +192,8 @@ function renderTab() {
   ({ verdict: renderVerdict, floors: renderFloors, city: renderCity, map: renderMap, sens: renderSens, assume: renderAssume, ai: renderAI, about: renderAbout })[activeTab]();
 }
 
+/** A label with one of the money symbols in front (the same symbols as the Tower Money Book). */
+const withSym = (name, text, size = 16) => [h('span', { class: 'ksym', 'aria-hidden': 'true', html: sym(name, size) }), text];
 function kpi(k, v, cls = '', tip = null, big = false) { return h('div', { class: `kpi${big ? ' big' : ''}`, 'data-tip': tip }, h('span', { class: 'k' }, k), h('span', { class: `v ${cls}` }, v)); }
 const signCls = x => (x < 0 ? 'neg' : x > 0 ? 'pos' : '');
 
@@ -260,18 +265,21 @@ function renderVerdict() {
   const el = $('#tab-verdict');
   const optBtn = h('div', { class: 'toolbar opt-bar' }, h('button', { class: 'primary', onclick: () => openOptimiser() }, 'Find a mix that works'), h('button', { onclick: openPresets }, 'Presets'), h('span', { class: 'note' }, 'search uses for your form, or start from a built tower'));
   const verdict = h('div', { class: `verdict ${r.verdict}` },
-    h('span', { class: 'label-strip' }, 'Verdict'), h('h3', {}, VERDICT[r.verdict]),
+    h('span', { class: 'label-strip' }, 'Verdict'), h('h3', { class: 'v-head' }, h('span', { 'aria-hidden': 'true', html: trafficLight(r.verdict, 30) }), VERDICT[r.verdict]),
     h('ul', {}, r.reasons.map(x => h('li', {}, x)), r.marketDependent ? h('li', {}, 'Market-dependent: the scheme relies on condo presales.') : null),
     h('span', { class: 'note' }, 'Works = residual land value covers the land price at the target profit, presales are reachable and every public floor has a payer. Marginal = within 10% of the land price, or 10–15% profit, or relies on a weak presale market. Land price needed = enter a land price to compare.'));
   const land = landBlock(r, S, A);
+  const stack = h('div', { class: 'money-stack' },
+    h('div', { class: 'ms-head' }, h('h4', { style: 'margin:0' }, 'Where the money goes'), h('button', { class: 'linkish', onclick: () => openHelp('money', 6) }, 'How to read this')),
+    h('div', { html: moneyStackHTML(moneySteps(r), { fmt: x => `C$${Math.round(x / 1e6).toLocaleString('en-CA')} M`, sym: n => sym(n, 22) }) }));
   const kpis = h('div', { class: 'kpis' },
-    kpi('Gross development value', M(t.gdv), '', 'Sum of floor values after selling and leasing costs'),
-    kpi('Total cost (before profit)', M(t.cost), '', `Hard ${M(t.hard)} · soft ${M(t.soft)} · finance ${M(t.finance)} · City charges ${M(t.charges)}`),
-    kpi('Developer profit', M(t.profit), '', `${pct(S.profitOnCost, 0)} of total cost`),
-    kpi('Public running cost (capitalised)', M(t.publicDeduction), '', 'Subtracted from value unless the City or a partner pays'),
+    kpi(withSym('coin', 'Gross development value'), M(t.gdv), '', 'Sum of floor values after selling and leasing costs'),
+    kpi(withSym('brick', 'Total cost (before profit)'), M(t.cost), '', `Hard ${M(t.hard)} · soft ${M(t.soft)} · finance ${M(t.finance)} · City charges ${M(t.charges)}`),
+    kpi(withSym('piggy', 'Developer profit'), M(t.profit), '', `${pct(S.profitOnCost, 0)} of total cost`),
+    kpi(withSym('public', 'Public running cost (capitalised)'), M(t.publicDeduction), '', 'Subtracted from value unless the City or a partner pays'),
     kpi('Residual land value before CAC', M(t.rlvBeforeCac), signCls(t.rlvBeforeCac)),
-    kpi('CAC (share of land lift)', M(t.cac), '', r.employmentOnly ? 'Zero: 100% employment rezoning' : `${pct(S.cacShare, 0)} of the lift above the current-zoning land value`),
-    kpi('Residual land value after CAC', M(t.rlvAfterCac), signCls(t.rlvAfterCac), 'What is left to pay for the land', true),
+    kpi(withSym('city', 'CAC (share of land lift)'), M(t.cac), '', r.employmentOnly ? 'Zero: 100% employment rezoning' : `${pct(S.cacShare, 0)} of the lift above the current-zoning land value`),
+    kpi(withSym('land', 'Residual land value after CAC'), M(t.rlvAfterCac), signCls(t.rlvAfterCac), 'What is left to pay for the land', true),
     kpi(t.landEstimated ? 'Land price (estimated)' : 'Land price', t.landPrice == null ? 'not set' : M(t.landPrice), '', t.landEstimated ? 'Estimate: site area × current-zoning FSR × land rate. Type a land price above to override.' : null));
   const f = r.fsr;
   const fsr = h('div', { class: 'tbl' }, h('table', {},
@@ -289,7 +297,7 @@ function renderVerdict() {
     h('tbody', {}, Object.entries(fam).sort((a, b) => b[1].net - a[1].net).map(([k, v]) => h('tr', {},
       h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:8px;align-items:center' }, familyIcon(k), data.families.get(k)?.name)),
       h('td', { class: 'num' }, N(v.gfa)), h('td', { class: 'num' }, M(v.value)), h('td', { class: 'num' }, M(v.cost)), h('td', { class: `num ${signCls(v.net)}` }, M(v.net)))))));
-  put(el, optBtn, scenarioBanner(), verdict, relyPanel(), land, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
+  put(el, optBtn, scenarioBanner(), verdict, relyPanel(), stack, land, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
 }
 /** A family's icon is its first programme's icon; a colour swatch if it has none. */
 function familyIcon(famId) { const first = [...data.programmes.values()].find(p => p.family_id === famId); return first && iconSvg(first.id) ? iconEl(first.id, 26) : h('i', { class: 'sw', style: `background:${famColour(famId)}` }); }
@@ -373,7 +381,7 @@ function tenureOf(id) {
   const t = TENURE[row?.earns_by ?? p?.earns_by] ?? TENURE.public;
   return { key: t[0], label: t[1] };
 }
-const tenureTag = id => { const t = tenureOf(id); return h('span', { class: `tenure ${t.key}`, title: `How it earns: ${t.label.toLowerCase()}` }, t.label); };
+const tenureTag = id => { const t = tenureOf(id); return h('span', { class: `tenure ${t.key}`, title: `How it earns: ${t.label.toLowerCase()}` }, h('span', { class: 'tsym', 'aria-hidden': 'true', html: sym(t.key, 12) }), t.label); };
 const idTag = id => h('span', { class: 'pid', title: 'Programme code' }, id);
 let pickerOpen = false, pickerQuery = '';
 function addProgramme(id) {
@@ -476,7 +484,7 @@ function floorTable() {
 // ---------- City ledger tab ----------
 function renderCity() {
   const r = result, L = r.ledger, t = r.totals, S = settingsFull(), A = data.assumptions, C = data.charges;
-  const line = (k, v, tip) => h('tr', { 'data-tip': tip }, h('td', {}, k), h('td', { class: 'num' }, M(v, 2)));
+  const line = (k, v, tip, s = 'city') => h('tr', { 'data-tip': tip }, h('td', {}, withSym(s, k)), h('td', { class: 'num' }, M(v, 2)));
   const tbl = h('div', { class: 'tbl' }, h('table', {}, h('tbody', {},
     line('Vancouver DCL', L.dcl, srcText(C.components.dcl.rates.residential)),
     line('Utilities DCL', L.utilitiesDcl, srcText(C.components.utilities_dcl.rates.residential)),
@@ -484,7 +492,7 @@ function renderCity() {
     L.other ? line('Other charges you entered', L.other) : null,
     line('CAC, cash', L.cac, srcText(C.cac.share_of_lift)),
     L.cacEndowment ? line('CAC kept as an endowment for public floors', L.cacEndowment) : null,
-    line('Build cost of in-kind public space (childcare, library, community, transit, social housing, free floors)', L.inKindBuildCost),
+    line('Build cost of in-kind public space (childcare, library, community, transit, social housing, free floors)', L.inKindBuildCost, null, 'public'),
     h('tr', {}, h('th', {}, 'Total to the public'), h('th', { class: 'num' }, M(L.total, 2))))));
   const payer = h('select', { id: 'payer' }, [['cross_subsidy', 'Cross-subsidy inside the building'], ['cac_endowment', 'Endowment from the CAC'], ['ticketed_deck', 'Ticketed deck pays for free floors'], ['city_or_partner', 'City or a partner runs and pays']].map(([v, l]) => h('option', { value: v, selected: S.publicPayer === v }, l)));
   payer.addEventListener('change', () => setSetting('publicPayer', payer.value));
@@ -1389,7 +1397,9 @@ function openPresets() {
 
 // ---------- Help guide and "Show me" tour ----------
 const HELP_KEY = 'pvv-help-seen';
-function openHelp() {
+/** The standalone Tower Money Book page (set once it is published; null hides the link). */
+const BOOK_URL = 'https://claude.ai/artifact/B3GNW8SaozeMKDPdN5gpHP';
+function openHelp(view = 'use', chapter = 0) {
   const dlg = $('#help');
   const step = (n, title, ...body) => h('li', {}, h('strong', {}, title), ' ', ...body);
   const pill = (cls, t) => h('span', { class: `pill ${cls}` }, t);
@@ -1422,6 +1432,21 @@ function openHelp() {
     h('h3', {}, 'Limits'),
     h('p', { class: 'note' }, 'Every result is an indicative early-design estimate. It is for comparing early options. It is not a feasibility study, an appraisal or a compliance check. Market data is a snapshot from 2026, and the map is visual context, not survey data.'),
     h('div', { class: 'toolbar' }, h('button', { class: 'primary', onclick: () => { dlg.close(); startTour(); } }, 'Show me'), h('button', { onclick: () => dlg.close() }, 'Close'))));
+  // two views: using the tool, and the Tower Money Book (same symbols as the tool)
+  const box = dlg.querySelector('.help'), head = box.firstChild;
+  const useView = h('div', { class: 'help-view', id: 'helpUse', role: 'tabpanel' }); while (head.nextSibling) useView.append(head.nextSibling);
+  const moneyView = h('div', { class: 'help-view', id: 'helpMoney', role: 'tabpanel', hidden: true });
+  useView.prepend(h('p', { class: 'help-promo' }, h('span', { 'aria-hidden': 'true', html: sym('coins', 22) }), 'New to how a tower pays for itself? ', h('button', { class: 'linkish', onclick: () => setView('money') }, 'Read “How the money works”'), ' — 13 short chapters with pictures, using the same symbols as the tool.'));
+  const tabBtn = (v, label) => h('button', { role: 'tab', class: 'help-tab', 'data-view': v, 'aria-selected': 'false', onclick: () => setView(v) }, label);
+  const tabs = h('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'Help' }, tabBtn('use', 'Using the tool'), tabBtn('money', 'How the money works'));
+  let rendered = false;
+  const setView = (v, ch = 0) => {
+    for (const b of tabs.children) b.setAttribute('aria-selected', String(b.dataset.view === v));
+    useView.hidden = v !== 'use'; moneyView.hidden = v !== 'money';
+    if (v === 'money' && (!rendered || ch)) { rendered = true; renderMoneyStory(moneyView, { data, mode: 'guide', start: ch, bookUrl: BOOK_URL, onGoto: tab => { dlg.close(); showTab(tab); } }); }
+  };
+  head.after(tabs); box.append(useView, moneyView);
+  setView(view, chapter);
   dlg.showModal();
   try { localStorage.setItem(HELP_KEY, '1'); } catch (e) { /* storage unavailable */ }
 }
@@ -1483,7 +1508,8 @@ async function boot() {
   $('#briefSel').value = state.brief;
   $('#briefSel').addEventListener('change', e => { pushHistory(); state.brief = e.target.value; buildData(); refresh(); });
   $('#undoBtn').addEventListener('click', undo);
-  $('#helpBtn').addEventListener('click', openHelp);
+  $('#helpBtn').addEventListener('click', () => openHelp());
+  if (!document.getElementById('ms-style')) document.head.append(h('style', { id: 'ms-style' }, MONEY_STACK_CSS));
   $('#diagramBtn').addEventListener('click', openDiagram);
   $('#presetsBtn').addEventListener('click', openPresets);
   $('#optTopBtn').addEventListener('click', openOptimiser);

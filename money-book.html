@@ -1,0 +1,86 @@
+<title>Tower Money Book</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,600&display=swap">
+<style>
+/* Layout: a picture book in the margins of a newspaper: masthead, symbol key, then chapters with an illustration beside short text and one thing to try. Same tokens as Program Value Visualizer, plus an editorial serif for headlines and the illustration palette. */
+:root {
+  --paper: #f3f4f1; --sheet: #ffffff; --ink: #1d2730; --muted: #5d6973; --line: #d5dad7; --line-2: #e7eaec;
+  --accent: #1f5f8b; --accent-soft: #e2edf5; --good: #2f7d4f; --warn: #a86a12; --bad: #b23b3b;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --book-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --body: "Public Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --radius: 6px;
+  --ill-paper: #f6f3ec; --ill-ink: #1d2730; --ill-sky: #dce8ee; --ill-ground: #c9c2b3; --ill-shade: #9aa7b1;
+  --sym-ink: #1d2730; --sym-paper: #fbfaf6;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #11161b; --sheet: #182027; --ink: #e5eaee; --muted: #9aa7b1; --line: #2c3842; --line-2: #222c35;
+  --accent: #7cb5dc; --accent-soft: #1d3446; --good: #6cc492; --warn: #e2ad57; --bad: #ef8a83;
+  --ill-paper: #e9e4d8; --ill-sky: #cfdde4; --ill-ground: #bdb5a5;
+  --sym-ink: #e5eaee; --sym-paper: #f3f1ea; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #11161b; --sheet: #182027; --ink: #e5eaee; --muted: #9aa7b1; --line: #2c3842; --line-2: #222c35;
+  --accent: #7cb5dc; --accent-soft: #1d3446; --good: #6cc492; --warn: #e2ad57; --bad: #ef8a83;
+  --ill-paper: #e9e4d8; --ill-sky: #cfdde4; --ill-ground: #bdb5a5;
+  --sym-ink: #e5eaee; --sym-paper: #f3f1ea; color-scheme: dark }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); }
+.page { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px; display: flex; flex-direction: column; gap: 26px; }
+.mast { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px 36px; align-items: end; border-bottom: 3px double var(--ink); padding-bottom: 22px; }
+.mast .eyebrow { font: 500 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.mast h1 { font: 600 clamp(40px, 7vw, 76px)/.95 var(--book-serif); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+.mast .dek { font: 500 clamp(17px, 2vw, 21px)/1.4 var(--book-serif); margin: 14px 0 0; max-width: 34ch; }
+.mast .lede { margin: 0; max-width: 60ch; }
+.mast .lede p { margin: 0 0 10px; }
+.mast figure { margin: 0; }
+.mast figure svg { display: block; width: 100%; height: auto; border-radius: 4px; }
+.coin-rule { font: 500 12px/1.5 var(--mono); color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+.foot { font: 500 11px/1.6 var(--mono); color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; letter-spacing: .02em; }
+a { color: var(--accent); }
+button, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 1px solid var(--line); background: var(--sheet); border-radius: var(--radius); padding: 6px 11px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--sheet); border-color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 5px 8px; min-width: 0; }
+input[type=range] { accent-color: var(--accent); }
+@media (max-width: 760px) { .mast { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="page">
+  <header class="mast">
+    <div>
+      <p class="eyebrow">A picture book for Program Value Visualizer</p>
+      <h1>Tower Money Book</h1>
+      <p class="dek">How a tall building pays for itself, one box at a time.</p>
+    </div>
+    <div class="lede">
+      <figure id="hero"></figure>
+    </div>
+  </header>
+  <div class="lede">
+    <p>A tall building is a big bet. Someone spends hundreds of millions of dollars on concrete, steel and glass, years before anyone moves in. This book explains, in plain words, where that money comes from, where it goes, and how the calculator decides whether a tower <b>works</b>.</p>
+    <p class="coin-rule">In the early chapters, coins are pretend money to keep the sums small. From chapter 5 on, numbers come from the tool’s own 2026 Vancouver data, and 1 coin = C$1 million.</p>
+  </div>
+  <main id="book" aria-label="Tower Money Book"><p>Loading the book…</p></main>
+  <footer class="foot">Tower Money Book · Program Value Visualizer · indicative early-design estimates, not a feasibility study, appraisal or compliance check · illustrations drawn for this book in an editorial style</footer>
+</div>
+
+<script type="module">
+import { indexData } from './core/econ_core.js';
+import { renderMoneyStory } from './app/learn/money_story.js';
+const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.json(); });
+const P = 'packs/vancouver-2026/';
+let data = null;
+try {
+  const [families, programmes, values, costs, charges, assumptions, codeRules, sources, brief] = await Promise.all([
+    get('catalogue/families.json'), get('catalogue/programmes.json'), get(P + 'values.json'), get(P + 'costs.json'), get(P + 'charges.json'),
+    get(P + 'assumptions.json'), get(P + 'code_rules.json'), get(P + 'sources.json'), get('briefs/none/brief.json')]);
+  data = indexData({ families, programmes, values, costs, charges, assumptions, codeRules, sources, brief });
+} catch (e) { /* the picture chapters still work; the calculator chapters say they could not load */ }
+await renderMoneyStory(document.getElementById('book'), { data, mode: 'book' });
+try { const { SCENES } = await import('./app/learn/scenes.js'); document.getElementById('hero').innerHTML = SCENES.stack(); } catch (e) { /* no hero picture */ }
+</script>

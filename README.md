@@ -8,9 +8,9 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 **Every number is an indicative early-design estimate.** It is not a feasibility study, an appraisal or a compliance check, and the tool says so on every screen and export.
 
-Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (108 tests). See [Roadmap](#roadmap).
+Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (115 tests). See [Roadmap](#roadmap).
 
-Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
+Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The **Tower Money Book** (how tower money works, in pictures) is at http://localhost:8020/money-book.html and in the tool's Help → “How the money works”. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
 
 ---
 
