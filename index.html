@@ -1,0 +1,186 @@
+<title>Program Value Visualizer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a drawing board. Left, the tower section drawn to scale with value-minus-cost bars; right, a tabbed ledger of numbers, each traceable to its source. */
+:root {
+  --paper: #f3f4f1; --sheet: #ffffff; --ink: #1d2730; --muted: #5d6973; --line: #d5dad7; --line-2: #e7eae7;
+  --accent: #1f5f8b; --accent-soft: #e2edf5;
+  --good: #2f7d4f; --good-soft: #e3f1e8; --warn: #a86a12; --warn-soft: #f8eedb; --bad: #b23b3b; --bad-soft: #f7e3e1;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Public Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #11161b; --sheet: #182027; --ink: #e5eaee; --muted: #9aa7b1; --line: #2c3842; --line-2: #222c35;
+  --accent: #7cb5dc; --accent-soft: #1d3446;
+  --good: #6cc492; --good-soft: #193326; --warn: #e2ad57; --warn-soft: #3a2c14; --bad: #ef8a83; --bad-soft: #3b1f1f; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #11161b; --sheet: #182027; --ink: #e5eaee; --muted: #9aa7b1; --line: #2c3842; --line-2: #222c35;
+  --accent: #7cb5dc; --accent-soft: #1d3446;
+  --good: #6cc492; --good-soft: #193326; --warn: #e2ad57; --warn-soft: #3a2c14; --bad: #ef8a83; --bad-soft: #3b1f1f; color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.5 var(--body); }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+header.top h1 { font: 700 22px/1.1 var(--display); letter-spacing: -0.01em; margin: 0; }
+header.top .sub { color: var(--muted); font-size: 13px; }
+header.top .spacer { flex: 1; }
+header.top .ctrls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font: 600 12px/1.4 var(--body); letter-spacing: .02em; border: 1px solid transparent; }
+.pill.works { background: var(--good-soft); color: var(--good); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
+.pill.marginal { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
+.pill.doesnt_work { background: var(--bad-soft); color: var(--bad); border-color: color-mix(in srgb, var(--bad) 30%, transparent); }
+.label-strip { font: 500 11px/1.4 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 1px solid var(--line); background: var(--sheet); border-radius: var(--radius); padding: 6px 11px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--sheet); border-color: var(--accent); }
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select, input[type=number], input[type=text], textarea { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 5px 8px; min-width: 0; }
+input[type=number] { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.board { display: grid; grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.4fr); gap: 14px; align-items: start; }
+@media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+.panel { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.panel > .ph { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line-2); flex-wrap: wrap; }
+.panel > .ph h2 { font: 700 15px/1.2 var(--display); margin: 0; }
+.panel > .pb { padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.section-wrap { overflow-x: auto; }
+#section { display: block; width: 100%; height: auto; max-height: calc(100vh - 210px); min-height: 360px; user-select: none; }
+.board > .panel:first-child { position: sticky; top: env(safe-area-inset-top, 0px); }
+@media (max-width: 900px) { .board > .panel:first-child { position: static; } #section { max-height: 70vh; } }
+#section text { font: 10px var(--mono); fill: var(--muted); }
+#section .floor { cursor: pointer; }
+#section .floor:hover rect.slab { stroke: var(--ink); stroke-width: .6; }
+#section rect.sel { fill: none; stroke: var(--accent); stroke-width: 1.4; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; padding: 0 8px; border-bottom: 1px solid var(--line-2); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 10px 10px 8px; color: var(--muted); white-space: nowrap; font-weight: 500; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabpanel { padding: 14px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kpi { border: 1px solid var(--line-2); border-radius: var(--radius); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.kpi .k { font-size: 12px; color: var(--muted); }
+.kpi .v { font: 500 18px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+.kpi.big { grid-column: span 2; }
+.kpi .v.neg { color: var(--bad); } .kpi .v.pos { color: var(--good); }
+.verdict { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: var(--radius); border: 1px solid var(--line); }
+.verdict.works { background: var(--good-soft); border-color: color-mix(in srgb, var(--good) 35%, transparent); }
+.verdict.marginal { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+.verdict.doesnt_work { background: var(--bad-soft); border-color: color-mix(in srgb, var(--bad) 35%, transparent); }
+.verdict h3 { margin: 0; font: 700 24px/1.1 var(--display); }
+.verdict ul { margin: 0; padding-left: 18px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+th { font: 500 11px/1.3 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+td.num, th.num { text-align: right; font-family: var(--mono); }
+.tbl { overflow-x: auto; max-width: 100%; }
+.neg { color: var(--bad); } .pos { color: var(--good); }
+.rules { display: flex; flex-direction: column; gap: 6px; }
+.rule { display: flex; gap: 8px; padding: 7px 10px; border-radius: var(--radius); border-left: 3px solid var(--line); background: var(--paper); font-size: 13px; }
+.rule.block, .rule.error { border-left-color: var(--bad); }
+.rule.warning { border-left-color: var(--warn); }
+.rule.info { border-left-color: var(--accent); }
+.rule b { font: 600 11px/1.6 var(--mono); text-transform: uppercase; color: var(--muted); min-width: 62px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 16px; }
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.field label { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.src { font: 500 10.5px/1.3 var(--mono); color: var(--accent); cursor: help; border-bottom: 1px dotted currentColor; }
+.grade { font: 600 10px/1 var(--mono); padding: 2px 4px; border-radius: 3px; background: var(--line-2); color: var(--muted); }
+.grade.A { background: var(--good-soft); color: var(--good); } .grade.B { background: var(--accent-soft); color: var(--accent); } .grade.C { background: var(--warn-soft); color: var(--warn); }
+.mix-row { display: grid; grid-template-columns: minmax(0, 1fr) 88px 34px; gap: 6px; align-items: center; }
+.mix-row .nm { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.mix-row .nm span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sw { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.picker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; gap: 6px; }
+@media (max-width: 520px) { .picker { grid-template-columns: 1fr; } }
+.note { color: var(--muted); font-size: 12.5px; max-width: 70ch; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tornado text { font: 11px var(--body); fill: var(--ink); }
+.tornado .axis { stroke: var(--muted); }
+.chat { display: flex; flex-direction: column; gap: 10px; }
+.msgs { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+.msg { padding: 8px 11px; border-radius: var(--radius); white-space: pre-wrap; max-width: 92%; font-size: 13.5px; }
+.msg.user { align-self: flex-end; background: var(--accent-soft); }
+.msg.ai { align-self: flex-start; background: var(--paper); border: 1px solid var(--line-2); }
+.msg.tool { align-self: flex-start; font: 11.5px var(--mono); color: var(--muted); padding: 2px 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { font-size: 12.5px; padding: 4px 9px; border-radius: 999px; }
+footer.label { font: 500 11px/1.5 var(--mono); color: var(--muted); text-align: center; letter-spacing: .03em; }
+details summary { cursor: pointer; color: var(--muted); }
+.drop { border: 1px dashed var(--line); border-radius: var(--radius); padding: 10px; color: var(--muted); font-size: 13px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+#tip { position: fixed; z-index: 30; max-width: 320px; background: var(--ink); color: var(--paper); padding: 8px 10px; border-radius: var(--radius); font-size: 12px; line-height: 1.45; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Program Value Visualizer</h1>
+      <div class="sub">Floor-by-floor value, cost and City charges for a Vancouver tall building</div>
+    </div>
+    <span class="spacer"></span>
+    <div class="ctrls">
+      <span id="topVerdict" class="pill">…</span>
+      <label class="sr" for="briefSel">Rule set</label>
+      <select id="briefSel" title="Rule set"><option value="vtc-2026">Vancouver Tall Challenge 2026</option><option value="none">No brief</option></select>
+      <button id="undoBtn" title="Undo the last change" disabled>Undo</button>
+      <button id="themeBtn" title="Switch light or dark">Theme</button>
+    </div>
+  </header>
+  <div class="label-strip" id="labelStrip">Indicative early-design estimate · not a feasibility study, appraisal or compliance check</div>
+
+  <div class="board">
+    <section class="panel" aria-label="Tower section">
+      <div class="ph"><h2>Section</h2><span class="note" id="sectionNote">Click a floor; shift-click to select a range.</span></div>
+      <div class="pb">
+        <div class="section-wrap"><svg id="section" role="img" aria-label="Tower section with value minus cost per floor"></svg></div>
+        <div class="legend" id="legend"></div>
+        <details>
+          <summary>Start from a new sample tower or your own floors</summary>
+          <div class="grid2" style="margin-top:10px">
+            <div class="field"><label for="gHeight">Height (m)</label><input id="gHeight" type="number" value="280" min="40" max="500" step="1"></div>
+            <div class="field"><label for="gPodium">Podium floors</label><input id="gPodium" type="number" value="4" min="0" max="12" step="1"></div>
+            <div class="field"><label for="gPodiumPlate">Podium plate (m²)</label><input id="gPodiumPlate" type="number" value="4000" min="200" step="50"></div>
+            <div class="field"><label for="gTowerPlate">Tower plate, base (m²)</label><input id="gTowerPlate" type="number" value="2000" min="200" step="50"></div>
+            <div class="field"><label for="gTopPlate">Tower plate, top (m²)</label><input id="gTopPlate" type="number" value="1100" min="200" step="50"></div>
+            <div class="field"><label for="gBelow">Floors below grade</label><input id="gBelow" type="number" value="3" min="0" max="8" step="1"></div>
+          </div>
+          <div class="toolbar" style="margin-top:10px">
+            <button id="genBtn">Make sample tower</button>
+            <label class="drop" for="fileIn" style="cursor:pointer">Import floors (.csv or .json)<input id="fileIn" type="file" accept=".csv,.json,text/csv,application/json" class="sr"></label>
+            <button id="tmplBtn">Copy CSV template</button>
+          </div>
+          <p class="note">CSV columns: <code>level, elevation_m, height_m, area_m2, area_basis, mix</code>. <code>mix</code> is <code>WK1:0.8;SE4:0.2</code> (programme id : share). <code>area_basis</code> is <code>gross</code> (core included) or <code>net</code>. Your floors stay in this browser.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Results">
+      <div class="tabs" role="tablist" id="tabs">
+        <button role="tab" data-tab="verdict" aria-selected="true">Verdict</button>
+        <button role="tab" data-tab="floors" aria-selected="false">Floors</button>
+        <button role="tab" data-tab="city" aria-selected="false">City ledger</button>
+        <button role="tab" data-tab="sens" aria-selected="false">Sensitivity</button>
+        <button role="tab" data-tab="assume" aria-selected="false">Assumptions</button>
+        <button role="tab" data-tab="ai" aria-selected="false">Ask AI</button>
+        <button role="tab" data-tab="about" aria-selected="false">Method &amp; sources</button>
+      </div>
+      <div id="tab-verdict" class="tabpanel"></div>
+      <div id="tab-floors" class="tabpanel" hidden></div>
+      <div id="tab-city" class="tabpanel" hidden></div>
+      <div id="tab-sens" class="tabpanel" hidden></div>
+      <div id="tab-assume" class="tabpanel" hidden></div>
+      <div id="tab-ai" class="tabpanel" hidden></div>
+      <div id="tab-about" class="tabpanel" hidden></div>
+    </section>
+  </div>
+  <footer class="label">Program Value Visualizer · Vancouver 2026 data pack · indicative early-design estimate · check every number before you rely on it</footer>
+</div>
+<div id="tip" hidden></div>
+<script type="module" src="app/app.js"></script>

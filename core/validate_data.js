@@ -5,7 +5,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const FT2_PER_M2 = 10.764;
+import { recomputeValue, FT2_PER_M2 } from './econ_core.js';
+export { recomputeValue, FT2_PER_M2 };
 const UNITS = new Set([
   'CAD/ft2', 'CAD/ft2/yr', 'CAD/ft2/month', 'CAD/m2', 'CAD/m2/yr', 'ratio', 'ratio/floor', 'ratio/yr',
   'CAD/key', 'CAD/key/yr', 'CAD/night', 'm2/key', 'CAD/stall', 'CAD/stall/month', 'm2/stall', 'm2',
@@ -25,26 +26,6 @@ const readJSON = (root, rel, errors) => {
   try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (e) { errors.push({ code: 'json', where: rel, msg: e.message }); return null; }
 };
-
-/** Recompute a value row from its inputs. Returns null when the method has no formula. */
-export function recomputeValue(row) {
-  const v = k => (row.inputs?.[k] ? row.inputs[k].value : undefined);
-  const n = k => v(k) ?? 0;
-  switch (row.method) {
-    case 'sale': return v('sale_price_per_ft2_net') * FT2_PER_M2 * v('efficiency') * (1 - n('selling_cost'));
-    case 'income': {
-      const rentYr = v('rent_per_ft2_net_year') ?? (v('rent_per_ft2_net_month') * 12);
-      const net = rentYr * (1 - n('vacancy')) * (1 - n('leakage')) * (1 - n('opex_ratio')) - n('opex_per_ft2_year');
-      return net * FT2_PER_M2 / v('cap_rate') * v('efficiency');
-    }
-    case 'per_key': return v('noi_per_key') / v('cap_rate') / v('m2_per_key');
-    case 'visitors': return v('visitors_per_year') * v('ticket_price') * (1 + n('fnb_uplift')) * v('operating_margin') / v('cap_rate') / v('deck_area_m2');
-    case 'per_stall_sale': return v('price_per_stall') / v('m2_per_stall');
-    case 'per_stall_income': return v('rate_per_stall_month') * 12 * v('utilisation') * v('operating_margin') / v('cap_rate') / v('m2_per_stall');
-    case 'none': return 0;
-    default: return null;
-  }
-}
 
 function checkSourced(obj, where, ctx) {
   const { errors, sourceIds } = ctx;

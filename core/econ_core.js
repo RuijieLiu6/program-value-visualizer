@@ -9,6 +9,28 @@ const HOTEL_ROWS = new Set(['H1', 'H2', 'H3', 'H4', 'H5']);
 const OFFICE_ROWS = new Set(['O1', 'O2', 'O3']);
 const NO_FSR_PROGRAMMES = new Set(['SB1', 'SB2', 'SB3', 'SB4', 'SB5', 'SB6', 'SB7', 'SB8']);
 
+export const FT2_PER_M2 = 10.764;
+
+/** Recompute a value row from its inputs. Returns null when the method has no formula. */
+export function recomputeValue(row) {
+  const v = k => (row.inputs?.[k] ? row.inputs[k].value : undefined);
+  const n = k => v(k) ?? 0;
+  switch (row.method) {
+    case 'sale': return v('sale_price_per_ft2_net') * FT2_PER_M2 * v('efficiency') * (1 - n('selling_cost'));
+    case 'income': {
+      const rentYr = v('rent_per_ft2_net_year') ?? (v('rent_per_ft2_net_month') * 12);
+      const net = rentYr * (1 - n('vacancy')) * (1 - n('leakage')) * (1 - n('opex_ratio')) - n('opex_per_ft2_year');
+      return net * FT2_PER_M2 / v('cap_rate') * v('efficiency');
+    }
+    case 'per_key': return v('noi_per_key') / v('cap_rate') / v('m2_per_key');
+    case 'visitors': return v('visitors_per_year') * v('ticket_price') * (1 + n('fnb_uplift')) * v('operating_margin') / v('cap_rate') / v('deck_area_m2');
+    case 'per_stall_sale': return v('price_per_stall') / v('m2_per_stall');
+    case 'per_stall_income': return v('rate_per_stall_month') * 12 * v('utilisation') * v('operating_margin') / v('cap_rate') / v('m2_per_stall');
+    case 'none': return 0;
+    default: return null;
+  }
+}
+
 const num = (x, d = 0) => (typeof x === 'number' && Number.isFinite(x) ? x : d);
 const val = o => (o && typeof o.value === 'number' ? o.value : null);
 
