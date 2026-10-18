@@ -65,7 +65,8 @@
           "grade": "B",
           "as_of": "2025-12-10"
         }
-      }
+      },
+      "escalation_base_year": 2026
     },
     "utilities_dcl": {
       "name": "Utilities DCL (after 20% temporary reduction)",
@@ -84,7 +85,8 @@
           "grade": "B",
           "as_of": "2025-12-10"
         }
-      }
+      },
+      "escalation_base_year": 2026
     },
     "acc": {
       "name": "Amenity Cost Charge",
@@ -143,7 +145,7 @@
     "source": "city-acc-bulletin-2026",
     "grade": "A",
     "as_of": "2026-08-01",
-    "note": "ACC and DCL rise 3% a year through 2029.",
+    "note": "ACC and DCL rise 3% a year through 2029. Pack author's reading (grade C): the DCL and Utilities DCL rates listed are taken as the 2026 rates and each ACC step as the rate in its own year; the tool adds 3% for each later year up to 2029.",
     "applies_to": [
       "dcl",
       "utilities_dcl",

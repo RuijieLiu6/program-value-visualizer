@@ -8,7 +8,7 @@
 
 All 31 Vancouver lines in `costs.json` match the report: private sector p.5, public sector p.6. C$/m² = C$/ft² × 10.764, rounded to the nearest 10. The validator re-checks every conversion.
 
-Lines added from the report that the earlier research table did not use: secondary school, budget hotel, ice arena, municipal office, independent/supportive living, office Class A 5–30 storeys, office fit-out Class B.
+Lines added from the report that the earlier cost table did not use: secondary school, budget hotel, ice arena, municipal office, independent/supportive living, office Class A 5–30 storeys, office fit-out Class B.
 
 Scope notes taken from the report and shown in the tool:
 - above-grade work including foundations; below-grade work is priced with the parking line (p.7);
@@ -52,7 +52,7 @@ Scope notes taken from the report and shown in the tool:
 
 ## 2. Defaults that do not follow from their own inputs
 
-The validator recomputes each value row from the market inputs stored with it. These four differ by more than 5%. The defaults were **kept as published** and flagged for the research author to fix. Users see the warning in the tool.
+The validator recomputes each value row from the market inputs stored with it. These four differ by more than 5%. The defaults were **kept as published** and flagged for correction at the source. Users see the warning in the tool.
 
 | Row | Default (C$/m² GFA) | From its inputs | Difference | Likely reason |
 | --- | --- | --- | --- | --- |
@@ -63,14 +63,14 @@ The validator recomputes each value row from the market inputs stored with it. T
 
 ## 3. Figures with no report on file (weaker evidence)
 
-- **CBRE Q2 2026 cap rates** (office, multifamily, retail; used in R4, R5, O1, O2, T1). The research author read the report online; there is no local copy to re-check.
+- **CBRE Q2 2026 cap rates** (office, multifamily, retail; used in R4, R5, O1, O2, T1). The report was read online when the pack was compiled; there is no local copy to re-check.
 - **Vancouver hotel ADR $284 and occupancy 78.4%** (CoStar 2025, from a search summary). C&W shows Vancouver ADR up about 8–10% in H1 2026, so the 2026 figure may be higher.
-- **O2 Class B office rent ($28/ft²)**: the research cites "Cresa Q1 2026", but the link points to a Cresa *industrial* report. **Unresolved: find the right source before relying on O2.**
+- **O2 Class B office rent ($28/ft²)**: the source list cites "Cresa Q1 2026", but the link points to a Cresa *industrial* report. **Unresolved: find the right source before relying on O2.**
 - Condo prices, rents and retail rents come from broker and news pages read as search summaries. Retail figures date from 2022–2024.
 
 ## 4. Known inconsistencies
 
-- **Efficiency.** The height-band curve gives office floors 1–20 an efficiency of 0.80, but the research worked check used 0.76. The engine uses the curve; the acceptance test pins 0.76 so the published numbers reproduce.
+- **Efficiency.** The height-band curve gives office floors 1–20 an efficiency of 0.80, but the hand-worked check (test T1) used 0.76. The engine uses the curve; the acceptance test pins 0.76 so the published numbers reproduce.
 - **Two efficiency figures per row.** Value rows store the efficiency used to derive their published value. The engine applies the height curve to office and residential rows instead, so their values per m² GFA change with height, as intended.
 - **Deck ticket.** A1 assumes $45 per visitor; the Vancouver Lookout adult ticket is about $20. Deck value is a ceiling, not a central estimate.
 

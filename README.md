@@ -8,7 +8,9 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 **Every number is an indicative early-design estimate.** It is not a feasibility study, an appraisal or a compliance check, and the tool says so on every screen and export.
 
-Status: **G0, set-up only.** Nothing is built yet. See [Roadmap](#roadmap).
+Status: **working prototype (G3).** Engine, Vancouver 2026 data pack and web page are built and tested (34 tests). See [Roadmap](#roadmap).
+
+Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai.
 
 ---
 
@@ -28,8 +30,8 @@ No account and no install: it runs as a static web page (静态网页) in a brow
    - **C**: arithmetic or assumption.
 
    You can overwrite any value. Hover over a value to see where it comes from.
-2. **Neutral.** The tool has no preferred design. Defaults are a plain sample tower and published market data. Your inputs stay in your browser; nothing is uploaded.
-3. **Transparent method.** The calculation is a set of pure functions (纯函数) with tests, documented in `docs/method.md`, and can be checked by hand.
+2. **Neutral.** The tool has no preferred design. Defaults are a plain sample tower and published market data. Your floors and settings stay in your browser. The page loads its fonts from Google Fonts; Ask AI sends the current scheme summary to Claude only when you ask a question.
+3. **Transparent method.** The calculation is a set of pure functions (纯函数) with tests, documented in `docs/method.md` with a hand-worked check, and reviewed (`docs/critique_r1.md`).
 4. **Honest about gaps.** Values nobody has sourced yet are shown as "user to supply", never guessed.
 
 ## How the calculation works (summary)
@@ -45,7 +47,7 @@ For each floor and each programme on it:
 5. **Profit.** Developer profit as a share of cost.
 6. **Residual land value** (剩余地价) = value − cost − profit. Compared with the land price you enter.
 
-Results: the verdict, a bar per floor (value minus cost), a City payback ledger (development charges, amenity charges, in-kind space), and a sensitivity chart (敏感性分析) for rents, cap rates, sale prices, costs and height premium.
+Results: the verdict (Works / Marginal / Doesn't work, or Land price needed / Incomplete), a bar per floor (value minus cost), a City payback ledger (development charges, amenity charges, in-kind space), and a sensitivity chart (敏感性分析) for rents, cap rates, sale prices, costs and height premium.
 
 ## Structure
 
@@ -76,7 +78,7 @@ The tool reads a plain floor list. You can make one with the built-in generator,
 
 ## Data sources and attribution
 
-The full list with pages and dates goes in `packs/vancouver-2026/sources.md`. Planned sources:
+The full list with pages and dates is in `packs/vancouver-2026/sources.json`; the page-by-page cross-check is in `docs/data_changes.md`. Main sources:
 - construction costs: Altus Group, *Canadian Cost Guide 2026*;
 - office market: CBRE, *Canada Office Figures Q3 2026*;
 - hotel market: Cushman & Wakefield, *Canada Hospitality Innsights Q2 2026*;
@@ -97,10 +99,10 @@ Map context: © OpenStreetMap contributors (ODbL); terrain from NASA SRTM.
 
 | Phase | Work |
 | --- | --- |
-| G0 | Set-up: folders, git, this README |
-| G1 | Data: catalogue, Vancouver pack, brief, validator, cross-check against sources |
-| G2 | Engine and tests |
-| G3 | Web page: floor input, mix editor, verdict, ledger, sensitivity, exports |
+| G0 | Set-up: folders, git, this README (done) |
+| G1 | Data: catalogue, Vancouver pack, brief, validator, cross-check against sources (done) |
+| G2 | Engine and tests (done) |
+| G3 | Web page: floor input, mix editor, verdict, ledger, sensitivity, exports, Ask AI (done; review round 1 fixed) |
 | G4 | Map view from the Vancouver context model |
 | G5 | Independent review of numbers and sources |
 | G6 | Release: neutrality and licence check, documentation |

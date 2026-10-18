@@ -1,6 +1,0 @@
-{
-  "version": "0.0.1",
-  "configurations": [
-    { "name": "pvv", "runtimeExecutable": "python3", "runtimeArgs": ["/Users/liuruijie/Desktop/program-value-visualizer/scripts/serve_local.py", "8020"], "port": 8020 }
-  ]
-}

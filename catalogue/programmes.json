@@ -1086,7 +1086,7 @@
       "value_hint": null,
       "value_text": "0",
       "needs_user_value": false,
-      "earns_by": "public",
+      "earns_by": "support",
       "grade": "C",
       "as_of": "2026-10-17"
     },
@@ -1117,7 +1117,7 @@
       "value_hint": null,
       "value_text": "0",
       "needs_user_value": false,
-      "earns_by": "public",
+      "earns_by": "support",
       "grade": "C",
       "as_of": "2026-10-17"
     },
@@ -1178,7 +1178,7 @@
       "value_hint": null,
       "value_text": "0",
       "needs_user_value": false,
-      "earns_by": "public",
+      "earns_by": "support",
       "grade": "C",
       "as_of": "2026-10-17"
     },
@@ -1211,7 +1211,7 @@
       "value_hint": null,
       "value_text": "0",
       "needs_user_value": false,
-      "earns_by": "public",
+      "earns_by": "support",
       "grade": "C",
       "as_of": "2026-10-17"
     },
@@ -1333,7 +1333,7 @@
       "value_hint": null,
       "value_text": "0",
       "needs_user_value": false,
-      "earns_by": "public",
+      "earns_by": "support",
       "grade": "C",
       "as_of": "2026-10-17"
     },
@@ -2452,7 +2452,7 @@
       "value_hint": null,
       "value_text": "0",
       "needs_user_value": false,
-      "earns_by": "public",
+      "earns_by": "support",
       "grade": "C",
       "as_of": "2026-10-17"
     },
@@ -2485,7 +2485,7 @@
       "value_hint": null,
       "value_text": "0",
       "needs_user_value": false,
-      "earns_by": "public",
+      "earns_by": "support",
       "grade": "C",
       "as_of": "2026-10-17"
     },

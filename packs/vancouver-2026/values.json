@@ -563,8 +563,9 @@
           "value": 28,
           "unit": "CAD/ft2/yr",
           "source": "cresa-2026",
-          "grade": "B",
-          "as_of": "2026-10-17"
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Cited as Cresa Q1 2026 downtown all-class base rent, but the link points to an industrial report: unresolved, so graded C."
         },
         "vacancy": {
           "value": 0.18,
@@ -595,7 +596,7 @@
         "value": 3100,
         "unit": "CAD/m2",
         "source": "cresa-2026",
-        "grade": "B",
+        "grade": "C",
         "as_of": "2026-10-17"
       }
     },

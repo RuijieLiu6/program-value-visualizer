@@ -757,7 +757,7 @@
       "source": "assumption",
       "grade": "C",
       "as_of": "2026-10-17",
-      "note": "Tenant allowance added to office shell cost in the research worked check; alternative to the Altus fit-out add-on."
+      "note": "Tenant allowance added to office shell cost in the hand-worked check (test T1); alternative to the Altus fit-out add-on."
     },
     "office_leasing_cost": {
       "value": 0.15,

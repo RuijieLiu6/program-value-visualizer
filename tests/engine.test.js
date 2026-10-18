@@ -16,7 +16,7 @@ const data = indexData({
 });
 const near = (actual, expected, tol = 0.02) => assert.ok(Math.abs(actual - expected) <= Math.abs(expected) * tol, `${actual.toFixed(0)} not within ${tol * 100}% of ${expected}`);
 
-// ---------- T1: the README worked check (pinned inputs) ----------
+// ---------- T1: a hand-worked two-floor check with pinned inputs (arithmetic in docs/method.md) ----------
 const t1Settings = {
   podiumTopFloor: 8, softCost: 0.25, financeFactor: 0.20, profitOnCost: 0.15, officeLeasingCost: 0.15,
   programme: {
@@ -25,7 +25,7 @@ const t1Settings = {
   },
 };
 
-test('T1 condo floor 50 (700 m2) reproduces the worked check within 2%', () => {
+test('T1 hand-worked condo floor 50 (700 m2) within 2%', () => {
   const r = evaluate([{ level: 50, elevation_m: 200, height_m: 3.2, area_m2: 700, area_basis: 'gross', mix: [{ programme_id: 'LV1', share: 1 }] }], data, t1Settings);
   const i = r.items[0];
   near(i.value, 10.11e6);
@@ -33,7 +33,7 @@ test('T1 condo floor 50 (700 m2) reproduces the worked check within 2%', () => {
   near(i.net_contribution, 3.36e6);
 });
 
-test('T1 office floor 20 (2,300 m2) reproduces the worked check within 2%', () => {
+test('T1 hand-worked office floor 20 (2,300 m2) within 2%', () => {
   const r = evaluate([{ level: 20, elevation_m: 80, height_m: 4.2, area_m2: 2300, area_basis: 'gross', mix: [{ programme_id: 'WK1', share: 1 }] }], data, t1Settings);
   const i = r.items[0];
   near(i.value, 12.89e6);
@@ -143,4 +143,63 @@ test('defaults come from the pack', () => {
   assert.equal(d.profitOnCost, 0.15);
   assert.equal(d.siteAreaM2, 11468);
   assert.equal(d.landPrice, null);
+});
+
+// ---------- review round 1 fixes ----------
+test('empty building is incomplete, not "works"', () => {
+  assert.equal(evaluate([], data, {}).verdict, 'incomplete');
+});
+
+test('a building with no priced programme is incomplete', () => {
+  const r = evaluate([fl(1, [{ programme_id: 'SE6', share: 1 }])], data, { programme: { SE6: { valuePerM2Gfa: 8000 } }, landPrice: 0 });
+  assert.equal(r.verdict, 'incomplete');
+});
+
+test('unknown programme ids make the verdict incomplete', () => {
+  const r = evaluate([fl(1, [{ programme_id: 'ZZ9', share: 1 }]), fl(2, [{ programme_id: 'WK1', share: 1 }])], data, {});
+  assert.equal(r.verdict, 'incomplete');
+});
+
+test('no land price gives "needs land" with the land budget, or "doesn\'t work" when even free land fails', () => {
+  const condo = Array.from({ length: 30 }, (_, k) => fl(k + 30, [{ programme_id: 'LV1', share: 1 }], { area_m2: 900, elevation_m: 120 + k * 3.2 }));
+  const r = evaluate(condo, data, { presaleMarket: 'normal', podiumTopFloor: 5 });
+  assert.equal(r.verdict, 'needs_land');
+  const office = Array.from({ length: 10 }, (_, k) => fl(k + 1, [{ programme_id: 'WK1', share: 1 }]));
+  assert.equal(evaluate(office, data, {}).verdict, 'doesnt_work');
+});
+
+test('items without a cost line are flagged as estimated', () => {
+  const r = evaluate([fl(1, [{ programme_id: 'CH1', share: 0.5 }, { programme_id: 'WK1', share: 0.5 }])], data, {});
+  assert.ok(r.rules.some(x => x.type === 'cost_estimated' && x.text.startsWith('CH1')));
+});
+
+test('deck value is one total, spread over the deck area drawn', () => {
+  const small = evaluate([fl(60, [{ programme_id: 'LE1', share: 1 }], { area_m2: 500 })], data, {});
+  const big = evaluate([fl(60, [{ programme_id: 'LE1', share: 1 }], { area_m2: 3000 })], data, {});
+  assert.ok(Math.abs(small.totals.gdv - big.totals.gdv) < 1);
+  assert.ok(Math.abs(big.totals.gdv - 45000 * 3000) < 1);
+});
+
+test('City charges escalate 3% a year from 2026 to 2029', () => {
+  const one = [fl(5, [{ programme_id: 'WK1', share: 1 }], { area_m2: 1000 })];
+  const a = evaluate(one, data, { permitDate: '2026-10-01' }).ledger.dcl;
+  const b = evaluate(one, data, { permitDate: '2028-10-01' }).ledger.dcl;
+  const c = evaluate(one, data, { permitDate: '2031-10-01' }).ledger.dcl;
+  assert.ok(Math.abs(a - 214890) < 1);
+  assert.ok(Math.abs(b / a - 1.03 ** 2) < 1e-9);
+  assert.ok(Math.abs(c / a - 1.03 ** 3) < 1e-9);   // capped at 2029
+  const off = evaluate(one, data, { permitDate: '2028-10-01', applyEscalation: false }).ledger.dcl;
+  assert.ok(Math.abs(off - a) < 1);
+});
+
+test('private lobbies are support space, not public floors', () => {
+  const r = evaluate([fl(1, [{ programme_id: 'AM2', share: 0.2 }, { programme_id: 'LV1', share: 0.8 }])], data, { publicRunningCostPerM2: 300 });
+  assert.equal(r.totals.publicDeduction, 0);
+});
+
+test('sensitivity multiplies user value overrides instead of replacing them', () => {
+  const floors = Array.from({ length: 10 }, (_, k) => fl(k + 1, [{ programme_id: 'WK1', share: 1 }]));
+  const a = sensitivity(floors, data, {}).tests.find(t => t.id === 'cap_rate');
+  const b = sensitivity(floors, data, { valueScale: { O1: 2 } }).tests.find(t => t.id === 'cap_rate');
+  assert.ok(Math.abs(a.high - b.high) > 1);
 });

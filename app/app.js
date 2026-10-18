@@ -20,7 +20,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const M = (x, d = 1) => (x == null || !Number.isFinite(x) ? '—' : `${x < 0 ? '−' : ''}C$${(Math.abs(x) / 1e6).toFixed(d)} M`);
 const N = x => (x == null || !Number.isFinite(x) ? '—' : Math.round(x).toLocaleString('en-CA'));
 const pct = (x, d = 1) => (x == null ? '—' : `${(x * 100).toFixed(d)}%`);
-const VERDICT = { works: 'Works', marginal: 'Marginal', doesnt_work: "Doesn't work" };
+const VERDICT = { works: 'Works', marginal: 'Marginal', doesnt_work: "Doesn't work", needs_land: 'Land price needed', incomplete: 'Incomplete' };
 
 let raw = null, data = null, result = null, sens = null;
 let state = { floors: [], settings: {}, brief: 'vtc-2026', sel: null };
@@ -30,8 +30,53 @@ let activeTab = 'verdict', pickFamily = null, pickProgramme = null, editMix = nu
 // ---------- storage (per-viewer convenience only) ----------
 const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief })); } catch (e) { /* storage unavailable */ } };
 const load = () => { try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && Array.isArray(s.floors) && s.floors.length) return s; } catch (e) { /* ignore */ } return null; };
-function pushHistory() { history.push(JSON.stringify({ floors: state.floors, settings: state.settings })); if (history.length > 40) history.shift(); $('#undoBtn').disabled = false; }
-function undo() { const s = history.pop(); if (!s) return; const o = JSON.parse(s); state.floors = o.floors; state.settings = o.settings; $('#undoBtn').disabled = !history.length; refresh(); }
+function pushHistory() { history.push(JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief })); if (history.length > 40) history.shift(); $('#undoBtn').disabled = false; }
+function undo() { const s = history.pop(); if (!s) return; const o = JSON.parse(s); state.floors = o.floors; state.settings = o.settings; if (o.brief && o.brief !== state.brief) { state.brief = o.brief; buildData(); $('#briefSel').value = o.brief; } editMix = null; $('#undoBtn').disabled = !history.length; refresh(); }
+
+// ---------- input checks ----------
+const finite = (x, name) => { const n = typeof x === 'string' && x.trim() === '' ? NaN : Number(x); if (!Number.isFinite(n)) throw new Error(`${name} must be a number`); return n; };
+/** Validate floors from any source (file, saved state, AI). Returns clean floors or throws with a readable message. */
+function normaliseFloors(list) {
+  if (!Array.isArray(list) || !list.length) throw new Error('no floors found');
+  if (list.length > 400) throw new Error('more than 400 floors');
+  const seen = new Set(), out = [];
+  list.forEach((f, k) => {
+    const where = `floor ${k + 1}`;
+    if (!f || typeof f !== 'object') throw new Error(`${where} is not a floor`);
+    const level = Math.round(finite(f.level, `${where}: level`));
+    if (seen.has(level)) throw new Error(`level ${level} appears twice`);
+    seen.add(level);
+    const area = finite(f.area_m2, `L${level}: area_m2`), height = finite(f.height_m, `L${level}: height_m`), elev = finite(f.elevation_m, `L${level}: elevation_m`);
+    if (area <= 0 || area > 100000) throw new Error(`L${level}: area_m2 must be between 0 and 100,000`);
+    if (height <= 0 || height > 30) throw new Error(`L${level}: height_m must be between 0 and 30`);
+    if (!Array.isArray(f.mix) || !f.mix.length) throw new Error(`L${level}: mix must list at least one programme`);
+    let mix = f.mix.map(m => {
+      const id = String(m?.programme_id ?? '').trim().toUpperCase();
+      if (!prog(id)) throw new Error(`L${level}: unknown programme "${id.slice(0, 12)}"`);
+      const share = finite(m.share, `L${level}: share of ${id}`);
+      if (share < 0) throw new Error(`L${level}: share of ${id} is negative`);
+      return { programme_id: id, share };
+    });
+    const sum = mix.reduce((a, m) => a + m.share, 0);
+    if (sum > 1.5 && Math.abs(sum - 100) < 1.5) mix = mix.map(m => ({ ...m, share: m.share / 100 }));   // percentages
+    out.push({ level, elevation_m: elev, height_m: height, area_m2: area, area_basis: f.area_basis === 'net' ? 'net' : 'gross', mix, ...(Array.isArray(f.tags) && f.tags.includes('seam') ? { tags: ['seam'] } : {}) });
+  });
+  return out;
+}
+// Ranges for settings typed by people or the assistant: [min, max]
+const RANGES = { landPrice: [0, 5e9], landValueCurrentZoning: [0, 5e9], podiumTopFloor: [0, 40], neighbourRoofM: [0, 400], siteAreaM2: [100, 200000], minNonresFsr: [0, 40],
+  profitOnCost: [0, 0.4], softCost: [0, 0.6], financeRate: [0, 0.2], buildYears: [1, 12], drawFactor: [0, 1], supertallPremium: [0, 0.6], supertallThresholdM: [0, 600], cacShare: [0, 1],
+  publicRunningCostPerM2: [0, 2000], officeTenantAllowance: [0, 5000], officeLeasingCost: [0, 0.5], hotelFfePerKey: [0, 500000] };
+const ENUMS = { publicPayer: ['cross_subsidy', 'cac_endowment', 'ticketed_deck', 'city_or_partner'], presaleMarket: ['weak', 'normal'], employmentOnly: ['auto', true, false], hotelAsNonResidential: [true, false], applyEscalation: [true, false] };
+function checkSetting(k, v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (ENUMS[k]) { const hit = ENUMS[k].find(e => String(e) === String(v)); if (hit === undefined) throw new Error(`${k} must be one of ${ENUMS[k].join(', ')}`); return hit; }
+  if (k === 'permitDate') { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(v))) throw new Error('permitDate must be YYYY-MM-DD'); return String(v); }
+  const n = finite(v, k), r = RANGES[k];
+  if (r && (n < r[0] || n > r[1])) throw new Error(`${k} must be between ${r[0]} and ${r[1]}`);
+  return n;
+}
+function checkMoney(v, name) { if (v === null || v === undefined || v === '') return null; const n = finite(v, name); if (n < 0 || n > 1e6) throw new Error(`${name} must be between 0 and 1,000,000`); return n; }
 
 // ---------- data ----------
 async function loadData() {
@@ -94,9 +139,9 @@ function renderSection() {
     for (const m of f.mix) { const p = prog(m.programme_id), ww = w * m.share; segs += `<rect x="${x.toFixed(2)}" y="${y0.toFixed(2)}" width="${Math.max(0, ww).toFixed(2)}" height="${hh.toFixed(2)}" fill="${famColour(p?.family_id)}"/>`; x += ww; }
     const net = r ? r.net : 0, bl = net / maxNet * 72;
     const bar = `<rect x="${(bl < 0 ? axis + bl : axis).toFixed(2)}" y="${y0.toFixed(2)}" width="${Math.abs(bl).toFixed(2)}" height="${hh.toFixed(2)}" fill="${net < 0 ? 'var(--bad)' : 'var(--good)'}" opacity=".85"/>`;
-    const label = (f.level % 10 === 0 || f.level === 1 || f.level === floors[floors.length - 1].level || f.level === floors[0].level) ? `<text x="${x0 - 6}" y="${(y0 + hh * 0.8).toFixed(2)}" text-anchor="end">L${f.level}</text>` : '';
+    const label = (f.level % 10 === 0 || f.level === 1 || f.level === floors[floors.length - 1].level || f.level === floors[0].level) ? `<text x="${x0 - 6}" y="${(y0 + hh * 0.8).toFixed(2)}" text-anchor="end">L${esc(f.level)}</text>` : '';
     const tip = `L${f.level} · ${f.elevation_m.toFixed(1)} m · ${N(f.area_m2)} m² ${f.area_basis}\n${f.mix.map(m => `${Math.round(m.share * 100)}% ${prog(m.programme_id)?.name || m.programme_id}`).join('\n')}\nvalue ${M(r?.value)} · cost ${M(r?.cost)} · profit ${M(r?.profit)}\nnet ${M(net)}`;
-    s += `<g class="floor" data-level="${f.level}" data-tip="${esc(tip)}"><rect class="slab" x="${x0.toFixed(2)}" y="${y0.toFixed(2)}" width="${w.toFixed(2)}" height="${hh.toFixed(2)}" fill="var(--line-2)"/>${segs}${bar}<rect x="20" y="${y0.toFixed(2)}" width="${W - 26}" height="${hh.toFixed(2)}" fill="transparent"/>${label}</g>`;
+    s += `<g class="floor" data-level="${esc(f.level)}" data-tip="${esc(tip)}"><rect class="slab" x="${x0.toFixed(2)}" y="${y0.toFixed(2)}" width="${w.toFixed(2)}" height="${hh.toFixed(2)}" fill="var(--line-2)"/>${segs}${bar}<rect x="20" y="${y0.toFixed(2)}" width="${W - 26}" height="${hh.toFixed(2)}" fill="transparent"/>${label}</g>`;
   }
   if (sel) {
     const inSel = floors.filter(f => f.level >= sel[0] && f.level <= sel[1]);
@@ -134,10 +179,10 @@ const signCls = x => (x < 0 ? 'neg' : x > 0 ? 'pos' : '');
 
 function numField(id, label, value, { step = 'any', min, max, onchange, src, unit, placeholder } = {}) {
   const inp = h('input', { id, type: 'number', step, min, max, value: value ?? '', placeholder });
-  inp.addEventListener('change', () => onchange(inp.value === '' ? null : Number(inp.value)));
+  inp.addEventListener('change', () => { if (inp.value === '') return onchange(null); let v = Number(inp.value); if (!Number.isFinite(v)) { toast(`${label}: enter a number`); return; } if (min != null && v < Number(min)) v = Number(min); if (max != null && v > Number(max)) v = Number(max); inp.value = v; onchange(v); });
   return h('div', { class: 'field' }, h('label', { for: id }, label, unit ? h('span', {}, `(${unit})`) : null, src ? gradeTag(src.grade) : null, src ? srcTag(src) : null), inp);
 }
-function setSetting(k, v) { pushHistory(); if (v === null || v === undefined || v === '') delete state.settings[k]; else state.settings[k] = v; refresh(); }
+function setSetting(k, v) { let c; try { c = checkSetting(k, v); } catch (e) { toast(e.message); renderTab(); return false; } pushHistory(); if (c === null) delete state.settings[k]; else state.settings[k] = c; refresh(); return true; }
 
 // ---------- Verdict tab ----------
 function renderVerdict() {
@@ -146,11 +191,12 @@ function renderVerdict() {
   const verdict = h('div', { class: `verdict ${r.verdict}` },
     h('span', { class: 'label-strip' }, 'Verdict'), h('h3', {}, VERDICT[r.verdict]),
     h('ul', {}, r.reasons.map(x => h('li', {}, x)), r.marketDependent ? h('li', {}, 'Market-dependent: the scheme relies on condo presales.') : null),
-    h('span', { class: 'note' }, 'Works = residual land value covers the land price at the target profit, presales are reachable and every public floor has a payer. Marginal = within 10% of the land price, or 10–15% profit, or relies on a weak presale market.'));
+    h('span', { class: 'note' }, 'Works = residual land value covers the land price at the target profit, presales are reachable and every public floor has a payer. Marginal = within 10% of the land price, or 10–15% profit, or relies on a weak presale market. Land price needed = enter a land price to compare.'));
   const land = h('div', { class: 'grid2' },
     numField('landPrice', 'Land price', S.landPrice, { step: 100000, min: 0, unit: 'C$', placeholder: 'user to supply', src: A.land.price, onchange: v => setSetting('landPrice', v) }),
     numField('landZoning', 'Land value under current zoning (for CAC)', S.landValueCurrentZoning, { step: 100000, min: 0, unit: 'C$', placeholder: 'user to supply', src: A.land.value_under_current_zoning, onchange: v => setSetting('landValueCurrentZoning', v) }));
-  const hint = h('p', { class: 'note' }, `For scale: prime downtown land was about C$2,000–2,700 per buildable m² in 2014 (old figure). At that rate this scheme's ${N(t.gfa)} m² would be about ${M(t.gfa * 2000, 0)}–${M(t.gfa * 2700, 0)}.`);
+  const ag = r.fsr.totalGfa;
+  const hint = h('p', { class: 'note' }, `For scale only: prime downtown land was about C$2,000–2,700 per buildable m² in 2014 (an old figure; values have moved). At that rate this scheme's ${N(ag)} m² above grade would be about ${M(ag * 2000, 0)}–${M(ag * 2700, 0)}.`);
   const kpis = h('div', { class: 'kpis' },
     kpi('Gross development value', M(t.gdv), '', 'Sum of floor values after selling and leasing costs'),
     kpi('Total cost (before profit)', M(t.cost), '', `Hard ${M(t.hard)} · soft ${M(t.soft)} · finance ${M(t.finance)} · City charges ${M(t.charges)}`),
@@ -165,8 +211,8 @@ function renderVerdict() {
     h('thead', {}, h('tr', {}, h('th', {}, 'Floor area check'), h('th', { class: 'num' }, 'm²'), h('th', { class: 'num' }, 'FSR'), h('th', {}, 'Result'))),
     h('tbody', {},
       h('tr', {}, h('td', {}, 'Total above grade (counted)'), h('td', { class: 'num' }, N(f.totalGfa)), h('td', { class: 'num' }, f.fsr ? f.fsr.toFixed(2) : '—'), h('td', {}, '')),
-      h('tr', {}, h('td', {}, 'Non-residential, hotel counted as non-residential'), h('td', { class: 'num' }, N(f.nonresWithHotel)), h('td', { class: 'num' }, f.nonresFsrWithHotel?.toFixed(2) ?? '—'), h('td', {}, f.requiredNonres ? (f.passWithHotel ? h('span', { class: 'pos' }, 'meets') : h('span', { class: 'neg' }, 'short')) : '')),
-      h('tr', {}, h('td', {}, 'Non-residential, hotel counted as residential'), h('td', { class: 'num' }, N(f.nonresWithoutHotel)), h('td', { class: 'num' }, f.nonresFsrWithoutHotel?.toFixed(2) ?? '—'), h('td', {}, f.requiredNonres ? (f.passWithoutHotel ? h('span', { class: 'pos' }, 'meets') : h('span', { class: 'neg' }, 'short')) : '')),
+      h('tr', {}, h('td', {}, 'Non-residential, hotel counted as non-residential'), h('td', { class: 'num' }, N(f.nonresWithHotel)), h('td', { class: 'num' }, f.nonresFsrWithHotel?.toFixed(2) ?? '—'), h('td', {}, f.requiredNonres ? (f.passWithHotel ? h('span', { class: f.tightWithHotel ? '' : 'pos' }, f.tightWithHotel ? 'meets, but within 10% (provisional)' : 'meets') : h('span', { class: 'neg' }, 'short')) : '')),
+      h('tr', {}, h('td', {}, 'Non-residential, hotel counted as residential'), h('td', { class: 'num' }, N(f.nonresWithoutHotel)), h('td', { class: 'num' }, f.nonresFsrWithoutHotel?.toFixed(2) ?? '—'), h('td', {}, f.requiredNonres ? (f.passWithoutHotel ? h('span', { class: f.tightWithoutHotel ? '' : 'pos' }, f.tightWithoutHotel ? 'meets, but within 10% (provisional)' : 'meets') : h('span', { class: 'neg' }, 'short')) : '')),
       f.requiredNonres ? h('tr', {}, h('td', {}, `Required: ${f.minNonresFsr} FSR × ${N(f.siteAreaM2)} m² site`), h('td', { class: 'num' }, N(f.requiredNonres)), h('td', { class: 'num' }, f.minNonresFsr.toFixed(2)), h('td', {}, `using ${f.usingHotelAsNonResidential ? 'hotel = non-residential' : 'hotel = residential'}`)) : null)));
   // by family
   const fam = {};
@@ -176,7 +222,7 @@ function renderVerdict() {
     h('tbody', {}, Object.entries(fam).sort((a, b) => b[1].net - a[1].net).map(([k, v]) => h('tr', {},
       h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:6px;align-items:center' }, h('i', { class: 'sw', style: `background:${famColour(k)}` }), data.families.get(k)?.name)),
       h('td', { class: 'num' }, N(v.gfa)), h('td', { class: 'num' }, M(v.value)), h('td', { class: 'num' }, M(v.cost)), h('td', { class: `num ${signCls(v.net)}` }, M(v.net)))))));
-  el.replaceChildren(verdict, land, hint, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
+  el.replaceChildren(verdict, land, hint, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
 }
 function rulesBlock() {
   const rs = result.rules, order = { block: 0, error: 1, warning: 2, info: 3 };
@@ -249,7 +295,7 @@ function programmeCard(id) {
   const { p, row, o, lines } = programmeDefaults(id);
   if (!p) return null;
   const fam = data.families.get(p.family_id);
-  const setO = (k, v) => { pushHistory(); state.settings.programme = { ...(state.settings.programme || {}) }; const cur = { ...(state.settings.programme[id] || {}) }; if (v == null) delete cur[k]; else cur[k] = v; if (Object.keys(cur).length) state.settings.programme[id] = cur; else delete state.settings.programme[id]; refresh(); };
+  const setO = (k, v) => { try { v = k === 'efficiency' ? (v == null ? null : Math.min(1, Math.max(0.3, finite(v, 'efficiency')))) : checkMoney(v, k); } catch (e) { toast(e.message); return; } pushHistory(); state.settings.programme = { ...(state.settings.programme || {}) }; const cur = { ...(state.settings.programme[id] || {}) }; if (v == null) delete cur[k]; else cur[k] = v; if (Object.keys(cur).length) state.settings.programme[id] = cur; else delete state.settings.programme[id]; refresh(); };
   const baseCost = lines.filter(l => !l.add_on).reduce((s, l) => s + l.default_m2.value, 0);
   const drift = row ? recomputeValue(row) : null;
   const driftNote = drift != null && row?.value_per_m2_gfa?.value && Math.abs(drift / row.value_per_m2_gfa.value - 1) > 0.05 ? h('p', { class: 'note neg' }, `This default (${N(row.value_per_m2_gfa.value)}) does not follow from its own inputs (${N(drift)}); see Method & sources.`) : null;
@@ -258,7 +304,7 @@ function programmeCard(id) {
       h('div', { class: 'note' }, `${fam.name}${fam.intensity ? ' · intensity ' + fam.intensity : ''} · fits ${p.fits.join(', ') || p.fits_text} · code group ${(p.occupancy_group || []).join(', ') || '—'} · users ${(p.users || []).join(', ')}`),
       row ? h('div', { class: 'note' }, `Value row ${row.id}: ${row.name} · earns by ${row.earns_by} · method ${row.method}`) : h('div', { class: 'note' }, p.value_status === 'zero' ? 'Earns nothing: cost only.' : 'No sourced value yet: enter your own below.'),
       h('div', { class: 'grid2' },
-        numField(`pv-${id}`, 'Value per m² GFA', o.valuePerM2Gfa ?? (row ? row.value_per_m2_gfa.value : (p.value_status === 'zero' ? 0 : null)), { step: 100, unit: 'C$/m²', placeholder: 'user to supply', src: row?.value_per_m2_gfa, onchange: v => setO('valuePerM2Gfa', v) }),
+        numField(`pv-${id}`, 'Value per m² GFA (before height premium; office before leasing costs)', o.valuePerM2Gfa ?? (row ? row.value_per_m2_gfa.value : (p.value_status === 'zero' ? 0 : null)), { step: 100, unit: 'C$/m²', placeholder: 'user to supply', src: row?.value_per_m2_gfa, onchange: v => setO('valuePerM2Gfa', v) }),
         numField(`pc-${id}`, 'Hard cost per m² (before tall premium)', o.hardCostPerM2 ?? (baseCost || null), { step: 50, unit: 'C$/m²', placeholder: 'floor average', src: lines[0]?.default_m2, onchange: v => setO('hardCostPerM2', v) }),
         numField(`pe-${id}`, 'Efficiency (net ÷ gross)', o.efficiency ?? null, { step: 0.01, min: 0.3, max: 1, placeholder: 'from pack', onchange: v => setO('efficiency', v) })),
       driftNote,
@@ -342,7 +388,8 @@ function renderAssume() {
       f('aSite', 'Site area', 'siteAreaM2', brief?.site?.area_m2, { step: 1, min: 0, unit: 'm²', placeholder: 'enter site area' }),
       f('aFsr', 'Minimum non-residential FSR', 'minNonresFsr', null, { step: 0.1, min: 0, placeholder: 'none' }),
       sel('aHotel', 'Hotel counts as', 'hotelAsNonResidential', [[true, 'non-residential (City practice)'], [false, 'residential']]),
-      sel('aPermit', 'Building permit date (sets ACC rate)', 'permitDate', Ch.components.acc.steps.map(s => [s.from, `from ${s.from}`]))),
+      sel('aPermit', 'Building permit date (sets charge rates)', 'permitDate', [...Ch.components.acc.steps.map(s => [s.from, `from ${s.from}`]), ['2028-09-30', 'from 2028-09-30'], ['2029-09-30', 'from 2029-09-30']]),
+      sel('aEsc', 'City charges rise 3% a year to 2029', 'applyEscalation', [[true, 'apply'], [false, 'ignore']], Ch.escalation)),
     h('h4', { style: 'margin:0' }, 'Costs'),
     h('div', { class: 'grid2' },
       f('aTall', 'Tall-building premium on hard cost', 'supertallPremium', Co.supertall_premium, { step: 0.01, min: 0, max: 1, unit: 'share' }),
@@ -402,33 +449,44 @@ async function offerFile(filename, text, type) {
 }
 function toast(msg) { const t = $('#tip'); t.textContent = msg; t.hidden = false; t.style.left = '16px'; t.style.top = '16px'; setTimeout(() => { t.hidden = true; }, 4000); }
 function exportCSV() {
-  const rows = [['level', 'elevation_m', 'height_m', 'programme_id', 'programme', 'share', 'gfa_m2', 'net_m2', 'value_cad', 'hard_cad', 'soft_cad', 'finance_cad', 'city_charges_cad', 'profit_cad', 'net_contribution_cad']];
-  for (const i of result.items) { const f = state.floors.find(x => x.level === i.level); rows.push([i.level, f.elevation_m, f.height_m, i.programme_id, `"${i.name.replace(/"/g, '""')}"`, i.share, i.gfa.toFixed(1), i.net.toFixed(1), Math.round(i.value), Math.round(i.hard), Math.round(i.soft), Math.round(i.finance), Math.round(i.chargeTotal), Math.round(i.profit), Math.round(i.net_contribution)]); }
-  rows.push([]); rows.push(['# ' + LABEL]);
+  const rows = [['# ' + LABEL], ['level', 'elevation_m', 'height_m', 'area_m2', 'area_basis', 'programme_id', 'programme', 'share', 'gfa_m2', 'net_m2', 'value_cad', 'hard_cad', 'soft_cad', 'finance_cad', 'city_charges_cad', 'profit_cad', 'net_contribution_cad']];
+  for (const i of result.items) { const f = state.floors.find(x => x.level === i.level); rows.push([i.level, f.elevation_m, f.height_m, f.area_m2, f.area_basis, i.programme_id, `"${i.name.replace(/"/g, '""')}"`, i.share, i.gfa.toFixed(1), i.net.toFixed(1), Math.round(i.value), Math.round(i.hard), Math.round(i.soft), Math.round(i.finance), Math.round(i.chargeTotal), Math.round(i.profit), Math.round(i.net_contribution)]); }
   offerFile('program-value-floors.csv', rows.map(r => r.join(',')).join('\n'), 'text/csv');
 }
-function exportProject() { offerFile('program-value-project.json', JSON.stringify({ app: 'program-value-visualizer', version: 1, brief: state.brief, floors: state.floors, settings: state.settings }, null, 2), 'application/json'); }
+function exportProject() { offerFile('program-value-project.json', JSON.stringify({ app: 'program-value-visualizer', version: 1, label: LABEL, brief: state.brief, floors: state.floors, settings: state.settings }, null, 2), 'application/json'); }
 function parseCSV(text) {
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
-  const head = lines.shift().split(',').map(x => x.trim().toLowerCase());
+  if (!lines.length) throw new Error('the file is empty');
+  const head = lines.shift().split(',').map(x => x.trim().replace(/^"|"$/g, '').toLowerCase());
   const ix = k => head.indexOf(k);
   for (const k of ['level', 'elevation_m', 'height_m', 'area_m2', 'mix']) if (ix(k) < 0) throw new Error(`missing column "${k}"`);
   return lines.map((l, n) => {
-    const c = l.split(',').map(x => x.trim());
-    const mix = c[ix('mix')].split(';').filter(Boolean).map(p => { const [id, s] = p.split(':'); return { programme_id: id.trim().toUpperCase(), share: Number(s) }; });
-    for (const m of mix) if (!prog(m.programme_id)) throw new Error(`row ${n + 2}: unknown programme ${m.programme_id}`);
-    return { level: Number(c[ix('level')]), elevation_m: Number(c[ix('elevation_m')]), height_m: Number(c[ix('height_m')]), area_m2: Number(c[ix('area_m2')]), area_basis: ix('area_basis') >= 0 && c[ix('area_basis')] === 'net' ? 'net' : 'gross', mix };
+    const c = l.split(',').map(x => x.trim().replace(/^"|"$/g, ''));
+    if (c.length < head.length) throw new Error(`row ${n + 2} has ${c.length} cells; expected ${head.length}`);
+    const mix = c[ix('mix')].split(';').filter(Boolean).map(p => { const [id, s] = p.split(':'); return { programme_id: (id || '').trim().toUpperCase(), share: s }; });
+    return { level: c[ix('level')], elevation_m: c[ix('elevation_m')], height_m: c[ix('height_m')], area_m2: c[ix('area_m2')], area_basis: ix('area_basis') >= 0 ? c[ix('area_basis')] : 'gross', mix };
   });
 }
 async function importFile(file) {
   if (!file) return;
   try {
     const text = await file.text();
-    let floors, settings = null;
-    if (file.name.endsWith('.json')) { const j = JSON.parse(text); floors = j.floors || j; settings = j.settings || null; if (j.brief && raw.briefs[j.brief]) { state.brief = j.brief; buildData(); $('#briefSel').value = j.brief; } }
+    let floors, settings = null, brief = null;
+    if (file.name.toLowerCase().endsWith('.json')) { const j = JSON.parse(text); floors = Array.isArray(j) ? j : j.floors; settings = j.settings && typeof j.settings === 'object' ? j.settings : null; brief = raw.briefs[j.brief] ? j.brief : null; }
     else floors = parseCSV(text);
-    if (!Array.isArray(floors) || !floors.length) throw new Error('no floors found');
-    pushHistory(); state.floors = floors; if (settings) state.settings = settings; state.sel = null; editMix = null; refresh();
+    floors = normaliseFloors(floors);
+    const clean = {};
+    if (settings) {
+      for (const [k, v] of Object.entries(settings)) { if (k === 'programme' || k === 'valueScale') continue; try { const c = checkSetting(k, v); if (c !== null && (k in RANGES || k in ENUMS || k === 'permitDate')) clean[k] = c; } catch (e) { /* drop bad setting */ } }
+      if (settings.programme && typeof settings.programme === 'object') {
+        clean.programme = {};
+        for (const [pid, o] of Object.entries(settings.programme)) { if (!prog(pid) || !o || typeof o !== 'object') continue; const c = {}; try { if (o.valuePerM2Gfa != null) c.valuePerM2Gfa = checkMoney(o.valuePerM2Gfa, 'value'); if (o.hardCostPerM2 != null) c.hardCostPerM2 = checkMoney(o.hardCostPerM2, 'hard cost'); if (o.efficiency != null) c.efficiency = Math.min(1, Math.max(0.3, finite(o.efficiency, 'efficiency'))); } catch (e) { continue; } if (Object.keys(c).length) clean.programme[pid] = c; }
+      }
+    }
+    evaluate(floors, data, settings ? clean : state.settings);   // throws before anything changes if the scheme cannot be evaluated
+    pushHistory();
+    if (brief && brief !== state.brief) { state.brief = brief; buildData(); $('#briefSel').value = brief; }
+    state.floors = floors; if (settings) state.settings = clean; state.sel = null; editMix = null; refresh();
     toast(`Loaded ${floors.length} floors.`);
   } catch (e) { toast('Could not read that file: ' + e.message); }
 }
@@ -470,9 +528,10 @@ const AI_TOOLS = [
       user_overrides: o, hard_cost_lines: lines.map(l => ({ category: l.altus_category, low_m2: l.low_m2, high_m2: l.high_m2, add_on: l.add_on })) }; } },
   { name: 'set_mix', description: 'Set the programme mix for every floor from from_level to to_level. mix is a list of {programme_id, share}; shares must add up to 1. Returns the new summary.', inputSchema: { type: 'object', properties: { from_level: { type: 'number' }, to_level: { type: 'number' }, mix: { type: 'array', items: { type: 'object', properties: { programme_id: { type: 'string' }, share: { type: 'number' } }, required: ['programme_id', 'share'] } } }, required: ['from_level', 'to_level', 'mix'] }, execute: ({ from_level, to_level, mix }) => {
     const lo = Number(from_level), hi = Number(to_level);
-    const m = (Array.isArray(mix) ? mix : []).map(x => ({ programme_id: String(x.programme_id).toUpperCase(), share: Number(x.share) }));
+    const m = (Array.isArray(mix) ? mix : []).map(x => ({ programme_id: String(x?.programme_id ?? '').toUpperCase(), share: Number(x?.share) }));
     if (!m.length) throw new Error('mix is empty');
-    for (const x of m) if (!prog(x.programme_id)) throw new Error(`unknown programme ${x.programme_id}`);
+    if (!Number.isFinite(lo) || !Number.isFinite(hi)) throw new Error('from_level and to_level must be numbers');
+    for (const x of m) { if (!prog(x.programme_id)) throw new Error(`unknown programme ${x.programme_id}`); if (!Number.isFinite(x.share) || x.share < 0) throw new Error(`share of ${x.programme_id} must be a number of 0 or more`); }
     const s = m.reduce((a, x) => a + x.share, 0); if (Math.abs(s - 1) > 0.02) throw new Error(`shares add up to ${s}, not 1`);
     const fl = state.floors.filter(f => f.level >= lo && f.level <= hi); if (!fl.length) throw new Error('no floors in that range');
     pushHistory(); fl.forEach(f => { f.mix = m.map(x => ({ ...x, share: x.share / s })); }); state.sel = [lo, hi]; editMix = null; refresh();
@@ -480,14 +539,15 @@ const AI_TOOLS = [
   { name: 'set_assumption', description: 'Change one project assumption. name is one of: landPrice, landValueCurrentZoning, podiumTopFloor, neighbourRoofM, siteAreaM2, profitOnCost, softCost, financeRate, buildYears, supertallPremium, cacShare, publicRunningCostPerM2, publicPayer (cross_subsidy|cac_endowment|ticketed_deck|city_or_partner), presaleMarket (weak|normal), hotelAsNonResidential (true|false). value null resets it.', inputSchema: { type: 'object', properties: { name: { type: 'string' }, value: {} }, required: ['name'] }, execute: ({ name, value }) => {
     const ok = ['landPrice', 'landValueCurrentZoning', 'podiumTopFloor', 'neighbourRoofM', 'siteAreaM2', 'profitOnCost', 'softCost', 'financeRate', 'buildYears', 'supertallPremium', 'cacShare', 'publicRunningCostPerM2', 'publicPayer', 'presaleMarket', 'hotelAsNonResidential'];
     if (!ok.includes(name)) throw new Error('not an assumption you can change here');
-    let v = value; if (['publicPayer', 'presaleMarket'].includes(name)) v = value == null ? null : String(value); else if (name === 'hotelAsNonResidential') v = value == null ? null : (value === true || value === 'true'); else v = value == null ? null : Number(value);
-    if (typeof v === 'number' && !Number.isFinite(v)) throw new Error('value must be a number');
-    setSetting(name, v); return summaryForAI(); } },
+    checkSetting(name, value);   // throws a readable error for bad values
+    setSetting(name, value); return summaryForAI(); } },
   { name: 'set_programme_value', description: 'Enter a user value for a programme id (for programmes marked user to supply, or to test your own figure): value_per_m2_gfa and/or hard_cost_per_m2 in C$. null clears it.', inputSchema: { type: 'object', properties: { id: { type: 'string' }, value_per_m2_gfa: { type: ['number', 'null'] }, hard_cost_per_m2: { type: ['number', 'null'] } }, required: ['id'] }, execute: ({ id, value_per_m2_gfa, hard_cost_per_m2 }) => {
     const pid = String(id).toUpperCase(); if (!prog(pid)) throw new Error('unknown programme id');
+    const vv = value_per_m2_gfa === undefined ? undefined : checkMoney(value_per_m2_gfa, 'value_per_m2_gfa');
+    const hv = hard_cost_per_m2 === undefined ? undefined : checkMoney(hard_cost_per_m2, 'hard_cost_per_m2');
     pushHistory(); state.settings.programme = { ...(state.settings.programme || {}) }; const cur = { ...(state.settings.programme[pid] || {}) };
-    if (value_per_m2_gfa !== undefined) { if (value_per_m2_gfa === null) delete cur.valuePerM2Gfa; else cur.valuePerM2Gfa = Number(value_per_m2_gfa); }
-    if (hard_cost_per_m2 !== undefined) { if (hard_cost_per_m2 === null) delete cur.hardCostPerM2; else cur.hardCostPerM2 = Number(hard_cost_per_m2); }
+    if (vv !== undefined) { if (vv === null) delete cur.valuePerM2Gfa; else cur.valuePerM2Gfa = vv; }
+    if (hv !== undefined) { if (hv === null) delete cur.hardCostPerM2; else cur.hardCostPerM2 = hv; }
     state.settings.programme[pid] = cur; refresh(); return summaryForAI(); } },
 ];
 function renderAI() {
@@ -538,11 +598,12 @@ async function boot() {
   wireTips();
   try { await loadData(); } catch (e) { $('#tab-verdict').replaceChildren(h('p', { class: 'neg' }, 'Could not load the data pack: ' + e.message)); return; }
   const saved = load();
-  if (saved) { state.floors = saved.floors; state.settings = saved.settings || {}; state.brief = raw.briefs[saved.brief] ? saved.brief : 'vtc-2026'; }
+  if (saved) { state.brief = raw.briefs[saved.brief] ? saved.brief : 'vtc-2026'; }
   buildData();
+  if (saved) { try { state.floors = normaliseFloors(saved.floors); state.settings = saved.settings && typeof saved.settings === 'object' ? saved.settings : {}; evaluate(state.floors, data, state.settings); } catch (e) { state.floors = []; state.settings = {}; } }
   if (!state.floors.length) state.floors = sampleTower();
   $('#briefSel').value = state.brief;
-  $('#briefSel').addEventListener('change', e => { state.brief = e.target.value; buildData(); refresh(); });
+  $('#briefSel').addEventListener('change', e => { pushHistory(); state.brief = e.target.value; buildData(); refresh(); });
   $('#undoBtn').addEventListener('click', undo);
   $('#themeBtn').addEventListener('click', () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; });
   $('#section').addEventListener('click', onSectionClick);

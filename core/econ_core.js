@@ -7,7 +7,7 @@ const SALE_ROWS = new Set(['R1', 'R2', 'R3']);
 const RESIDENTIAL_ROWS = new Set(['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'S2']);
 const HOTEL_ROWS = new Set(['H1', 'H2', 'H3', 'H4', 'H5']);
 const OFFICE_ROWS = new Set(['O1', 'O2', 'O3']);
-const NO_FSR_PROGRAMMES = new Set(['SB1', 'SB2', 'SB3', 'SB4', 'SB5', 'SB6', 'SB7', 'SB8']);
+const NO_FSR_PROGRAMMES = new Set(['SB1', 'SB2', 'SB3', 'SB4', 'SB5', 'SB6', 'SB7', 'SB8', 'SB10', 'SB11', 'AM7', 'AM8', 'AM9']);
 
 export const FT2_PER_M2 = 10.764;
 
@@ -67,6 +67,7 @@ export function defaultSettings(data) {
     hotelFfePerKey: val(data.costs.other.hotel_ffe_per_key),
     profitOnCost: val(a.profit_on_cost),
     permitDate: data.charges.default_permit_date,
+    applyEscalation: true,             // City charges rise 3%/yr to 2029 (pack)
     landPrice: val(a.land.price),
     landValueCurrentZoning: val(a.land.value_under_current_zoning),
     cacShare: val(data.charges.cac.share_of_lift),
@@ -105,16 +106,25 @@ function retailFactor(data, rowId, level) {
   if (level === 2) return val(r.level_2);
   return val(r.above_level_2);
 }
-function chargeRates(data, cls, permitDate) {
+function escalationFactor(data, baseYear, permitDate, on) {
+  const e = data.charges.escalation;
+  if (!on || !e || !baseYear) return 1;
+  const year = Number(String(permitDate).slice(0, 4));
+  const steps = Math.max(0, Math.min(year, e.until_year) - baseYear);
+  return Math.pow(1 + val(e), steps);
+}
+function chargeRates(data, cls, permitDate, escalate = false) {
   const C = data.charges, c = C.classes[cls] || C.classes.unknown;
   const kind = c.utilities_dcl === 'residential' ? 'residential' : 'commercial';
-  const dcl = c.dcl ? val(C.components.dcl.rates[kind]) : 0;
-  const util = val(C.components.utilities_dcl.rates[c.utilities_dcl]) ?? 0;
+  const fD = escalationFactor(data, C.components.dcl.escalation_base_year, permitDate, escalate);
+  const fU = escalationFactor(data, C.components.utilities_dcl.escalation_base_year, permitDate, escalate);
+  const dcl = c.dcl ? val(C.components.dcl.rates[kind]) * fD : 0;
+  const util = (val(C.components.utilities_dcl.rates[c.utilities_dcl]) ?? 0) * fU;
   let acc = 0;
   if (c.acc === 'residential' || c.acc === 'commercial') {
     const steps = C.components.acc.steps.filter(s => s.from <= permitDate);
     const step = steps.length ? steps[steps.length - 1] : null;
-    acc = step ? val(step.rates[c.acc]) : 0;
+    acc = step ? val(step.rates[c.acc]) * escalationFactor(data, Number(step.from.slice(0, 4)), permitDate, escalate) : 0;
   }
   return { dcl: num(dcl), util: num(util), acc: num(acc), flat: c.acc === 'flat_per_permit' };
 }
@@ -184,7 +194,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
   const ctx = { podiumTopFloor: settings.podiumTopFloor, height, maxLevel };
   const supertall = height > settings.supertallThresholdM;
   const financeFactor = settings.financeFactor ?? settings.financeRate * settings.buildYears * settings.drawFactor;
-  const warnings = [], rules = [];
+  const warnings = [], rules = [], errors = [];
   const items = [];
   const floorOut = [];
   let flatPermitFee = false;
@@ -196,10 +206,10 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     const fo = { level: f.level, elevation_m: f.elevation_m, height_m: f.height_m, area_m2: f.area_m2, bands: [...bands], items: [], value: 0, cost: 0, profit: 0, net: 0, gfa: 0 };
     for (const m of f.mix) {
       const r = resolveItem(data, settings, m, f);
-      if (r.error) { warnings.push(r.error); continue; }
+      if (r.error) { warnings.push(r.error); errors.push(r.error); continue; }
       // area
       let gfa, net;
-      if (f.area_basis === 'net') { net = f.area_m2 * m.share; gfa = net / (r.efficiency || 1); }
+      if (f.area_basis === 'net') { net = f.area_m2 * m.share; gfa = net / (r.efficiency > 0 ? r.efficiency : 1); }
       else { gfa = f.area_m2 * m.share; net = gfa * r.efficiency; }
       // value
       const premium = 1 + r.premiumPerFloor * Math.max(0, f.level - settings.podiumTopFloor);
@@ -220,7 +230,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
       if (hardRate === null) costEstimated = true;   // filled in below from the floor or project average
       const keys = r.rowId === 'H1' ? net / val(r.row.inputs.m2_per_key) : 0;
       const ffe = keys * settings.hotelFfePerKey;
-      const rates = chargeRates(data, r.chargeClass, settings.permitDate);
+      const rates = chargeRates(data, r.chargeClass, settings.permitDate, settings.applyEscalation);
       if (rates.flat) flatPermitFee = true;
       const chargeRate = r.o.chargePerM2 ?? (rates.dcl + rates.util + rates.acc);
       const it = { level: f.level, programme_id: m.programme_id, name: r.p.name, family_id: r.p.family_id, rowId: r.rowId, earnsBy: r.earnsBy,
@@ -239,6 +249,16 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     floorOut.push(fo);
   }
 
+  // ticketed deck: total visitor income (row value x its reference deck area) spread over the deck area actually drawn
+  const deckItems = items.filter(i => i.rowId && data.rows.get(i.rowId)?.method === 'visitors' && settings.programme[i.programme_id]?.valuePerM2Gfa == null);
+  if (deckItems.length) {
+    const row = data.rows.get(deckItems[0].rowId);
+    const total = val(row.value_per_m2_gfa) * val(row.inputs.deck_area_m2) * (settings.valueScale[row.id] ?? 1);
+    const deckGfa = deckItems.reduce((s, i) => s + i.gfa, 0);
+    for (const i of deckItems) { i.grossValue = total * i.gfa / deckGfa; i.value = i.grossValue; }
+    rules.push({ type: 'deck', level: null, severity: 'info', text: `Ticketed deck: ${Math.round(val(row.inputs.visitors_per_year)).toLocaleString('en-CA')} visitors a year (an assumption, no visitor study) give one total value, spread over the ${Math.round(deckGfa).toLocaleString('en-CA')} m² of deck drawn. The most fragile number in the tool.` });
+  }
+
   // costs for items without a priced line: floor average, then project average
   const priced = items.filter(i => !i.costEstimated);
   const projAvg = priced.length ? priced.reduce((s, i) => s + i.hardRate * i.gfa, 0) / Math.max(1e-9, priced.reduce((s, i) => s + i.gfa, 0)) : 0;
@@ -247,6 +267,9 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     const avg = fp.length ? fp.reduce((s, i) => s + i.hardRate * i.gfa, 0) / Math.max(1e-9, fp.reduce((s, i) => s + i.gfa, 0)) : projAvg;
     for (const i of fo.items) if (i.costEstimated) i.hardRate = avg;
   }
+  const estimated = new Map();
+  for (const i of items) if (i.costEstimated) { const e = estimated.get(i.programme_id) || { name: i.name, gfa: 0, levels: [] }; e.gfa += i.gfa; e.levels.push(i.level); estimated.set(i.programme_id, e); }
+  for (const [pid, e] of estimated) rules.push({ type: 'cost_estimated', level: e.levels[0], severity: 'warning', text: `${pid} ${e.name}: no published cost line, so it is costed at the floor or project average (${e.levels.length} floor${e.levels.length > 1 ? 's' : ''}). Enter a hard cost in Floors.` });
   for (const i of items) {
     i.hard = i.gfa * i.hardRate * settings.hardCostScale + i.ffe;
     i.soft = i.hard * settings.softCost;
@@ -294,17 +317,29 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
   const marginAtLand = cost ? (gdv - publicDeduction - cost - cacGross - num(land)) / cost : 0;
   const reasons = [];
   let verdict;
-  const ref = land ?? 0;
-  if (land == null) reasons.push('Land price not set: compared with zero.');
-  const shortfall = ref > 0 ? (ref - rlvAfter) / ref : (rlvAfter >= 0 ? -1 : Infinity);
-  if (rlvAfter >= ref && settings.profitOnCost >= 0.15) verdict = 'works';
-  else if (shortfall <= 0.10 || (marginAtLand >= 0.10 && marginAtLand < 0.15)) verdict = 'marginal';
-  else verdict = 'doesnt_work';
+  const totalGfa = items.reduce((s, i) => s + i.gfa, 0);
+  const missingValues = new Set(items.filter(i => i.flags.includes('user_value_missing')).map(i => i.programme_id));
+  if (!totalGfa || !priced.length || errors.length) {
+    verdict = 'incomplete';
+    if (!totalGfa) reasons.push('No floor area yet: add floors and a programme mix.');
+    else if (!priced.length) reasons.push('No programme on the floors has a published cost: enter hard costs to get a verdict.');
+    if (errors.length) reasons.push(`${errors.length} mix item(s) name an unknown programme.`);
+  } else if (land == null) {
+    if (rlvAfter < 0) { verdict = 'doesnt_work'; reasons.push('Value does not cover cost and profit, even with free land.'); }
+    else { verdict = 'needs_land'; reasons.push(`The scheme could pay up to ${(rlvAfter / 1e6).toFixed(0)} million dollars for the land. Enter a land price to get a verdict.`); }
+  } else {
+    const shortfall = land > 0 ? (land - rlvAfter) / land : (rlvAfter >= 0 ? -1 : Infinity);
+    if (rlvAfter >= land && settings.profitOnCost >= 0.15) verdict = 'works';
+    else if (shortfall <= 0.10 || (marginAtLand >= 0.10 && marginAtLand < 0.15)) verdict = 'marginal';
+    else verdict = 'doesnt_work';
+  }
+  if (missingValues.size) reasons.push(`${missingValues.size} programme(s) have no sourced value and count as 0: ${[...missingValues].join(', ')}.`);
   if (verdict === 'works' && settings.profitOnCost < 0.15) verdict = 'marginal';
   if (verdict === 'works' && marketDependent && settings.presaleMarket === 'weak') { verdict = 'marginal'; reasons.push('Relies on condo presales in a weak market (60–70% presold needed).'); }
   if (verdict === 'works' && publicGfa > 0 && !settings.publicPayer) { verdict = 'marginal'; reasons.push('A public floor has no named payer.'); }
   if (verdict === 'works') reasons.push('Residual land value covers the land price at the target profit.');
-  if (verdict === 'doesnt_work') reasons.push(land == null ? 'Value does not cover cost and profit.' : 'Residual land value is more than 10% below the land price.');
+  if (verdict === 'doesnt_work' && land != null) reasons.push('Residual land value is more than 10% below the land price.');
+  if (settings.publicPayer === 'ticketed_deck' && publicGfa > 0) reasons.push('Free floors are paid from ticket income inside the building (counted like a cross-subsidy).');
 
   // ledger (what the City receives)
   const inKind = items.filter(i => ['C1', 'C2', 'C3', 'C4', 'R6', 'A2'].includes(i.rowId) || (i.earnsBy === 'public' && i.rowId === null))
@@ -369,7 +404,7 @@ export function fsrCheck(items, settings, data) {
   const site = settings.siteAreaM2, min = settings.minNonresFsr;
   const out = { totalGfa: total, residential: res, hotel, nonresWithHotel, nonresWithoutHotel, siteAreaM2: site, minNonresFsr: min,
     usingHotelAsNonResidential: settings.hotelAsNonResidential,
-    note: 'Below-grade floors and core/mechanical/structural floors (SB1–SB8) are left out of FSR in this check. Designer\'s reading, not a zoning calculation.' };
+    note: 'Below-grade floors, parking, storage, waste and core/mechanical/structural floors are left out. Plates are gross (core included), so zoning floor area will be smaller: a pass within 10% is provisional. Designer\'s reading, not a zoning calculation.' };
   if (site) {
     out.fsr = total / site;
     out.nonresFsrWithHotel = nonresWithHotel / site; out.nonresFsrWithoutHotel = nonresWithoutHotel / site;
@@ -377,6 +412,9 @@ export function fsrCheck(items, settings, data) {
       out.requiredNonres = min * site;
       out.passWithHotel = nonresWithHotel >= out.requiredNonres;
       out.passWithoutHotel = nonresWithoutHotel >= out.requiredNonres;
+      // gross plates include the core; zoning floor area is smaller, so a pass within 10% is only provisional
+      out.tightWithHotel = out.passWithHotel && nonresWithHotel < out.requiredNonres * 1.10;
+      out.tightWithoutHotel = out.passWithoutHotel && nonresWithoutHotel < out.requiredNonres * 1.10;
       out.pass = settings.hotelAsNonResidential ? out.passWithHotel : out.passWithoutHotel;
     }
   }
@@ -388,16 +426,19 @@ export function sensitivity(floors, data, settings = {}) {
   const base = evaluate(floors, data, settings).totals.rlvAfterCac;
   const s = data.assumptions.sensitivity;
   const rowsIn = (ids) => Object.fromEntries(ids.map(id => [id, 1]));
-  const scaleRows = (ids, f) => ({ valueScale: { ...(settings.valueScale || {}), ...Object.fromEntries(Object.keys(rowsIn(ids)).map(id => [id, f])) } });
+  const cur = settings.valueScale || {};
+  const scaleRows = (ids, f) => ({ valueScale: { ...cur, ...Object.fromEntries(Object.keys(rowsIn(ids)).map(id => [id, (cur[id] ?? 1) * f])) } });
+  const basePremium = val(data.assumptions.height_premium.groups.condo.per_floor) || 0.007;
+  const baseVisitors = val(data.rows.get('A1')?.inputs?.visitors_per_year) || 500000;
   const incomeRows = [...data.rows.values()].filter(r => r.inputs?.cap_rate && r.method !== 'user');
-  const capScale = d => Object.fromEntries(incomeRows.map(r => { const c = val(r.inputs.cap_rate); return [r.id, c / Math.max(0.005, c + d)]; }));
+  const capScale = d => ({ ...cur, ...Object.fromEntries(incomeRows.map(r => { const c = val(r.inputs.cap_rate); return [r.id, (cur[r.id] ?? 1) * c / Math.max(0.005, c + d)]; })) });
   const tests = [
-    { id: 'office_rent', label: `Office rent ±${s.office_rent[1] * 100}%`, lo: scaleRows(['O1', 'O2', 'O3'], 1 + s.office_rent[0]), hi: scaleRows(['O1', 'O2', 'O3'], 1 + s.office_rent[1]) },
+    { id: 'office_rent', label: `Office value ±${s.office_rent[1] * 100}%`, lo: scaleRows(['O1', 'O2', 'O3'], 1 + s.office_rent[0]), hi: scaleRows(['O1', 'O2', 'O3'], 1 + s.office_rent[1]) },
     { id: 'cap_rate', label: 'Cap rates ±1 point', lo: { valueScale: capScale(s.cap_rate_points[1]) }, hi: { valueScale: capScale(s.cap_rate_points[0]) } },
     { id: 'condo_price', label: `Condo price ±${s.condo_price[1] * 100}%`, lo: scaleRows(['R1', 'R2', 'R3'], 1 + s.condo_price[0]), hi: scaleRows(['R1', 'R2', 'R3'], 1 + s.condo_price[1]) },
     { id: 'hard_cost', label: `Hard cost ±${s.hard_cost[1] * 100}%`, lo: { hardCostScale: 1 + s.hard_cost[1] }, hi: { hardCostScale: 1 + s.hard_cost[0] } },
-    { id: 'condo_premium', label: `Condo height premium ${s.condo_height_premium[0] * 100}–${s.condo_height_premium[1] * 100}%/floor`, lo: { premiumScale: s.condo_height_premium[0] / 0.007 }, hi: { premiumScale: s.condo_height_premium[1] / 0.007 } },
-    { id: 'deck_visitors', label: `Deck visitors ${s.deck_visitors[0] / 1000}k–${s.deck_visitors[1] / 1000}k a year`, lo: scaleRows(['A1'], s.deck_visitors[0] / 500000), hi: scaleRows(['A1'], s.deck_visitors[1] / 500000) },
+    { id: 'condo_premium', label: `Condo height premium ${s.condo_height_premium[0] * 100}–${s.condo_height_premium[1] * 100}%/floor`, lo: { premiumScale: s.condo_height_premium[0] / basePremium }, hi: { premiumScale: s.condo_height_premium[1] / basePremium } },
+    { id: 'deck_visitors', label: `Deck visitors ${s.deck_visitors[0] / 1000}k–${s.deck_visitors[1] / 1000}k a year`, lo: scaleRows(['A1'], s.deck_visitors[0] / baseVisitors), hi: scaleRows(['A1'], s.deck_visitors[1] / baseVisitors) },
   ];
   return { base, tests: tests.map(t => {
     const lo = evaluate(floors, data, { ...settings, ...t.lo }).totals.rlvAfterCac;

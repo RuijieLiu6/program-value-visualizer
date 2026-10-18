@@ -32,6 +32,7 @@ header.top .ctrls { display: flex; flex-wrap: wrap; gap: 6px; align-items: cente
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font: 600 12px/1.4 var(--body); letter-spacing: .02em; border: 1px solid transparent; }
 .pill.works { background: var(--good-soft); color: var(--good); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
 .pill.marginal { background: var(--warn-soft); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
+.pill.needs_land, .pill.incomplete { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
 .pill.doesnt_work { background: var(--bad-soft); color: var(--bad); border-color: color-mix(in srgb, var(--bad) 30%, transparent); }
 .label-strip { font: 500 11px/1.4 var(--mono); color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
 button, select, input, textarea { font: inherit; color: inherit; }
@@ -71,6 +72,7 @@ input[type=number] { font-family: var(--mono); font-variant-numeric: tabular-num
 .verdict { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: var(--radius); border: 1px solid var(--line); }
 .verdict.works { background: var(--good-soft); border-color: color-mix(in srgb, var(--good) 35%, transparent); }
 .verdict.marginal { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+.verdict.needs_land, .verdict.incomplete { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
 .verdict.doesnt_work { background: var(--bad-soft); border-color: color-mix(in srgb, var(--bad) 35%, transparent); }
 .verdict h3 { margin: 0; font: 700 24px/1.1 var(--display); }
 .verdict ul { margin: 0; padding-left: 18px; }
