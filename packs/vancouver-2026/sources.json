@@ -512,6 +512,56 @@
       "checked": "summary",
       "note": "Hot desks about $295-495 a month; dedicated desks $350-660 (e.g. Makeshift from $426). Listings partly undated.",
       "local_copy": false
+    },
+    {
+      "id": "dodp-2026",
+      "title": "Downtown Official Development Plan (DD), consolidated by-law",
+      "publisher": "City of Vancouver",
+      "url": "https://bylaws.vancouver.ca/odp/odp-downtown.pdf",
+      "published": "2026-06",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Section 3: Area A total density not over 11.00 FSR; Areas B and F 9.00; Area G 6.00 with office not over 5.00. Read through a search summary (the PDF refused direct download); the density map was not checked."
+    },
+    {
+      "id": "colliers-land-2025",
+      "title": "Metro Vancouver land market commentary and top land deals, 2025",
+      "publisher": "Colliers (via Western Investor and Vancouver Market)",
+      "url": "https://www.westerninvestor.com/british-columbia/metro-vancouver-land-deals-slow-as-high-costs-low-demand-stall-projects-10740065",
+      "published": "2025",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Distressed residential land sales resetting price floors in 2025 (court-ordered sales 22% of land sales over $5 M in Q1 2025, Avison Young); Kitsilano site at $195 per buildable ft2."
+    },
+    {
+      "id": "altus-land-2019",
+      "title": "Construction, land costs greatly propel Vancouver's condo prices",
+      "publisher": "Altus Group (via Mortgage Professional)",
+      "url": "https://mpamag.com/ca/news/general/construction-land-costs-greatly-propel-vancouvers-condo-prices/284916",
+      "published": "2019",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Vancouver high-rise residential land about $325 per buildable ft2 in 2019. Old: a reference point only."
+    },
+    {
+      "id": "whitespot-sale",
+      "title": "Hong Kong company pays $245 million for downtown Vancouver White Spot site",
+      "publisher": "Georgia Straight",
+      "url": "https://www.straight.com/node/1010951",
+      "published": "2018",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "About 398,000 ft2 buildable residential at more than $615 per buildable ft2 (peak-market downtown sale)."
+    },
+    {
+      "id": "altus-cre-q2-2026",
+      "title": "Vancouver commercial real estate market update, Q2 2026",
+      "publisher": "Altus Group",
+      "url": "https://www.altusgroup.com/insights/vancouver-commercial-real-estate-market-update/",
+      "published": "2026-Q2",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Land transaction volume $1.2 billion, down 14% year over year; buyers favour sites with clear policy support and predictable density."
     }
   ]
 }

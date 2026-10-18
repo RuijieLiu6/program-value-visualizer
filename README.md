@@ -8,7 +8,7 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 **Every number is an indicative early-design estimate.** It is not a feasibility study, an appraisal or a compliance check, and the tool says so on every screen and export.
 
-Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (65 tests). See [Roadmap](#roadmap).
+Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (73 tests). See [Roadmap](#roadmap).
 
 Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
 
@@ -45,7 +45,7 @@ For each floor and each programme on it:
 3. **Cost.** Hard cost (by programme, from a published cost guide) + tall-building premium + soft costs + financing + City charges + leasing and fit-out where relevant.
 4. **Public running cost.** Yearly cost of free public floors, turned into a capital sum, unless someone else pays.
 5. **Profit.** Developer profit as a share of cost.
-6. **Residual land value** (剩余地价) = value − cost − profit. Compared with the land price you enter.
+6. **Residual land value** (剩余地价) = value − cost − profit. Compared with the land price: yours, or an estimate (site area × current-zoning FSR × land rate per buildable m²) you can edit.
 
 Results:
 - the verdict: Works / Marginal / Doesn't work, or Land price needed / Incomplete;

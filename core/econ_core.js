@@ -73,6 +73,9 @@ export function defaultSettings(data) {
     applyEscalation: true,             // City charges rise 3%/yr to 2029 (pack)
     landPrice: val(a.land.price),
     landValueCurrentZoning: val(a.land.value_under_current_zoning),
+    landFsr: val(a.land.estimate?.current_zoning_fsr),             // current-zoning FSR for the land estimate
+    landRatePerM2: val(a.land.estimate?.rate_per_buildable_m2),    // C$ per buildable m2 under current zoning
+    landPremium: val(a.land.estimate?.purchase_premium) ?? 0,      // buyer's premium over current-zoning value
     cacShare: val(data.charges.cac.share_of_lift),
     employmentOnly: 'auto',            // 'auto' | true | false
     publicRunningCostPerM2: val(a.public_running_cost.cost_per_m2_year),
@@ -163,6 +166,31 @@ export function sourceDates(o, sources) {
   const published = s && s.id !== 'assumption' ? (s.published ?? null) : null;
   return { published, asOf: o.as_of ?? null, isAssumption: !s || s.id === 'assumption',
     text: `${s && s.id !== 'assumption' ? `published ${published ?? 'date not stated'} · ` : ''}as of ${o.as_of ?? '—'}` };
+}
+
+/**
+ * Default land estimate, used only where the user typed no value.
+ * Current-zoning value = site area x current-zoning FSR x land rate per buildable m2;
+ * land price = current-zoning value (typed or estimated) x (1 + premium).
+ * Site area: settings (the brief fills it), else the largest level-1 plate as a footprint proxy (flagged).
+ */
+export function estimateLand(settings, floors) {
+  let siteAreaM2 = settings.siteAreaM2, siteSource = 'site area';
+  if (!(siteAreaM2 > 0)) {
+    const ground = floors.filter(f => f.level === 1).map(f => f.area_m2);
+    siteAreaM2 = ground.length ? Math.max(...ground) : null; siteSource = 'largest level-1 plate';
+  }
+  const fsr = settings.landFsr, rate = settings.landRatePerM2, premium = num(settings.landPremium);
+  const cz = siteAreaM2 > 0 && fsr > 0 && rate > 0 ? siteAreaM2 * fsr * rate : null;
+  const czTyped = settings.landValueCurrentZoning != null;
+  const czUsed = czTyped ? settings.landValueCurrentZoning : cz;
+  const priceTyped = settings.landPrice != null;
+  const price = priceTyped ? settings.landPrice : czUsed != null ? czUsed * (1 + premium) : null;
+  return {
+    siteAreaM2, siteSource, footprintProxy: siteSource !== 'site area' && siteAreaM2 != null, fsr, rate, premium, buildableM2: siteAreaM2 > 0 && fsr > 0 ? siteAreaM2 * fsr : null,
+    currentZoningEstimate: cz, currentZoningValue: czUsed, currentZoningEstimated: !czTyped && cz != null,
+    price, priceEstimated: !priceTyped && price != null,
+  };
 }
 
 /** Floor position bands: B below grade, G podium, L low (<= 60 m), M mid, H high, T top, S seam (tagged). */
@@ -335,7 +363,9 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
   // CAC
   const hasResidential = items.some(i => RESIDENTIAL_ROWS.has(i.rowId));
   const employmentOnly = settings.employmentOnly === 'auto' ? !hasResidential : !!settings.employmentOnly;
-  let cacBase = settings.landValueCurrentZoning, cacBaseNote = null;
+  const landEst = estimateLand(settings, floors);
+  let cacBase = landEst.currentZoningValue, cacBaseNote = null;
+  if (landEst.currentZoningEstimated) cacBaseNote = 'CAC lift is measured from the estimated land value under current zoning. Enter your own to override.';
   if (cacBase == null) { cacBase = settings.landPrice ?? 0; cacBaseNote = settings.landPrice != null ? 'Land value under current zoning not set: land price used instead.' : 'Land value under current zoning not set: CAC lift measured from zero.'; }
   const lift = rlvBefore - cacBase;
   const cacGross = employmentOnly ? 0 : Math.max(0, settings.cacShare * lift);
@@ -345,7 +375,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
   if (cacBaseNote && !employmentOnly) warnings.push(cacBaseNote);
 
   // verdict
-  const land = settings.landPrice;
+  const land = landEst.price;
   const saleGfa = items.filter(i => SALE_ROWS.has(i.rowId)).reduce((s, i) => s + i.gfa, 0);
   const marketDependent = saleGfa > 0;
   const marginAtLand = cost ? (gdv - publicDeduction - cost - cacGross - num(land)) / cost : 0;
@@ -358,10 +388,12 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     if (!totalGfa) reasons.push('No floor area yet: add floors and a programme mix.');
     else if (!priced.length) reasons.push('No programme on the floors has a published cost: enter hard costs to get a verdict.');
     if (errors.length) reasons.push(`${errors.length} mix item(s) name an unknown programme.`);
-  } else if (land == null) {
+  } else if (land == null) {   // nothing typed and nothing to estimate from
     if (rlvAfter < 0) { verdict = 'doesnt_work'; reasons.push('Value does not cover cost and profit, even with free land.'); }
     else { verdict = 'needs_land'; reasons.push(`The scheme could pay up to ${(rlvAfter / 1e6).toFixed(0)} million dollars for the land. Enter a land price to get a verdict.`); }
   } else {
+    if (landEst.priceEstimated) reasons.push(`Land price estimated: ${(land / 1e6).toFixed(0)} million dollars (${landEst.footprintProxy ? 'largest ground-floor plate, used because no site area is set' : 'site area'} ${Math.round(landEst.siteAreaM2).toLocaleString('en-CA')} m² × current FSR ${landEst.fsr} × C$${Math.round(landEst.rate).toLocaleString('en-CA')}/m²${landEst.premium ? ` × (1 + ${Math.round(landEst.premium * 100)}% premium)` : ''}${landEst.currentZoningEstimated ? '' : ', from your current-zoning value'}). Enter your own to override.`);
+    if (rlvAfter < 0) reasons.push('Value does not cover cost and profit, even with free land.');
     const shortfall = land > 0 ? (land - rlvAfter) / land : (rlvAfter >= 0 ? -1 : Infinity);
     if (rlvAfter >= land && settings.profitOnCost >= 0.15) verdict = 'works';
     else if (shortfall <= 0.10 || (marginAtLand >= 0.10 && marginAtLand < 0.15)) verdict = 'marginal';
@@ -423,7 +455,8 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     label: LABEL,
     height, maxLevel, supertall, financeFactor,
     totals: { gfa: sum('gfa'), net: sum('net'), grossValue, leasing, gdv, publicRunningPerYear: runningPerYear, publicCapitalised: runningCapitalised, publicDeduction,
-      hard, soft, finance, charges: chargesTotal, cost, profit, rlvBeforeCac: rlvBefore, cacLift: lift, cac: cacGross, cacCash, rlvAfterCac: rlvAfter, landPrice: land, marginAtLand },
+      hard, soft, finance, charges: chargesTotal, cost, profit, rlvBeforeCac: rlvBefore, cacLift: lift, cac: cacGross, cacCash, rlvAfterCac: rlvAfter, landPrice: land, landEstimated: landEst.priceEstimated, landValueCurrentZoning: landEst.currentZoningValue, marginAtLand },
+    land: landEst,
     verdict, reasons, marketDependent, employmentOnly, ledger, fsr, floors: floorOut, items, rules, warnings: [...new Set(warnings)], settings,
   };
 }
@@ -463,7 +496,14 @@ export function fsrCheck(items, settings, data) {
 
 /** Tornado: residual land value after CAC at the low and high end of each test. */
 export function sensitivity(floors, data, settings = {}) {
-  const base = evaluate(floors, data, settings).totals.rlvAfterCac;
+  const baseRun = evaluate(floors, data, settings), base = baseRun.totals.rlvAfterCac;
+  // land rate +/-20%: moves the estimated land price and the CAC base, so it is reported as headroom over land (not on the tornado)
+  let land = null;
+  if (baseRun.totals.landEstimated && baseRun.land.currentZoningEstimated) {
+    const rate = baseRun.settings.landRatePerM2;
+    const run = f => { const r = f === 1 ? baseRun : evaluate(floors, data, { ...settings, landRatePerM2: rate * f }); return { rate: rate * f, landPrice: r.totals.landPrice, headroom: r.totals.rlvAfterCac - r.totals.landPrice, verdict: r.verdict }; };
+    land = { label: 'Land rate ±20%', lowRate: run(0.8), base: run(1), highRate: run(1.2) };
+  }
   const s = data.assumptions.sensitivity;
   const rowsIn = (ids) => Object.fromEntries(ids.map(id => [id, 1]));
   const cur = settings.valueScale || {};
@@ -480,7 +520,7 @@ export function sensitivity(floors, data, settings = {}) {
     { id: 'condo_premium', label: `Condo height premium ${s.condo_height_premium[0] * 100}–${s.condo_height_premium[1] * 100}%/floor`, lo: { premiumScale: s.condo_height_premium[0] / basePremium }, hi: { premiumScale: s.condo_height_premium[1] / basePremium } },
     { id: 'deck_visitors', label: `Deck visitors ${s.deck_visitors[0] / 1000}k–${s.deck_visitors[1] / 1000}k a year`, lo: scaleRows(['A1'], s.deck_visitors[0] / baseVisitors), hi: scaleRows(['A1'], s.deck_visitors[1] / baseVisitors) },
   ];
-  return { base, tests: tests.map(t => {
+  return { base, land, tests: tests.map(t => {
     const lo = evaluate(floors, data, { ...settings, ...t.lo }).totals.rlvAfterCac;
     const hi = evaluate(floors, data, { ...settings, ...t.hi }).totals.rlvAfterCac;
     return { id: t.id, label: t.label, low: Math.min(lo, hi), high: Math.max(lo, hi), swing: Math.abs(hi - lo) };

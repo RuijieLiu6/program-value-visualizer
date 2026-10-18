@@ -161,9 +161,9 @@ test('unknown programme ids make the verdict incomplete', () => {
   assert.equal(r.verdict, 'incomplete');
 });
 
-test('no land price gives "needs land" with the land budget, or "doesn\'t work" when even free land fails', () => {
+test('with no land price and nothing to estimate it from: "needs land" with the land budget, or "doesn\'t work" when even free land fails', () => {
   const condo = Array.from({ length: 30 }, (_, k) => fl(k + 30, [{ programme_id: 'LV1', share: 1 }], { area_m2: 900, elevation_m: 120 + k * 3.2 }));
-  const r = evaluate(condo, data, { presaleMarket: 'normal', podiumTopFloor: 5 });
+  const r = evaluate(condo, data, { presaleMarket: 'normal', podiumTopFloor: 5, landRatePerM2: null });
   assert.equal(r.verdict, 'needs_land');
   const office = Array.from({ length: 10 }, (_, k) => fl(k + 1, [{ programme_id: 'WK1', share: 1 }]));
   assert.equal(evaluate(office, data, {}).verdict, 'doesnt_work');

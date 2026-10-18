@@ -195,3 +195,17 @@ Changes in value, C$/m² GFA:
 **Still weak.** These rows were not part of this pass, and their notes say what to replace:
 - 11 analogy rows: O4 lab, MP4, MP5, GP9, SE6, MK1, MK4, MK7 data room, CH3, GS3, GS4.
 - "Sourced" rows that are author assumptions: A1 deck visitors, A3, H3, T3, O5, R2, R7.
+
+## 9. Default land estimate (18 October 2026)
+
+- `assumptions.json` adds `land.estimate`:
+  - `current_zoning_fsr`: 11.0, grade B. Source: Downtown ODP (consolidated June 2026), Area A. The PDF refused direct download, so it was read through a search summary.
+  - `rate_per_buildable_m2`: C$3,230, grade C. Sources: Colliers/Western Investor 2025, Altus 2019 and 2026, White Spot sale about 2018.
+  - `purchase_premium`: 0%, grade C.
+- The 2014 figure (C$2,000–2,700 per buildable m²) stays only as a historical reference.
+- Five sources added.
+
+**Sample tower (VTC brief).**
+- Before: "Doesn't work", because value does not cover cost even with free land (residual after CAC −C$221 M; no land price).
+- After: still "Doesn't work". The land price is now estimated at C$407 M (11,468 m² × 11.0 × C$3,230), so the reasons also say the residual is more than 10% below it.
+- Residual, CAC (C$0) and every other total are unchanged. The lift over the estimated current-zoning value is negative, so the CAC stays zero.

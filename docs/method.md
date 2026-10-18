@@ -34,7 +34,7 @@ Program Value Visualizer turns a floor-by-floor programme mix into an indicative
 | Verdict | When |
 | --- | --- |
 | Incomplete | No floor area, nothing priced, or an unknown programme id |
-| Land price needed | No land price entered and the residual after CAC is positive; the tool shows the land budget |
+| Land price needed | No land price entered and nothing to estimate it from (no site area, no level-1 floor, or no FSR or rate), and the residual after CAC is positive; the tool shows the land budget |
 | Works | Residual after CAC ≥ land price at ≥ 15% profit, and the scheme does not rely on condo presales in a weak market |
 | Marginal | Within 10% of the land price, or 10–15% profit, or it relies on presales in a weak market |
 | Doesn't work | Anything worse, including a negative residual even with free land |
@@ -75,3 +75,24 @@ Each value row is graded by its weakest *key* input (A best, C weakest). Selling
 - is listed in an info rule whenever the scheme uses it.
 
 A value the user types replaces it (`valueBasis: "user"`).
+
+## Land estimate (when you type no land values)
+
+1. **Land value under current zoning** = site area × current-zoning FSR × land rate per buildable m².
+   - Site area comes from Assumptions (the brief fills it in).
+   - With no site area, the largest level-1 plate stands in for the site, and the verdict says so.
+2. **Land price** = current-zoning value (typed or estimated) × (1 + purchase premium).
+3. **What uses which value:**
+   - The CAC lift is measured from the current-zoning value.
+   - The verdict compares the residual after CAC with the land price.
+   - A reason line gives the arithmetic.
+   - Typed values always win.
+4. **Defaults** (`assumptions.json` `land.estimate`):
+
+| Input | Default | Range | Grade | Basis |
+| --- | --- | --- | --- | --- |
+| Current-zoning FSR | 11.0 | 9.0–11.0 | B | Downtown ODP: Area A (CBD) total density ≤ 11.00 FSR; Areas B and F 9.00. The competition site is assumed to be in Area A, and bonuses are not added. |
+| Land rate per buildable m² | C$3,230 (C$300/ft²) | C$1,610–6,620 | C | 2025 distressed sales resetting floors (Kitsilano at $195/ft²); Altus 2019 at $325/ft²; peak downtown above $600/ft². No 2025–26 CBD sale was found. |
+| Purchase premium | 0% | 0–25% | C | Assumption: the CAC is meant to capture rezoning lift. |
+
+5. **Sensitivity.** "Land rate ±20%" is reported below the tornado as headroom over land, because it moves the land price and the CAC base, not only the residual.

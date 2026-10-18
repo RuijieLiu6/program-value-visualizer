@@ -313,7 +313,7 @@
       "source": "assumption",
       "grade": "C",
       "as_of": "2026-10-17",
-      "note": "User input. A competition brief may not give one.",
+      "note": "If you leave it empty, the tool estimates it: current-zoning land value x (1 + purchase premium). Type a price to override.",
       "needs_user_value": true
     },
     "value_under_current_zoning": {
@@ -322,7 +322,7 @@
       "source": "assumption",
       "grade": "C",
       "as_of": "2026-10-17",
-      "note": "Used for the CAC land-lift test.",
+      "note": "Used for the CAC land-lift test. If you leave it empty, the tool estimates it: site area x current-zoning FSR x land rate per buildable m2.",
       "needs_user_value": true
     },
     "reference_per_buildable_m2": {
@@ -335,7 +335,46 @@
         2000,
         2700
       ],
-      "note": "Prime downtown land in 2014 (old; values have moved since). Hint only."
+      "note": "Prime downtown land in 2014. Historical reference only; the estimate uses land.estimate.rate_per_buildable_m2."
+    },
+    "estimate": {
+      "note": "Default land estimate when the user enters none: current-zoning value = site area x current_zoning_fsr x rate_per_buildable_m2; land price = that value x (1 + purchase_premium). Order of magnitude only: check with an appraiser.",
+      "current_zoning_fsr": {
+        "value": 11.0,
+        "unit": "ratio",
+        "source": "dodp-2026",
+        "grade": "B",
+        "as_of": "2026-10-18",
+        "range": [
+          9.0,
+          11.0
+        ],
+        "note": "Downtown Official Development Plan (consolidated June 2026): total density in Area A, the central business district, must not exceed 11.00 FSR; Areas B and F are 9.00. The competition site is hypothetical: Area A (CBD) is assumed. Heritage and amenity bonuses are not added. The by-law was read through a search summary; the map was not checked."
+      },
+      "rate_per_buildable_m2": {
+        "value": 3230,
+        "unit": "CAD/m2",
+        "source": "colliers-land-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1610,
+          6620
+        ],
+        "note": "C$300 per buildable ft2 (x 10.764). Anchors: a 2025 Kitsilano site at $195/ft2 buildable as distressed sales reset price floors (Colliers, 2025); Altus put Vancouver high-rise land at $325/ft2 in 2019; downtown peak sales above $600/ft2 (White Spot site, about 2018). Land volume fell 14% a year to Q2 2026 (Altus). No 2025-26 downtown CBD sale per buildable ft2 was found, so grade C. Range: $150-615/ft2."
+      },
+      "purchase_premium": {
+        "value": 0.0,
+        "unit": "ratio",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0.0,
+          0.25
+        ],
+        "note": "Extra a buyer may pay over current-zoning value to assemble a site or for rezoning hope. 0% by default: the City's CAC is meant to capture the lift from rezoning, and paying for it twice makes schemes fail. Up to about 25% in competitive assemblies (assumption; no source found)."
+      }
     }
   },
   "presales": {

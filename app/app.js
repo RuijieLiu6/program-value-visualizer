@@ -70,7 +70,7 @@ function normaliseFloors(list) {
 // Ranges for settings typed by people or the assistant: [min, max]
 const RANGES = { landPrice: [0, 5e9], landValueCurrentZoning: [0, 5e9], podiumTopFloor: [0, 40], neighbourRoofM: [0, 400], siteAreaM2: [100, 200000], minNonresFsr: [0, 40],
   profitOnCost: [0, 0.4], softCost: [0, 0.6], financeRate: [0, 0.2], buildYears: [1, 12], drawFactor: [0, 1], supertallPremium: [0, 0.6], supertallThresholdM: [0, 600], cacShare: [0, 1],
-  publicRunningCostPerM2: [0, 2000], childcareM2PerSpace: [5, 60], officeTenantAllowance: [0, 5000], officeLeasingCost: [0, 0.5], hotelFfePerKey: [0, 500000] };
+  publicRunningCostPerM2: [0, 2000], landFsr: [0, 30], landRatePerM2: [0, 50000], landPremium: [0, 1], childcareM2PerSpace: [5, 60], officeTenantAllowance: [0, 5000], officeLeasingCost: [0, 0.5], hotelFfePerKey: [0, 500000] };
 const ENUMS = { publicPayer: ['cross_subsidy', 'cac_endowment', 'ticketed_deck', 'city_or_partner'], presaleMarket: ['weak', 'normal'], employmentOnly: ['auto', true, false], hotelAsNonResidential: [true, false], applyEscalation: [true, false] };
 function checkSetting(k, v) {
   if (v === null || v === undefined || v === '') return null;
@@ -193,6 +193,35 @@ function numField(id, label, value, { step = 'any', min, max, onchange, src, uni
 }
 function setSetting(k, v) { let c; try { c = checkSetting(k, v); } catch (e) { toast(e.message); renderTab(); return false; } pushHistory(); if (c === null) delete state.settings[k]; else state.settings[k] = c; refresh(); return true; }
 
+// ---------- land: typed values or the default estimate ----------
+function landBlock(r, S, A) {
+  const L = r.land, E = A.land.estimate || {};
+  const round = x => (x == null ? null : Math.round(x / 1e5) * 1e5);
+  const chip = on => (on ? h('span', { class: 'est', tabindex: '0', 'data-tip': 'Estimated by the tool from the site area, the current-zoning FSR and a land rate (below). Type your own number to override it.' }, 'Estimated') : null);
+  const canEstimate = L.siteAreaM2 > 0 && S.landFsr > 0 && S.landRatePerM2 > 0;
+  const useEst = key => (S[key] != null && canEstimate ? h('button', { class: 'use-est', onclick: () => setSetting(key, null) }, 'Use estimate') : null);
+  const field = (id, key, label, value, est, src) => h('div', { class: 'land-field' },
+    numField(id, label, value, { step: 100000, min: 0, unit: 'C$', placeholder: 'enter a site area to estimate', src, badge: chip(est), onchange: v => setSetting(key, v) }), useEst(key));
+  const czShown = S.landValueCurrentZoning ?? round(L.currentZoningEstimate), priceShown = S.landPrice ?? round(L.price);
+  const site = L.siteAreaM2 > 0 ? `${L.footprintProxy ? 'Largest ground-floor plate' : 'Site'} ${N(L.siteAreaM2)} m²` : null;
+  const arith = !canEstimate
+    ? h('p', { class: 'note' }, L.siteAreaM2 > 0 ? 'Set a current-zoning FSR and a land rate to get an estimate.' : 'No site area: enter one in Assumptions (or add a level-1 floor) to get a land estimate.')
+    : h('p', { class: 'note land-arith' }, `Estimate: ${site} × current-zoning FSR ${S.landFsr} = ${N(L.buildableM2)} buildable m² × C$${N(S.landRatePerM2)}/m² = ${M(L.currentZoningEstimate)} under current zoning`,
+      `${S.landPremium ? `; land price × (1 + ${Math.round(S.landPremium * 100)}% premium)` : '; land price = that value (no premium)'}.`,
+      L.footprintProxy ? h('b', {}, ' No site area is set, so the largest ground-floor plate stands in for it: enter the site area in Assumptions.') : null);
+  return h('div', { class: 'land' },
+    h('h4', { style: 'margin:0' }, 'Land'),
+    h('div', { class: 'grid2' },
+      field('landPrice', 'landPrice', 'Land price', priceShown, L.priceEstimated, A.land.price),
+      field('landZoning', 'landValueCurrentZoning', 'Land value under current zoning (for CAC)', czShown, L.currentZoningEstimated, A.land.value_under_current_zoning)),
+    arith,
+    h('div', { class: 'grid3' },
+      numField('landFsr', 'Current-zoning FSR', S.landFsr, { step: 0.1, min: 0, max: 30, src: E.current_zoning_fsr, onchange: v => setSetting('landFsr', v) }),
+      numField('landRate', 'Land rate per buildable m²', S.landRatePerM2, { step: 50, min: 0, unit: 'C$/m²', src: E.rate_per_buildable_m2, onchange: v => setSetting('landRatePerM2', v) }),
+      numField('landPrem', 'Purchase premium', S.landPremium, { step: 0.01, min: 0, max: 1, unit: 'share', src: E.purchase_premium, onchange: v => setSetting('landPremium', v) })),
+    h('p', { class: 'note' }, 'Order of magnitude only: an appraiser would value the actual site. Hover “source” for where each default comes from.'));
+}
+
 // ---------- Verdict tab ----------
 function renderVerdict() {
   const r = result, t = r.totals, S = settingsFull(), A = data.assumptions;
@@ -201,11 +230,7 @@ function renderVerdict() {
     h('span', { class: 'label-strip' }, 'Verdict'), h('h3', {}, VERDICT[r.verdict]),
     h('ul', {}, r.reasons.map(x => h('li', {}, x)), r.marketDependent ? h('li', {}, 'Market-dependent: the scheme relies on condo presales.') : null),
     h('span', { class: 'note' }, 'Works = residual land value covers the land price at the target profit, presales are reachable and every public floor has a payer. Marginal = within 10% of the land price, or 10–15% profit, or relies on a weak presale market. Land price needed = enter a land price to compare.'));
-  const land = h('div', { class: 'grid2' },
-    numField('landPrice', 'Land price', S.landPrice, { step: 100000, min: 0, unit: 'C$', placeholder: 'user to supply', src: A.land.price, onchange: v => setSetting('landPrice', v) }),
-    numField('landZoning', 'Land value under current zoning (for CAC)', S.landValueCurrentZoning, { step: 100000, min: 0, unit: 'C$', placeholder: 'user to supply', src: A.land.value_under_current_zoning, onchange: v => setSetting('landValueCurrentZoning', v) }));
-  const ag = r.fsr.totalGfa;
-  const hint = h('p', { class: 'note' }, `For scale only: prime downtown land was about C$2,000–2,700 per buildable m² in 2014 (an old figure; values have moved). At that rate this scheme's ${N(ag)} m² above grade would be about ${M(ag * 2000, 0)}–${M(ag * 2700, 0)}.`);
+  const land = landBlock(r, S, A);
   const kpis = h('div', { class: 'kpis' },
     kpi('Gross development value', M(t.gdv), '', 'Sum of floor values after selling and leasing costs'),
     kpi('Total cost (before profit)', M(t.cost), '', `Hard ${M(t.hard)} · soft ${M(t.soft)} · finance ${M(t.finance)} · City charges ${M(t.charges)}`),
@@ -214,7 +239,7 @@ function renderVerdict() {
     kpi('Residual land value before CAC', M(t.rlvBeforeCac), signCls(t.rlvBeforeCac)),
     kpi('CAC (share of land lift)', M(t.cac), '', r.employmentOnly ? 'Zero: 100% employment rezoning' : `${pct(S.cacShare, 0)} of the lift above the current-zoning land value`),
     kpi('Residual land value after CAC', M(t.rlvAfterCac), signCls(t.rlvAfterCac), 'What is left to pay for the land', true),
-    kpi('Land price', S.landPrice == null ? 'not set' : M(S.landPrice)));
+    kpi(t.landEstimated ? 'Land price (estimated)' : 'Land price', t.landPrice == null ? 'not set' : M(t.landPrice), '', t.landEstimated ? 'Estimate: site area × current-zoning FSR × land rate. Type a land price above to override.' : null));
   const f = r.fsr;
   const fsr = h('div', { class: 'tbl' }, h('table', {},
     h('thead', {}, h('tr', {}, h('th', {}, 'Floor area check'), h('th', { class: 'num' }, 'm²'), h('th', { class: 'num' }, 'FSR'), h('th', {}, 'Result'))),
@@ -231,7 +256,7 @@ function renderVerdict() {
     h('tbody', {}, Object.entries(fam).sort((a, b) => b[1].net - a[1].net).map(([k, v]) => h('tr', {},
       h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:8px;align-items:center' }, familyIcon(k), data.families.get(k)?.name)),
       h('td', { class: 'num' }, N(v.gfa)), h('td', { class: 'num' }, M(v.value)), h('td', { class: 'num' }, M(v.cost)), h('td', { class: `num ${signCls(v.net)}` }, M(v.net)))))));
-  put(el, verdict, land, hint, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
+  put(el, verdict, land, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
 }
 /** A family's icon is its first programme's icon; a colour swatch if it has none. */
 function familyIcon(famId) { const first = [...data.programmes.values()].find(p => p.family_id === famId); return first && iconSvg(first.id) ? iconEl(first.id, 26) : h('i', { class: 'sw', style: `background:${famColour(famId)}` }); }
@@ -433,6 +458,7 @@ function renderCity() {
     h('div', { class: 'field' }, h('label', { for: 'payer' }, 'Who pays'), payer));
   put(el('#tab-city'), 
     h('p', { class: 'note' }, 'What the City and public receive from this tower, separate from whether it pays back the investors. Charges use rates for a permit on ' + S.permitDate + '.'),
+    r.land.currentZoningEstimated && !r.employmentOnly ? h('p', { class: 'note' }, `The CAC is measured from the estimated land value under current zoning (${M(r.land.currentZoningValue)}: site area × current-zoning FSR × land rate). Enter your own on the Verdict tab.`) : null,
     tbl,
     h('h4', { style: 'margin:0' }, 'Public floors cost money every year'),
     run,
@@ -649,7 +675,8 @@ function renderSens() {
   put($('#tab-sens'), 
     h('p', { class: 'note' }, 'How far the residual land value moves when one input changes at a time. The widest bars are the numbers to check first.'),
     h('div', { class: 'tbl', html: `<svg class="tornado" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tornado chart of residual land value after CAC">${s}</svg>` }),
-    h('p', { class: 'note' }, 'Condo height premium spans the two Vancouver studies: about 0.1%/floor when unit quality is controlled (UBC) and up to 1.5%/floor in raw sales data (Roomvu). Deck visitors only matter if the scheme has a ticketed deck (LE1).'));
+    h('p', { class: 'note' }, 'Condo height premium spans the two Vancouver studies: about 0.1%/floor when unit quality is controlled (UBC) and up to 1.5%/floor in raw sales data (Roomvu). Deck visitors only matter if the scheme has a ticketed deck (LE1).'),
+    sens.land ? h('p', { class: 'note' }, `${sens.land.label} (C$${N(sens.land.lowRate.rate)}–${N(sens.land.highRate.rate)}/m²): the estimated land price runs ${M(sens.land.lowRate.landPrice, 0)}–${M(sens.land.highRate.landPrice, 0)} and the headroom over land (residual after CAC − land) ${M(sens.land.lowRate.headroom, 0)} to ${M(sens.land.highRate.headroom, 0)}. Verdict: ${VERDICT[sens.land.lowRate.verdict]} at the low rate, ${VERDICT[sens.land.highRate.verdict]} at the high rate. Not on the chart: it moves the land price, not only the residual.`) : null);
 }
 
 // ---------- Assumptions tab ----------
@@ -795,7 +822,8 @@ function summaryForAI() {
   const t = result.totals, f = result.fsr;
   return { verdict: VERDICT[result.verdict], reasons: result.reasons, height_m: +result.height.toFixed(1), floors: state.floors.length,
     totals_cad_millions: Object.fromEntries(['gfa', 'gdv', 'cost', 'profit', 'publicDeduction', 'rlvBeforeCac', 'cac', 'rlvAfterCac'].map(k => [k, k === 'gfa' ? Math.round(t[k]) : +(t[k] / 1e6).toFixed(1)])),
-    land_price_cad: settingsFull().landPrice, fsr: { nonres_with_hotel: Math.round(f.nonresWithHotel), nonres_without_hotel: Math.round(f.nonresWithoutHotel), required: f.requiredNonres ? Math.round(f.requiredNonres) : null, pass: f.pass ?? null },
+    land: { price_cad: result.totals.landPrice, price_estimated: result.totals.landEstimated, current_zoning_value_cad: result.land.currentZoningValue, current_zoning_estimated: result.land.currentZoningEstimated,
+      estimate_basis: result.land.siteAreaM2 ? `${result.land.footprintProxy ? 'largest level-1 plate (no site area set)' : 'site area'} ${Math.round(result.land.siteAreaM2)} m2 x FSR ${result.land.fsr} x C$${result.land.rate}/m2 x (1 + ${result.land.premium})` : 'no site area' }, fsr: { nonres_with_hotel: Math.round(f.nonresWithHotel), nonres_without_hotel: Math.round(f.nonresWithoutHotel), required: f.requiredNonres ? Math.round(f.requiredNonres) : null, pass: f.pass ?? null },
     rules: result.rules.slice(0, 10).map(r => r.text), rule_count: result.rules.length };
 }
 const AI_TOOLS = [
@@ -825,8 +853,8 @@ const AI_TOOLS = [
     const fl = state.floors.filter(f => f.level >= lo && f.level <= hi); if (!fl.length) throw new Error('no floors in that range');
     pushHistory(); fl.forEach(f => { f.mix = m.map(x => ({ ...x, share: x.share / s })); }); state.sel = [lo, hi]; editMix = null; refresh();
     return { changed_floors: fl.length, ...summaryForAI() }; } },
-  { name: 'set_assumption', description: 'Change one project assumption. name is one of: landPrice, landValueCurrentZoning, podiumTopFloor, neighbourRoofM, siteAreaM2, profitOnCost, softCost, financeRate, buildYears, supertallPremium, cacShare, publicRunningCostPerM2, childcareM2PerSpace, publicPayer (cross_subsidy|cac_endowment|ticketed_deck|city_or_partner), presaleMarket (weak|normal), hotelAsNonResidential (true|false). value null resets it.', inputSchema: { type: 'object', properties: { name: { type: 'string' }, value: {} }, required: ['name'] }, execute: ({ name, value }) => {
-    const ok = ['landPrice', 'landValueCurrentZoning', 'podiumTopFloor', 'neighbourRoofM', 'siteAreaM2', 'profitOnCost', 'softCost', 'financeRate', 'buildYears', 'supertallPremium', 'cacShare', 'publicRunningCostPerM2', 'childcareM2PerSpace', 'publicPayer', 'presaleMarket', 'hotelAsNonResidential'];
+  { name: 'set_assumption', description: 'Change one project assumption. name is one of: landPrice, landValueCurrentZoning, podiumTopFloor, neighbourRoofM, siteAreaM2, profitOnCost, softCost, financeRate, buildYears, supertallPremium, cacShare, publicRunningCostPerM2, childcareM2PerSpace, landFsr (current-zoning FSR for the land estimate, 0-30), landRatePerM2 (C$ per buildable m2, 0-50000), landPremium (0-1), publicPayer (cross_subsidy|cac_endowment|ticketed_deck|city_or_partner), presaleMarket (weak|normal), hotelAsNonResidential (true|false). value null resets it.', inputSchema: { type: 'object', properties: { name: { type: 'string' }, value: {} }, required: ['name'] }, execute: ({ name, value }) => {
+    const ok = ['landPrice', 'landValueCurrentZoning', 'podiumTopFloor', 'neighbourRoofM', 'siteAreaM2', 'profitOnCost', 'softCost', 'financeRate', 'buildYears', 'supertallPremium', 'cacShare', 'publicRunningCostPerM2', 'childcareM2PerSpace', 'landFsr', 'landRatePerM2', 'landPremium', 'publicPayer', 'presaleMarket', 'hotelAsNonResidential'];
     if (!ok.includes(name)) throw new Error('not an assumption you can change here');
     checkSetting(name, value);   // throws a readable error for bad values
     setSetting(name, value); return summaryForAI(); } },
