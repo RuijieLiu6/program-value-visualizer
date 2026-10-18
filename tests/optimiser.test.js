@@ -117,3 +117,14 @@ test('strategy with no deck has no deck; no-sale strategy has no condos for sale
   const off = runStrategy(sampleTower(), none, defaultSettings(none), { ...optimiserDefaults(none), allowSale: false }, { id: 'all', name: 'All' });
   assert.equal(off.result.marketDependent, false);
 });
+
+test('gap to works measures the money test (residual after CAC covers land), not the presale-capped verdict', async () => {
+  const { gapToWorks } = await import('../core/optimiser.js');
+  const g = gapToWorks(sampleTower(), vtc, {});
+  // On the sample tower a deep enough cost cut must cover the land; the old verdict-based search wrongly reported "not even 60%".
+  assert.ok(g.hardCostCut != null && g.hardCostCut > 0 && g.hardCostCut <= 0.6, `cut ${g.hardCostCut}`);
+  assert.ok(g.valueRise != null && g.valueRise > 0, `rise ${g.valueRise}`);
+  const r = evaluate(sampleTower(), vtc, { hardCostScale: 1 - g.hardCostCut });
+  assert.ok(r.totals.rlvAfterCac >= r.totals.landPrice - 1);
+  assert.equal(typeof g.presaleCap, 'boolean');
+});

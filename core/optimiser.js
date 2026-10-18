@@ -296,8 +296,10 @@ const nameOf = (mix, data) => mix.map(m => data.programmes.get(m.programme_id)?.
 export function gapToWorks(floors, data, settings) {
   const base = evaluate(floors, data, settings);
   const land = base.totals.landPrice;
-  const works = s => evaluate(floors, data, { ...settings, ...s }).verdict === 'works';
-  const search = (mk, lo, hi) => { if (!works(mk(hi))) return null; for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (works(mk(mid))) hi = mid; else lo = mid; } return hi; };
+  // The money test: residual after CAC covers the land price. The presale cap (weak market) is reported on its own,
+  // because it holds the verdict at Marginal whatever the numbers do.
+  const covers = s => { const r = evaluate(floors, data, { ...settings, ...s }); return r.totals.landPrice != null ? r.totals.rlvAfterCac >= r.totals.landPrice : r.totals.rlvAfterCac >= 0; };
+  const search = (mk, lo, hi) => { if (!covers(mk(hi))) return null; for (let i = 0; i < 18; i++) { const mid = (lo + hi) / 2; if (covers(mk(mid))) hi = mid; else lo = mid; } return hi; };
   const allRows = Object.fromEntries([...data.rows.keys()].map(id => [id, 1]));
   const cut = search(x => ({ hardCostScale: 1 - x }), 0, 0.6);
   const rise = search(x => ({ valueScale: Object.fromEntries(Object.keys(allRows).map(id => [id, (settings.valueScale?.[id] ?? 1) * (1 + x)])) }), 0, 1.5);
@@ -306,6 +308,7 @@ export function gapToWorks(floors, data, settings) {
     hardCostCut: cut, valueRise: rise,
     normalPresales: evaluate(floors, data, { ...settings, presaleMarket: 'normal' }).verdict,
     noCac: evaluate(floors, data, { ...settings, cacShare: 0 }).verdict,
+    presaleCap: base.marketDependent && settings.presaleMarket === 'weak',
   };
 }
 
@@ -359,8 +362,9 @@ function reportText(best, strategies, current, data, settings, opts) {
     const g = gapToWorks(best.floors, data, settings);
     L.push('', 'On current numbers this form may not work. What would flip it to Works:');
     L.push(`• Land price: ${g.landThatWorks ? `${M(g.landThatWorks)} or less (now ${g.land == null ? 'not set' : M(g.land)})` : 'none — the residual is negative even with free land'}.`);
-    L.push(`• Hard cost: ${g.hardCostCut != null ? `${Math.ceil(g.hardCostCut * 100)}% lower` : 'not even 60% lower'}.`);
-    L.push(`• Values: ${g.valueRise != null ? `${Math.ceil(g.valueRise * 100)}% higher across all uses` : 'not even 150% higher'}.`);
+    L.push(`• Hard cost: ${g.hardCostCut != null ? `${Math.ceil(g.hardCostCut * 100)}% lower would cover the land` : 'not even 60% lower covers the land'}.`);
+    L.push(`• Values: ${g.valueRise != null ? `${Math.ceil(g.valueRise * 100)}% higher across all uses would cover the land` : 'not even 150% higher covers the land'}.`);
+    if (g.presaleCap) L.push('• Even when the money covers the land, the verdict stays Marginal while the scheme relies on condo presales in a weak market (lenders want 60–70% presold).');
     L.push(`• A normal presale market: ${vName[g.normalPresales]}; no CAC: ${vName[g.noCac]}.`);
     const sug = [];
     if (opts.respectFsr && r.fsr.requiredNonres) sug.push('if the brief allows, less non-residential area (the 9.0 FSR rule is the biggest cost here)');
