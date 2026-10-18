@@ -1,4 +1,5 @@
 // Program Value Visualizer — page script. All maths lives in core/econ_core.js.
+import { drawIcon, SPECS } from './icons/icon_specs.js';
 import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
 import { indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
 
@@ -224,10 +225,12 @@ function renderVerdict() {
   const famTbl = h('div', { class: 'tbl' }, h('table', {},
     h('thead', {}, h('tr', {}, h('th', {}, 'Activity family'), h('th', { class: 'num' }, 'GFA m²'), h('th', { class: 'num' }, 'Value'), h('th', { class: 'num' }, 'Cost + profit'), h('th', { class: 'num' }, 'Net'))),
     h('tbody', {}, Object.entries(fam).sort((a, b) => b[1].net - a[1].net).map(([k, v]) => h('tr', {},
-      h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:6px;align-items:center' }, h('i', { class: 'sw', style: `background:${famColour(k)}` }), data.families.get(k)?.name)),
+      h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:8px;align-items:center' }, familyIcon(k), data.families.get(k)?.name)),
       h('td', { class: 'num' }, N(v.gfa)), h('td', { class: 'num' }, M(v.value)), h('td', { class: 'num' }, M(v.cost)), h('td', { class: `num ${signCls(v.net)}` }, M(v.net)))))));
   el.replaceChildren(verdict, land, hint, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
 }
+/** A family's icon is its first programme's icon; a colour swatch if it has none. */
+function familyIcon(famId) { const first = [...data.programmes.values()].find(p => p.family_id === famId); return first && iconSvg(first.id) ? iconEl(first.id, 26) : h('i', { class: 'sw', style: `background:${famColour(famId)}` }); }
 function rulesBlock() {
   const rs = result.rules, order = { block: 0, error: 1, warning: 2, info: 3 };
   const sorted = [...rs].sort((a, b) => order[a.severity] - order[b.severity]);
@@ -264,19 +267,10 @@ function renderFloors() {
     const p = prog(m.programme_id);
     const inp = h('input', { id: `share-${k}`, type: 'number', min: 0, max: 100, step: 1, value: Math.round(m.share * 1000) / 10, 'aria-label': `Share of ${p?.name}` });
     inp.addEventListener('change', () => { editMix[k].share = Math.max(0, Number(inp.value) || 0) / 100; renderFloors(); });
-    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, h('i', { class: 'sw', style: `background:${famColour(p?.family_id)}` }), h('span', { title: p?.name }, `${m.programme_id} · ${p?.name}`), isTypical(m.programme_id) && !state.settings.programme?.[m.programme_id]?.valuePerM2Gfa ? h('span', { class: 'typ small', 'data-tip': TYPICAL_TIP }, 'typical') : null), inp,
+    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, iconEl(m.programme_id, 28), h('span', { title: p?.name }, `${m.programme_id} · ${p?.name}`), isTypical(m.programme_id) && !state.settings.programme?.[m.programme_id]?.valuePerM2Gfa ? h('span', { class: 'typ small', 'data-tip': TYPICAL_TIP }, 'typical') : null), inp,
       h('button', { 'aria-label': 'Remove', onclick: () => { editMix.splice(k, 1); renderFloors(); } }, '×'));
   }));
   const sumNote = h('div', { class: Math.abs(sum - 1) < 0.005 ? 'note' : 'neg' }, `Shares add up to ${(sum * 100).toFixed(1)}%${Math.abs(sum - 1) < 0.005 ? '.' : ' — must be 100%.'}`);
-  // picker
-  const famSel = h('select', { id: 'pickFam', 'aria-label': 'Activity family' }, h('option', { value: '' }, 'Activity family…'),
-    [...data.families.values()].map(f => h('option', { value: f.family_id, selected: f.family_id === pickFamily }, `${f.name}${f.intensity ? ' · intensity ' + f.intensity : ''}`)));
-  famSel.addEventListener('change', () => { pickFamily = famSel.value || null; pickProgramme = null; renderFloors(); });
-  const progs = [...data.programmes.values()].filter(p => !pickFamily || p.family_id === pickFamily);
-  const progSel = h('select', { id: 'pickProg', 'aria-label': 'Programme' }, h('option', { value: '' }, 'Programme…'),
-    progs.map(p => h('option', { value: p.id, selected: p.id === pickProgramme }, `${p.id} ${p.unconventional ? '★ ' : ''}${p.name}${p.needs_user_value ? ' (value: user to supply)' : isTypical(p.id) ? ' (typical estimate)' : ''}`)));
-  progSel.addEventListener('change', () => { pickProgramme = progSel.value || null; renderFloors(); });
-  const addBtn = h('button', { onclick: () => { if (!pickProgramme) return; const left = Math.max(0, 1 - editMix.reduce((s, m) => s + m.share, 0)); editMix.push({ programme_id: pickProgramme, share: left || 0 }); renderFloors(); } }, 'Add');
   const actions = h('div', { class: 'toolbar' },
     h('button', { onclick: () => { const s = editMix.reduce((a, m) => a + m.share, 0); if (s > 0) editMix.forEach(m => { m.share = m.share / s; }); renderFloors(); } }, 'Scale to 100%'),
     h('button', { class: 'primary', disabled: Math.abs(sum - 1) > 0.005 || !editMix.length, onclick: applyMix }, `Apply to ${fl.length} floor${fl.length > 1 ? 's' : ''}`),
@@ -285,10 +279,87 @@ function renderFloors() {
   const geo = h('div', { class: 'grid2' },
     numField('fArea', 'Plate area each floor', fl.length === 1 ? fl[0].area_m2 : null, { step: 10, min: 10, unit: 'm²', placeholder: 'mixed', onchange: v => { if (v) { pushHistory(); fl.forEach(f => { f.area_m2 = v; }); refresh(); } } }),
     h('div', { class: 'field' }, h('label', { for: 'fBasis' }, 'Area basis'), (() => { const s = h('select', { id: 'fBasis' }, h('option', { value: 'gross', selected: fl[0].area_basis !== 'net' }, 'gross (core included)'), h('option', { value: 'net', selected: fl[0].area_basis === 'net' }, 'net (core removed)')); s.addEventListener('change', () => { pushHistory(); fl.forEach(f => { f.area_basis = s.value; }); refresh(); }); return s; })()));
-  el.replaceChildren(head, mixed ? h('p', { class: 'note' }, `These floors have different mixes. Showing L${fl[0].level}; Apply replaces the mix on every selected floor.`) : null, h('h4', { style: 'margin:0' }, 'Programme mix'), rows, sumNote, h('div', { class: 'picker' }, famSel, progSel, addBtn), actions,
+  el.replaceChildren(head, mixed ? h('p', { class: 'note' }, `These floors have different mixes. Showing L${fl[0].level}; Apply replaces the mix on every selected floor.`) : null, h('h4', { style: 'margin:0' }, 'Programme mix'), rows, sumNote, programmePicker(), actions,
     pickProgramme ? programmeCard(pickProgramme) : (editMix[0] ? programmeCard(editMix[0].programme_id) : null),
     h('details', {}, h('summary', {}, 'Floor size and area basis'), geo), floorTable());
 }
+// ---------- programme icons and the visual picker ----------
+const iconCache = new Map();
+/** SVG markup for one programme's icon, drawn once and cached. Decorative: the name is always shown next to it. */
+function iconSvg(id) {
+  if (!iconCache.has(id)) {
+    let s = '';
+    try { if (SPECS[id]) s = drawIcon(id, famColour(prog(id)?.family_id), 100).replace(' width="100" height="100"', ' width="100%" height="100%"').replace(' role="img"', ' aria-hidden="true" focusable="false"'); } catch (e) { s = ''; }
+    iconCache.set(id, s);
+  }
+  return iconCache.get(id);
+}
+const iconEl = (id, px) => h('span', { class: 'picon', 'aria-hidden': 'true', style: `width:${px}px;height:${px}px`, html: iconSvg(id) });
+/** How a programme gets its value: sourced, typical estimate, or no income. */
+function valueKind(id) {
+  const p = prog(id), row = p?.value_status === 'linked' ? data.rows.get(p.value_ref) : null;
+  if (p?.value_status === 'zero' || row?.value_per_m2_gfa?.value === 0) return 'none';
+  return row?.value_basis === 'typical' ? 'typical' : 'sourced';
+}
+const KIND_LABEL = { sourced: 'sourced', typical: 'typical estimate', none: 'no income' };
+let pickerOpen = false, pickerQuery = '';
+function addProgramme(id) {
+  pickProgramme = id;
+  const left = Math.max(0, 1 - editMix.reduce((s, m) => s + m.share, 0));
+  if (!editMix.some(m => m.programme_id === id)) editMix.push({ programme_id: id, share: left || 0 });
+  pickerOpen = false; renderFloors();
+  document.querySelector('#pickerBtn')?.focus();
+}
+function programmePicker() {
+  const cur = pickProgramme ? prog(pickProgramme) : null;
+  const trigger = h('button', { id: 'pickerBtn', class: 'picker-btn', 'aria-haspopup': 'true', 'aria-expanded': String(pickerOpen), 'aria-controls': 'pickerPanel',
+    onclick: () => { pickerOpen = !pickerOpen; renderFloors(); if (pickerOpen) document.querySelector('#pickerSearch')?.focus(); } },
+    cur ? iconEl(cur.id, 28) : h('span', { class: 'picon empty', 'aria-hidden': 'true' }, '+'),
+    h('span', { class: 'pb-text' }, cur ? h('b', {}, cur.id) : null, cur ? ` ${cur.name}` : 'Add a programme…'), h('span', { class: 'caret', 'aria-hidden': 'true' }, pickerOpen ? '▴' : '▾'));
+  if (!pickerOpen) return h('div', { class: 'picker' }, trigger);
+
+  const tiles = [...data.programmes.values()].map(p => {
+    const kind = valueKind(p.id), fam = data.families.get(p.family_id);
+    const t = h('button', { class: 'ptile', role: 'option', tabindex: '-1', 'data-id': p.id, 'data-fam': p.family_id, 'aria-selected': String(p.id === pickProgramme),
+      'aria-label': `${p.id} ${p.name}, ${fam?.name}, value ${KIND_LABEL[kind]}`, title: p.name,
+      'data-search': `${p.id} ${p.name} ${fam?.name || ''} ${(p.users || []).join(' ')}`.toLowerCase(), onclick: () => addProgramme(p.id) },
+      iconEl(p.id, 64), h('span', { class: 'pt-id' }, p.id, p.unconventional ? ' ★' : ''), h('span', { class: 'pt-name' }, p.name),
+      h('span', { class: `pt-kind ${kind}` }, KIND_LABEL[kind]));
+    return t;
+  });
+  const grid = h('div', { class: 'pgrid', role: 'listbox', 'aria-label': 'Programmes' }, tiles);
+  const empty = h('p', { class: 'note', hidden: true }, 'No programme matches. Try another word or family.');
+  const visible = () => tiles.filter(t => !t.hidden);
+  const setRoving = el => { for (const t of tiles) t.tabIndex = -1; if (el) el.tabIndex = 0; };
+  const filter = () => {
+    const q = pickerQuery.trim().toLowerCase();
+    for (const t of tiles) t.hidden = !((!pickFamily || t.dataset.fam === pickFamily) && (!q || q.split(/\s+/).every(w => t.dataset.search.includes(w))));
+    const v = visible(); empty.hidden = v.length > 0;
+    setRoving(v.find(t => t.dataset.id === pickProgramme) || v[0]);
+    for (const c of chips.querySelectorAll('button')) c.setAttribute('aria-pressed', String((c.dataset.fam || null) === pickFamily));
+  };
+  const chip = (famId, label, colour) => h('button', { class: 'fchip', 'data-fam': famId || '', 'aria-pressed': 'false', style: colour ? `--fc:${colour}` : null,
+    onclick: e => { pickFamily = famId; filter(); e.currentTarget.scrollIntoView({ inline: 'nearest', block: 'nearest' }); } }, colour ? h('i', { class: 'sw', style: `background:${colour}` }) : null, label);
+  const chips = h('div', { class: 'fchips', role: 'group', 'aria-label': 'Activity family' }, chip(null, 'All'), [...data.families.values()].map(f => chip(f.family_id, f.name, f.colour)));
+  const search = h('input', { id: 'pickerSearch', type: 'search', placeholder: 'Search: gym, hotel, school…', value: pickerQuery, 'aria-label': 'Search programmes', autocomplete: 'off' });
+  search.addEventListener('input', () => { pickerQuery = search.value; filter(); });
+  search.addEventListener('keydown', e => { if (e.key === 'ArrowDown' || (e.key === 'Enter' && visible().length)) { e.preventDefault(); if (e.key === 'Enter' && visible().length === 1) addProgramme(visible()[0].dataset.id); else visible()[0]?.focus(); } });
+  grid.addEventListener('keydown', e => {
+    const v = visible(), i = v.indexOf(document.activeElement);
+    if (i < 0) return;
+    const cols = Math.max(1, v.filter(t => t.offsetTop === v[0].offsetTop).length);
+    const go = { ArrowRight: i + 1, ArrowLeft: i - 1, ArrowDown: i + cols, ArrowUp: i - cols, Home: 0, End: v.length - 1 }[e.key];
+    if (go != null) { e.preventDefault(); if (e.key === 'ArrowUp' && i - cols < 0) { search.focus(); return; } const t = v[Math.max(0, Math.min(v.length - 1, go))]; setRoving(t); t.focus(); t.scrollIntoView({ block: 'nearest' }); }
+  });
+  const panel = h('div', { id: 'pickerPanel', class: 'picker-panel', role: 'dialog', 'aria-label': 'Choose a programme' },
+    h('div', { class: 'pp-head' }, search, h('button', { 'aria-label': 'Close the programme list', onclick: () => { pickerOpen = false; renderFloors(); document.querySelector('#pickerBtn')?.focus(); } }, '×')),
+    chips, h('div', { class: 'pp-legend note' }, h('span', { class: 'pt-kind sourced' }, 'sourced'), ' published figure · ', h('span', { class: 'pt-kind typical' }, 'typical estimate'), ' starting number, check it · ', h('span', { class: 'pt-kind none' }, 'no income'), ' cost only'),
+    grid, empty);
+  panel.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); pickerOpen = false; renderFloors(); document.querySelector('#pickerBtn')?.focus(); } });
+  filter();
+  return h('div', { class: 'picker' }, trigger, panel);
+}
+
 function applyMix() {
   pushHistory();
   const mix = editMix.map(m => ({ programme_id: m.programme_id, share: m.share }));
@@ -306,7 +377,7 @@ function programmeCard(id) {
   const costSrc = childcare != null ? { ...turnkey, grade: 'C', note: `C$${N(turnkey.value)} per space ÷ ${settingsFull().childcareM2PerSpace} m² per space ÷ (1 + soft cost). ${turnkey.note}` } : lines[0]?.default_m2;
   const drift = row ? recomputeValue(row) : null;
   const driftNote = drift != null && row?.value_per_m2_gfa?.value && Math.abs(drift / row.value_per_m2_gfa.value - 1) > 0.05 ? h('p', { class: 'note neg' }, `This default (${N(row.value_per_m2_gfa.value)}) does not follow from its own inputs (${N(drift)}); see Method & sources.`) : null;
-  return h('div', { class: 'panel' }, h('div', { class: 'ph' }, h('i', { class: 'sw', style: `background:${famColour(p.family_id)}` }), h('h2', {}, `${p.id} · ${p.name}`), p.unconventional ? h('span', { class: 'grade' }, '★ unconventional') : null),
+  return h('div', { class: 'panel' }, h('div', { class: 'ph' }, iconEl(p.id, 64), h('h2', {}, `${p.id} · ${p.name}`), p.unconventional ? h('span', { class: 'grade' }, '★ unconventional') : null),
     h('div', { class: 'pb' },
       h('div', { class: 'note' }, `${fam.name}${fam.intensity ? ' · intensity ' + fam.intensity : ''} · fits ${p.fits.join(', ') || p.fits_text} · code group ${(p.occupancy_group || []).join(', ') || '—'} · users ${(p.users || []).join(', ')}`),
       row ? h('div', { class: 'note' }, `Value row ${row.id}: ${row.name} · earns by ${row.earns_by} · method ${row.method}`) : h('div', { class: 'note' }, p.value_status === 'zero' ? 'Earns nothing: cost only.' : 'No sourced value yet: enter your own below.'),
@@ -812,7 +883,7 @@ function openHelp() {
     h('ol', { class: 'help-steps' },
       step(1, 'Start with a tower.', 'A sample tower opens by default. To change it, open “Start from a new sample tower or your own floors” under the section. You can set the height and plate sizes, or import your floors from a CSV or JSON file.'),
       step(2, 'Select floors.', 'Click a floor in the section (the tower drawing). Shift-click a second floor to select a range.'),
-      step(3, 'Set the mix.', 'In the Floors tab, pick an activity family and a programme, then press Add. Set each share (they must add to 100%), then press Apply. The programme card shows its value and cost per m². Type your own number there if you know better.'),
+      step(3, 'Set the mix.', 'In the Floors tab, press “Add a programme…” and pick from the picture list (filter by family or search; arrow keys and Enter work too). It joins the mix. Set each share (they must add to 100%), then press Apply. The programme card shows its value and cost per m². Type your own number there if you know better.'),
       step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land.'),
       step(5, 'Check, then ask.', 'The City ledger shows what the City receives. Sensitivity shows which numbers move the result most. The Map shows the neighbouring roofs around a point you click. Method & sources shows where every number comes from. Ask AI (on claude.ai) explains the result and can edit the scheme for you.')),
     h('h3', {}, 'What the verdict means'),

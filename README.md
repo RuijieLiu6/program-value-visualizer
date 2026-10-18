@@ -8,7 +8,7 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 **Every number is an indicative early-design estimate.** It is not a feasibility study, an appraisal or a compliance check, and the tool says so on every screen and export.
 
-Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (60 tests). See [Roadmap](#roadmap).
+Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (63 tests). See [Roadmap](#roadmap).
 
 Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
 
@@ -62,7 +62,7 @@ Results:
 | `catalogue/` | Activity-based programme catalogue: families and programmes, no prices |
 | `packs/vancouver-2026/` | Vancouver market values, construction costs, City charges, assumptions, sources |
 | `briefs/` | Optional rule sets. `vtc-2026/` holds the public Vancouver Tall Challenge brief (site area, minimum non-residential floor area, height range); `none/` means no brief. |
-| `app/` | The web page |
+| `app/` | The web page; `app/icons/` draws an original isometric icon for each programme (no external icon set) |
 | `basemap/` | Downtown Vancouver base map for the Map tab (about 1 MB), with attribution; built by `scripts/build_basemap.py` |
 | `templates/` | Floor-list templates (CSV and JSON) |
 | `tests/` | Automated tests (`node --test`) |

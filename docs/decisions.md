@@ -15,3 +15,4 @@
 | 18 Oct 2026 | Map (G4) | Lightweight 2D plan of downtown (about 1 MB) instead of embedding a 3D viewer. No site marked; OpenStreetMap and NASA SRTM credited under the map. |
 | 18 Oct 2026 | Unpriced programmes | Give every programme a typical estimate (grade C, basis and range shown, marked in the page) instead of asking users for prices. Public and support uses stay at zero. |
 | 18 Oct 2026 | Help | A Help button opens a short guide (question, five steps, verdicts, grades, limits) with an optional guided tour. It opens once on a first visit. |
+| 18 Oct 2026 | Programme icons and picker | Each of the 112 programmes has an original isometric icon, drawn in the browser by `app/icons/` (no external icon set, no licence) and cached per id. The Floors tab picks programmes from a picture grid with family chips, search and keyboard control instead of two drop-downs. |
