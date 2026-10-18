@@ -1170,8 +1170,8 @@ function renderAI() {
 }
 
 // ---------- Programme word-stack diagram: preview and export ----------
-const diagramOpts = { colour: 'family', labels: 'names', groupBy: 'programme', showArea: false };
-function diagramLayout() { return wordStackLayout(result, data, { groupBy: diagramOpts.groupBy, labels: diagramOpts.labels, showArea: diagramOpts.showArea }); }
+const diagramOpts = { colour: 'family', labels: 'names', groupBy: 'programme', showArea: false, shape: 'tower', proportion: 'fit' };
+function diagramLayout() { return wordStackLayout(result, data, { groupBy: diagramOpts.groupBy, labels: diagramOpts.labels, showArea: diagramOpts.showArea, shape: diagramOpts.shape, proportion: diagramOpts.proportion }); }
 function diagramSVG(embedFont = true) { return wordStackSVG(diagramLayout(), { colour: diagramOpts.colour, showArea: diagramOpts.showArea, families: data.families, embedFont, title: `Programme section · ${Math.round(result.height)} m` }); }
 /** Draw the same layout on a canvas (PNG export): the page has the display font loaded, an SVG image would not. */
 async function diagramPNG(scale = 3) {
@@ -1183,8 +1183,11 @@ async function diagramPNG(scale = 3) {
   g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
   g.fillStyle = INK; g.font = `500 13px ${FONT_STACK}`; g.fillText(`PROGRAMME SECTION · ${Math.round(result.height)} M`, L.pad.left, 24);
   const tag = (txt, yy) => { g.font = "9px 'IBM Plex Mono', Menlo, monospace"; g.fillStyle = MUTED; g.textAlign = 'right'; g.fillText(txt, W - 8, yy); g.textAlign = 'left'; };
+  if (L.outline) { const p2 = new Path2D(L.outline); g.fillStyle = '#ece5d6'; g.fill(p2); g.strokeStyle = INK; g.lineWidth = 1; g.lineJoin = 'round'; g.stroke(p2); }
   for (const b of L.bands) {
-    g.strokeStyle = RULE; g.lineWidth = 0.6; g.beginPath(); g.moveTo(L.pad.left, b.y0); g.lineTo(x1, b.y0); g.stroke();
+    const ra = L.outline ? b.rx0 : L.pad.left, rb = L.outline ? b.rx1 : x1;
+    g.strokeStyle = L.outline ? INK : RULE; g.lineWidth = L.outline ? 0.8 : 0.6; g.beginPath(); g.moveTo(ra, b.y0); g.lineTo(rb, b.y0); g.stroke();
+    if (L.outline) { g.strokeStyle = RULE; g.lineWidth = 0.5; g.setLineDash([2, 2]); g.beginPath(); g.moveTo(rb, b.y0); g.lineTo(x1 + 6, b.y0); g.stroke(); g.setLineDash([]); }
     tag(`${b.z1 >= 0 ? '+' : '−'}${Math.abs(b.z1).toFixed(1)} m`, b.y0 + 3);
     for (const w of b.words) {
       g.font = `700 ${w.size}px ${FONT_STACK}`; g.fillStyle = diagramOpts.colour === 'family' ? inkOf(data.families.get(w.family)?.colour) : INK; g.fillText(w.text, w.x, w.y);
@@ -1207,8 +1210,10 @@ function openDiagram() {
   })));
   put(dlg, h('div', { class: 'help dg' },
     h('div', { class: 'help-head' }, h('h2', { id: 'diagramTitle' }, 'Programme diagram'), h('button', { class: 'close', 'aria-label': 'Close', onclick: () => dlg.close() }, '×')),
-    h('p', { class: 'note' }, 'Your floors drawn to true height. Each band is written as its programmes; a word is larger when it takes more floor area. Elevations at the right.'),
+    h('p', { class: 'note' }, 'Your floors drawn to true height, inside the tower’s own outline (each floor as wide as its plate). Each band is written as its programmes; a word is larger when it takes more floor area. Elevations at the right.'),
     h('div', { class: 'dg-tools' },
+      seg('shape', 'Shape', [['tower', 'Tower outline'], ['bar', 'Straight bar']]),
+      seg('proportion', 'Width', [['fit', 'Fit width'], ['true', 'True proportion']]),
       seg('colour', 'Colour', [['family', 'By family'], ['ink', 'Ink only']]),
       seg('labels', 'Words', [['names', 'Programme names'], ['tenure', 'Tenure groups']]),
       seg('groupBy', 'Bands by', [['programme', 'Main programme'], ['family', 'Family']]),
@@ -1397,6 +1402,7 @@ async function boot() {
   $('#undoBtn').addEventListener('click', undo);
   $('#helpBtn').addEventListener('click', openHelp);
   $('#diagramBtn').addEventListener('click', openDiagram);
+  $('#optTopBtn').addEventListener('click', openOptimiser);
   let seen = false; try { seen = !!localStorage.getItem(HELP_KEY); } catch (e) { seen = true; }
   $('#themeBtn').addEventListener('click', () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; if (activeTab === 'map') renderMap(); });
   $('#section').addEventListener('click', onSectionClick);

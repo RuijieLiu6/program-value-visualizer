@@ -120,3 +120,19 @@ test('reading prompt carries the compact catalogue and asks for JSON with confid
   assert.ok(p.includes('WK3|') && p.includes('SB5|') && p.includes('"confidence"'));
   assert.ok(p.length < 30000);
 });
+
+test('tower outline: every word sits inside its band of the tower silhouette, and the outline narrows with smaller plates', () => {
+  const r = evaluate(sampleTower(), data, {});
+  const L = wordStackLayout(r, data, { shape: 'tower' });
+  assert.equal(L.shape, 'tower');
+  assert.ok(L.outline && L.outline.startsWith('M'));
+  for (const b of L.bands) for (const w of b.words) {
+    assert.ok(w.x >= b.rx0 - 0.5, `${w.text} starts left of the tower`);
+    assert.ok(w.x + w.text.length * w.size * CHAR_W <= Math.max(b.rx1, b.rx0 + 12) + 1, `${w.text} runs past the tower edge`);
+  }
+  const podium = L.bands.find(b => b.toLevel <= 2), crown = L.bands[L.bands.length - 1];
+  assert.ok(crown.rx1 - crown.rx0 < podium.rx1 - podium.rx0, 'crown narrower than podium');
+  const bar = wordStackLayout(r, data, { shape: 'bar' });
+  assert.equal(bar.outline, null);
+  assert.ok(wordStackSVG(L).includes('<path d="M'));
+});

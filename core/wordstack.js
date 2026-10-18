@@ -31,10 +31,12 @@ const elevTag = z => `${z >= 0 ? '+' : '−'}${Math.abs(z).toFixed(1)} m`;
 /**
  * Lay out the diagram.
  * result: evaluate() output (its floors carry items with gfa); options:
- *   groupBy 'programme' | 'family' (what makes a band), labels 'names' | 'tenure', width (px), scale (px per m).
+ *   groupBy 'programme' | 'family' (what makes a band), labels 'names' | 'tenure', width (px), scale (px per m),
+ *   shape 'tower' (words set inside the tower's own outline, plate width = sqrt(plate area)) | 'bar' (one straight column),
+ *   proportion 'fit' (widest plate fills the column) | 'true' (same scale across as up, capped to the column).
  * Returns { width, height, colW, bands: [{ fromLevel, toLevel, z0, z1, y0, y1, key, words: [{ text, id, family, gfa, size, x, y, dominant }] }], ground, top }.
  */
-export function wordStackLayout(result, data, { groupBy = 'programme', labels = 'names', width = 640, scale = null, showArea = false } = {}) {
+export function wordStackLayout(result, data, { groupBy = 'programme', labels = 'names', width = 640, scale = null, showArea = false, shape = 'tower', proportion = 'fit' } = {}) {
   const floors = [...result.floors].filter(f => f.items.length).sort((a, b) => a.level - b.level);
   if (!floors.length) return { width, height: 200, colW: width, bands: [], ground: 100, top: 0, pad: 0 };
   const zMin = Math.min(...floors.map(f => f.elevation_m)), zMax = Math.max(...floors.map(f => f.elevation_m + f.height_m));
@@ -42,6 +44,21 @@ export function wordStackLayout(result, data, { groupBy = 'programme', labels = 
   const k = scale ?? Math.max(1.6, Math.min(4, 980 / Math.max(1, zMax - zMin)));
   const colW = width - pad.left - pad.right - (showArea ? 70 : 0);   // room for the m² figure after each word
   const y = z => pad.top + (zMax - z) * k;
+  // tower outline: each floor drawn as wide as its plate (side of a square of the same area), centred on one axis
+  const tower = shape === 'tower';
+  const side = f => Math.sqrt(Math.max(1, f.area_m2 || f.gfa || 1));
+  const maxSide = Math.max(...floors.map(side));
+  const kx = tower ? Math.min(colW / maxSide, proportion === 'true' ? k : Infinity) : 0;
+  const axis = pad.left + colW / 2;
+  const fx = f => (tower ? [axis - side(f) * kx / 2, axis + side(f) * kx / 2] : [pad.left, pad.left + colW]);
+  const INSET = tower ? 5 : 0;
+  let outline = null;
+  if (tower) {   // up the left edges, down the right edges
+    const left = [], right = [];
+    for (const f of floors) { const [a, b] = fx(f), yt = y(f.elevation_m + f.height_m), yb = y(f.elevation_m); left.push([a, yb], [a, yt]); right.push([b, yb], [b, yt]); }
+    const pts = [...left, ...right.reverse()];
+    outline = 'M' + pts.map(([px, py]) => `${px.toFixed(1)},${py.toFixed(1)}`).join(' L') + ' Z';
+  }
   const tenureOf = i => TENURE[i.earnsBy] || 'Support';
   const wordKey = i => (labels === 'tenure' ? tenureOf(i) : i.programme_id);
   const mainOf = f => {
@@ -59,6 +76,11 @@ export function wordStackLayout(result, data, { groupBy = 'programme', labels = 
   for (const b of bands) {
     b.y0 = y(b.z1); b.y1 = y(b.z0);
     const h = b.y1 - b.y0;
+    // the band's text column: the narrowest floor in the band, so every word stays inside the outline
+    const spans = b.floors.map(fx), x0 = Math.max(...spans.map(sp => sp[0])) + INSET, x1 = Math.min(...spans.map(sp => sp[1])) - INSET;
+    const top = fx(b.floors[b.floors.length - 1]);
+    b.rx0 = top[0]; b.rx1 = top[1];
+    const colW = Math.max(12, x1 - x0), left0 = x0;
     const area = new Map();
     for (const f of b.floors) for (const i of f.items) {
       const kk = wordKey(i), e = area.get(kk) || { id: labels === 'tenure' ? null : i.programme_id, family: i.family_id, text: labels === 'tenure' ? tenureOf(i) : shortName(i.programme_id, data), gfa: 0 };
@@ -87,10 +109,10 @@ export function wordStackLayout(result, data, { groupBy = 'programme', labels = 
     // place: dominant on top, minor lines under it, block centred in the band
     const block = dom.size * LINE + fl.height;
     let cy = b.y0 + Math.max(0, (h - block) / 2);
-    dom.x = pad.left; dom.y = cy + dom.size * 0.86; cy += dom.size * LINE;
+    dom.x = left0; dom.y = cy + dom.size * 0.86; cy += dom.size * LINE;
     for (const line of fl.lines) {
       const lh = Math.max(...line.map(x => x.sz)) * LINE;
-      let cx = pad.left;
+      let cx = left0;
       for (const { w, sz, ww } of line) { w.size = sz; w.x = cx; w.y = cy + lh * 0.86; cx += ww + 6; }
       cy += lh;
     }
@@ -98,7 +120,7 @@ export function wordStackLayout(result, data, { groupBy = 'programme', labels = 
     b.overflow = block > h + 0.5;
     delete b.floors;
   }
-  return { width, height: y(zMin) + pad.bottom, colW, pad, bands, ground: y(0), top: y(zMax), zMin, zMax, k };
+  return { width, height: y(zMin) + pad.bottom, colW, pad, bands, ground: y(0), top: y(zMax), zMin, zMax, k, shape: tower ? 'tower' : 'bar', outline };
 }
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -122,8 +144,11 @@ export function wordStackSVG(L, { colour = 'family', showArea = false, title = '
   out.push(`<style>${embedFont ? "@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&amp;display=swap');" : ''}.w{font-family:${esc(FONT_STACK)};font-weight:700;letter-spacing:0.01em}.m{font-family:'IBM Plex Mono',Menlo,monospace;font-size:9px;fill:${MUTED}}.t{font-family:${esc(FONT_STACK)};font-weight:500;font-size:13px;letter-spacing:0.12em;fill:${INK}}</style>`);
   out.push(`<rect width="${W}" height="${H}" fill="${PAPER}"/>`);
   out.push(`<text class="t" x="${L.pad?.left ?? 0}" y="24">${esc(title.toUpperCase())}</text>`);
+  if (L.outline) out.push(`<path d="${L.outline}" fill="#ece5d6" stroke="${INK}" stroke-width="1" stroke-linejoin="round"/>`);
   for (const b of L.bands) {
-    out.push(`<line x1="${L.pad.left}" x2="${x1}" y1="${b.y0.toFixed(1)}" y2="${b.y0.toFixed(1)}" stroke="${RULE}" stroke-width="0.6"/>`);
+    const ra = L.outline ? b.rx0 : L.pad.left, rb = L.outline ? b.rx1 : x1;
+    out.push(`<line x1="${ra.toFixed(1)}" x2="${rb.toFixed(1)}" y1="${b.y0.toFixed(1)}" y2="${b.y0.toFixed(1)}" stroke="${L.outline ? INK : RULE}" stroke-width="${L.outline ? 0.8 : 0.6}"/>`);
+    if (L.outline) out.push(`<line x1="${rb.toFixed(1)}" x2="${(x1 + 6).toFixed(1)}" y1="${b.y0.toFixed(1)}" y2="${b.y0.toFixed(1)}" stroke="${RULE}" stroke-width="0.5" stroke-dasharray="2 2"/>`);
     out.push(`<text class="m" x="${W - 8}" y="${(b.y0 + 3).toFixed(1)}" text-anchor="end">${esc(elevTag(b.z1))}</text>`);
     for (const w of b.words) {
       out.push(`<text class="w" x="${w.x.toFixed(1)}" y="${w.y.toFixed(1)}" font-size="${w.size.toFixed(1)}" fill="${fill(w)}">${esc(w.text)}${showArea ? `<tspan class="m" dx="4">${Math.round(w.gfa).toLocaleString('en-CA')} m²</tspan>` : ''}</text>`);
