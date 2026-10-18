@@ -106,7 +106,7 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 .grade.A { background: var(--good-soft); color: var(--good); } .grade.B { background: var(--accent-soft); color: var(--accent); } .grade.C { background: var(--warn-soft); color: var(--warn); }
 .mix-row { display: grid; grid-template-columns: minmax(0, 1fr) 88px 34px; gap: 6px; align-items: center; }
 .mix-row .nm { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.mix-row .nm span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mix-row .nm > span:not(.tenure):not(.pid) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sw { width: 10px; height: 10px; border-radius: 2px; flex: none; }
 .picker { display: flex; flex-direction: column; gap: 8px; }
 .picon { display: inline-block; flex: none; line-height: 0; }
@@ -127,8 +127,8 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 .ptile[hidden] { display: none; }
 .ptile[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 .ptile:hover { background: var(--accent-soft); }
-.pt-id { font: 600 11px/1.2 var(--mono); }
-.pt-name { font-size: 11.5px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; }
+.pt-id { font: 500 10px/1.2 var(--mono); color: var(--muted); }
+.pt-name { font-size: 12px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; }
 .pt-kind { font: 600 9px/1 var(--mono); text-transform: uppercase; letter-spacing: .03em; padding: 2px 4px; border-radius: 3px; white-space: nowrap; }
 .pt-kind.sourced { background: var(--accent-soft); color: var(--accent); }
 .pt-kind.researched { background: var(--warn-soft); color: var(--warn); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); }
@@ -180,6 +180,22 @@ canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 
 @media (max-width: 599px) { .tour-card { width: auto; } }
 .typ-note { border-left: 3px dashed var(--warn); padding-left: 8px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* tenure tag (how it earns) and the small programme code */
+.tenure { font: 600 10px/1 var(--body); padding: 2px 6px; border-radius: 999px; white-space: nowrap; letter-spacing: .02em; flex: none; }
+.tenure.sale { background: #e3ecfb; color: #2457a6; }
+.tenure.rent { background: #e1f3e8; color: #23784a; }
+.tenure.operate { background: #efe6fa; color: #6a3fb0; }
+.tenure.public { background: #fdebdc; color: #a5521b; }
+.tenure.support { background: var(--line-2); color: var(--muted); }
+:root[data-theme="dark"] .tenure.sale { background: #1e3150; color: #9cc0f5; } :root[data-theme="dark"] .tenure.rent { background: #17352a; color: #86d6a6; }
+:root[data-theme="dark"] .tenure.operate { background: #2e2342; color: #c7a6f2; } :root[data-theme="dark"] .tenure.public { background: #3b2718; color: #f2b183; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tenure.sale { background: #1e3150; color: #9cc0f5; } :root:not([data-theme="light"]) .tenure.rent { background: #17352a; color: #86d6a6; }
+  :root:not([data-theme="light"]) .tenure.operate { background: #2e2342; color: #c7a6f2; } :root:not([data-theme="light"]) .tenure.public { background: #3b2718; color: #f2b183; } }
+.pid { font: 500 10px/1 var(--mono); color: var(--muted); white-space: nowrap; flex: none; }
+.pt-tags { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; }
+.mix-row .nm .mix-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.panel .ph .tenure, .panel .ph .pid { align-self: center; }
 </style>
 
 <div class="wrap">

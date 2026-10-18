@@ -271,7 +271,7 @@ function renderFloors() {
     const p = prog(m.programme_id);
     const inp = h('input', { id: `share-${k}`, type: 'number', min: 0, max: 100, step: 1, value: Math.round(m.share * 1000) / 10, 'aria-label': `Share of ${p?.name}` });
     inp.addEventListener('change', () => { editMix[k].share = Math.max(0, Number(inp.value) || 0) / 100; renderFloors(); });
-    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, iconEl(m.programme_id, 28), h('span', { title: p?.name }, `${m.programme_id} · ${p?.name}`), isTypical(m.programme_id) && !state.settings.programme?.[m.programme_id]?.valuePerM2Gfa ? h('span', { class: `typ small ${rowOf(m.programme_id).value_basis}`, 'data-tip': (BASIS_TIP[rowOf(m.programme_id).value_basis] || '') + TYPICAL_TIP }, rowOf(m.programme_id).value_basis) : null), inp,
+    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, iconEl(m.programme_id, 28), h('span', { class: 'mix-name', title: `${p?.name} (${m.programme_id})` }, p?.name), tenureTag(m.programme_id), idTag(m.programme_id), isTypical(m.programme_id) && !state.settings.programme?.[m.programme_id]?.valuePerM2Gfa ? h('span', { class: `typ small ${rowOf(m.programme_id).value_basis}`, 'data-tip': (BASIS_TIP[rowOf(m.programme_id).value_basis] || '') + TYPICAL_TIP }, rowOf(m.programme_id).value_basis) : null), inp,
       h('button', { 'aria-label': 'Remove', onclick: () => { editMix.splice(k, 1); renderFloors(); } }, '×'));
   }));
   const sumNote = h('div', { class: Math.abs(sum - 1) < 0.005 ? 'note' : 'neg' }, `Shares add up to ${(sum * 100).toFixed(1)}%${Math.abs(sum - 1) < 0.005 ? '.' : ' — must be 100%.'}`);
@@ -306,6 +306,15 @@ function valueKind(id) {
   return TYPICAL_BASES.has(row?.value_basis) ? row.value_basis : 'sourced';
 }
 const KIND_LABEL = { sourced: 'sourced', researched: 'researched', analogy: 'analogy', none: 'no income' };
+/** How the owner earns from a programme, as a plain tag: sold once, rented out, run as a business, given to the public, or building support. */
+const TENURE = { sell: ['sale', 'For sale'], lease: ['rent', 'For rent'], operate: ['operate', 'Operated'], public: ['public', 'Public'], support: ['support', 'Support'] };
+function tenureOf(id) {
+  const p = prog(id), row = p?.value_status === 'linked' ? data.rows.get(p.value_ref) : null;
+  const t = TENURE[row?.earns_by ?? p?.earns_by] ?? TENURE.public;
+  return { key: t[0], label: t[1] };
+}
+const tenureTag = id => { const t = tenureOf(id); return h('span', { class: `tenure ${t.key}`, title: `How it earns: ${t.label.toLowerCase()}` }, t.label); };
+const idTag = id => h('span', { class: 'pid', title: 'Programme code' }, id);
 let pickerOpen = false, pickerQuery = '';
 function addProgramme(id) {
   pickProgramme = id;
@@ -319,16 +328,16 @@ function programmePicker() {
   const trigger = h('button', { id: 'pickerBtn', class: 'picker-btn', 'aria-haspopup': 'true', 'aria-expanded': String(pickerOpen), 'aria-controls': 'pickerPanel',
     onclick: () => { pickerOpen = !pickerOpen; renderFloors(); if (pickerOpen) document.querySelector('#pickerSearch')?.focus(); } },
     cur ? iconEl(cur.id, 28) : h('span', { class: 'picon empty', 'aria-hidden': 'true' }, '+'),
-    h('span', { class: 'pb-text' }, cur ? h('b', {}, cur.id) : null, cur ? ` ${cur.name}` : 'Add a programme…'), h('span', { class: 'caret', 'aria-hidden': 'true' }, pickerOpen ? '▴' : '▾'));
+    h('span', { class: 'pb-text' }, cur ? h('b', {}, cur.name) : 'Add a programme…', cur ? ' ' : null, cur ? tenureTag(cur.id) : null, cur ? ' ' : null, cur ? idTag(cur.id) : null), h('span', { class: 'caret', 'aria-hidden': 'true' }, pickerOpen ? '▴' : '▾'));
   if (!pickerOpen) return h('div', { class: 'picker' }, trigger);
 
   const tiles = [...data.programmes.values()].map(p => {
     const kind = valueKind(p.id), fam = data.families.get(p.family_id);
     const t = h('button', { class: 'ptile', role: 'option', tabindex: '-1', 'data-id': p.id, 'data-fam': p.family_id, 'aria-selected': String(p.id === pickProgramme),
-      'aria-label': `${p.id} ${p.name}, ${fam?.name}, value ${KIND_LABEL[kind]}`, title: p.name,
+      'aria-label': `${p.name}, ${tenureOf(p.id).label.toLowerCase()}, ${fam?.name}, value ${KIND_LABEL[kind]}, code ${p.id}`, title: `${p.name} (${p.id})`,
       'data-search': `${p.id} ${p.name} ${fam?.name || ''} ${(p.users || []).join(' ')}`.toLowerCase(), onclick: () => addProgramme(p.id) },
-      iconEl(p.id, 64), h('span', { class: 'pt-id' }, p.id, p.unconventional ? ' ★' : ''), h('span', { class: 'pt-name' }, p.name),
-      h('span', { class: `pt-kind ${kind}` }, KIND_LABEL[kind]));
+      iconEl(p.id, 64), h('span', { class: 'pt-name' }, p.name, p.unconventional ? ' ★' : ''),
+      h('span', { class: 'pt-tags' }, tenureTag(p.id), h('span', { class: `pt-kind ${kind}` }, KIND_LABEL[kind])), h('span', { class: 'pt-id' }, p.id));
     return t;
   });
   const grid = h('div', { class: 'pgrid', role: 'listbox', 'aria-label': 'Programmes' }, tiles);
@@ -381,7 +390,7 @@ function programmeCard(id) {
   const costSrc = childcare != null ? { ...turnkey, grade: 'C', note: `C$${N(turnkey.value)} per space ÷ ${settingsFull().childcareM2PerSpace} m² per space ÷ (1 + soft cost). ${turnkey.note}` } : lines[0]?.default_m2;
   const drift = row ? recomputeValue(row) : null;
   const driftNote = drift != null && row?.value_per_m2_gfa?.value && Math.abs(drift / row.value_per_m2_gfa.value - 1) > 0.05 ? h('p', { class: 'note neg' }, `This default (${N(row.value_per_m2_gfa.value)}) does not follow from its own inputs (${N(drift)}); see Method & sources.`) : null;
-  return h('div', { class: 'panel' }, h('div', { class: 'ph' }, iconEl(p.id, 64), h('h2', {}, `${p.id} · ${p.name}`), p.unconventional ? h('span', { class: 'grade' }, '★ unconventional') : null),
+  return h('div', { class: 'panel' }, h('div', { class: 'ph' }, iconEl(p.id, 64), h('h2', {}, p.name), tenureTag(p.id), idTag(p.id), p.unconventional ? h('span', { class: 'grade' }, '★ unconventional') : null),
     h('div', { class: 'pb' },
       h('div', { class: 'note' }, `${fam.name}${fam.intensity ? ' · intensity ' + fam.intensity : ''} · fits ${p.fits.join(', ') || p.fits_text} · code group ${(p.occupancy_group || []).join(', ') || '—'} · users ${(p.users || []).join(', ')}`),
       row ? h('div', { class: 'note' }, `Value row ${row.id}: ${row.name} · earns by ${row.earns_by} · method ${row.method}`) : h('div', { class: 'note' }, p.value_status === 'zero' ? 'Earns nothing: cost only.' : 'No sourced value yet: enter your own below.'),
@@ -400,7 +409,7 @@ function floorTable() {
     h('thead', {}, h('tr', {}, h('th', {}, 'Level'), h('th', { class: 'num' }, 'Elev. m'), h('th', { class: 'num' }, 'Area m²'), h('th', {}, 'Mix'), h('th', { class: 'num' }, 'Value'), h('th', { class: 'num' }, 'Cost+profit'), h('th', { class: 'num' }, 'Net'))),
     h('tbody', {}, rows.map(f => h('tr', { style: 'cursor:pointer', onclick: () => { state.sel = [f.level, f.level]; editMix = null; renderSection(); renderFloors(); } },
       h('td', {}, `L${f.level}`), h('td', { class: 'num' }, f.elevation_m.toFixed(1)), h('td', { class: 'num' }, N(f.area_m2)),
-      h('td', {}, f.items.map(i => `${i.programme_id} ${Math.round(i.share * 100)}%`).join(' · ')),
+      h('td', { title: f.items.map(i => `${i.programme_id} ${Math.round(i.share * 100)}%`).join(' · ') }, f.items.map(i => `${Math.round(i.share * 100)}% ${i.name}`).join(' · ')),
       h('td', { class: 'num' }, M(f.value)), h('td', { class: 'num' }, M(f.cost + f.profit)), h('td', { class: `num ${signCls(f.net)}` }, M(f.net))))))));
 }
 
@@ -712,7 +721,7 @@ function renderAbout() {
     h('p', { class: 'note' }, 'Some uses have no figure in the pack’s main sources. So that you never have to invent a price, each has a typical estimate (grade C). “Researched” ones are built from a 2025–26 Vancouver, BC or Canadian figure found by web search; “analogy” ones borrow from a similar use because nothing usable was found. Both are marked wherever they appear. Type your own number in Floors to replace one. The full table of all 112 programmes is in docs/value_defaults.md.'),
     h('details', {}, h('summary', {}, `Values (${typRows.length}) and hard costs (${typLines.length})`),
       h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Row'), h('th', { class: 'num' }, 'C$/m² GFA'), h('th', {}, 'Basis'))),
-        h('tbody', {}, typRows.map(r => h('tr', {}, h('td', {}, `${r.id} · ${r.name}`), h('td', { class: 'num' }, N(r.value_per_m2_gfa.value)), h('td', { class: 'note' }, h('span', { class: `pt-kind ${r.value_basis === 'no_income' ? 'none' : r.value_basis}` }, r.value_basis === 'no_income' ? 'no income' : r.value_basis), ' ', r.value_per_m2_gfa.note.replace(/^Typical estimate \(\w+\): |^Earns nothing: /, '')))),
+        h('tbody', {}, typRows.map(r => h('tr', {}, h('td', {}, r.name, ' ', idTag(r.id)), h('td', { class: 'num' }, N(r.value_per_m2_gfa.value)), h('td', { class: 'note' }, h('span', { class: `pt-kind ${r.value_basis === 'no_income' ? 'none' : r.value_basis}` }, r.value_basis === 'no_income' ? 'no income' : r.value_basis), ' ', r.value_per_m2_gfa.note.replace(/^Typical estimate \(\w+\): |^Earns nothing: /, '')))),
           typLines.map(l => h('tr', {}, h('td', {}, `Hard cost · ${l.name}`), h('td', { class: 'num' }, N(l.default_m2.value)), h('td', { class: 'note' }, l.default_m2.note.replace(/^Typical estimate: /, '')))))))),
     h('h4', { style: 'margin:0' }, 'Open data gaps'),
     h('p', { class: 'note' }, 'Luxury hotel ADR; deck visitor numbers; supertall cost premium; Metro Vancouver and TransLink charges; efficiency curve vs CTBUH data; land price; downtown parking rates; public floor running cost. The typical estimates above should be replaced by sourced figures over time.'));
