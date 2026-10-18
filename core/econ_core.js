@@ -42,7 +42,7 @@ export function indexData(raw) {
     families: new Map(families.families.map(f => [f.family_id, f])),
     programmes: new Map(programmes.programmes.map(p => [p.id, p])),
     rows: new Map(values.rows.map(r => [r.id, r])),
-    lines: new Map(costs.lines.map(l => [l.id, l])),
+    lines: new Map([...costs.lines, ...(costs.typical_lines || [])].map(l => [l.id, l])),
     costs, charges, assumptions, codeRules, brief, sources: new Map((sources?.sources || []).map(s => [s.id, s])),
   };
 }
@@ -134,13 +134,14 @@ function baseHardCost(data, programmeId, rowId) {
   const byProgramme = programmeId in m.by_programme;
   const refs = (byProgramme ? m.by_programme[programmeId] : m.by_value_row[rowId]) || null;
   if (!refs) return null;
-  let base = 0, found = false;
+  let base = 0, found = false, typical = false;
   for (const ref of refs) {
     const l = data.lines.get(ref);
     if (!l || l.add_on) continue;     // add-ons have no default; user can add them through hardCostPerM2
     base += val(l.default_m2); found = true;
+    if (l.value_basis === 'typical') typical = true;
   }
-  return found ? { base, lines: refs, byProgramme } : null;
+  return found ? { base, lines: refs, byProgramme, typical } : null;
 }
 
 /** Rows a cost add-on applies to: the pack's applies_to_rows, else the office rows. */
@@ -198,7 +199,8 @@ function resolveItem(data, settings, item, floor) {
   const rf = rowId ? retailFactor(data, rowId, floor.level) : null;
   const hc = baseHardCost(data, item.programme_id, rowId);
   const chargeClass = row?.city_charge_class ?? p.city_charge_class ?? (earnsBy === 'support' ? 'unknown' : (p.value_status === 'zero' ? 'unknown' : 'commercial'));
-  return { p, row, rowId, valuePerNetM2, efficiency, earnsBy, premiumPerFloor, retailFactor: rf, hc, o, flags, chargeClass,
+  const valueBasis = o.valuePerM2Gfa != null || o.valuePerNetM2 != null ? 'user' : (row?.value_basis ?? (p.value_status === 'zero' ? 'sourced' : null));
+  return { p, row, rowId, valuePerNetM2, efficiency, earnsBy, premiumPerFloor, retailFactor: rf, hc, o, flags, chargeClass, valueBasis,
     scale: settings.valueScale[rowId] ?? 1 };
 }
 
@@ -247,7 +249,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
       // the tall-building premium is for the tower structure: never on floors below grade
       const tallFactor = supertall && f.level >= 1 ? 1 + settings.supertallPremium : 1;
       if (hardRate === null && r.hc) {
-        hardRate = r.hc.base * tallFactor; costBasis = 'altus';
+        hardRate = r.hc.base * tallFactor; costBasis = r.hc.typical ? 'typical' : 'altus';
         // tenant allowance tops up an office shell line; a programme with its own complete line (e.g. university teaching) does not get it
         if (!r.hc.byProgramme && appliesTo(data.costs.other.office_tenant_allowance, r.rowId)) hardRate += settings.officeTenantAllowance;
       }
@@ -262,7 +264,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
       if (rates.flat) flatPermitFee = true;
       const chargeRate = r.o.chargePerM2 ?? (rates.dcl + rates.util + rates.acc);
       const it = { level: f.level, programme_id: m.programme_id, name: r.p.name, family_id: r.p.family_id, rowId: r.rowId, earnsBy: r.earnsBy,
-        share: m.share, gfa, net, efficiency: r.efficiency, premium, value, grossValue: gross, leasing, hardRate, costEstimated, costBasis, ffe,
+        share: m.share, gfa, net, efficiency: r.efficiency, premium, value, grossValue: gross, leasing, hardRate, costEstimated, costBasis, valueBasis: r.valueBasis, ffe,
         chargeRate, charges: { dcl: gfa * (r.o.chargePerM2 != null ? 0 : rates.dcl), util: gfa * (r.o.chargePerM2 != null ? 0 : rates.util), acc: gfa * (r.o.chargePerM2 != null ? 0 : rates.acc), override: r.o.chargePerM2 != null ? gfa * r.o.chargePerM2 : 0 },
         chargeClass: r.chargeClass, flags: r.flags, fits: r.p.fits, bands: [...bands], occupancy: r.p.occupancy_group || [] };
       items.push(it); fo.items.push(it);
@@ -295,6 +297,8 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     const avg = fp.length ? fp.reduce((s, i) => s + i.hardRate * i.gfa, 0) / Math.max(1e-9, fp.reduce((s, i) => s + i.gfa, 0)) : projAvg;
     for (const i of fo.items) if (i.costEstimated) i.hardRate = avg;
   }
+  const typicalUsed = [...new Set(items.filter(i => i.valueBasis === 'typical' || i.costBasis === 'typical').map(i => i.programme_id))];
+  if (typicalUsed.length) rules.push({ type: 'typical', level: null, severity: 'info', text: `Typical estimates in use (value or cost, grade C): ${typicalUsed.join(', ')}. Check them before relying on the result, or type your own in Floors.` });
   const estimated = new Map();
   for (const i of items) if (i.costEstimated) { const e = estimated.get(i.programme_id) || { name: i.name, gfa: 0, levels: [] }; e.gfa += i.gfa; e.levels.push(i.level); estimated.set(i.programme_id, e); }
   for (const [pid, e] of estimated) rules.push({ type: 'cost_estimated', level: e.levels[0], severity: 'warning', text: `${pid} ${e.name}: no published cost line, so it is costed at the floor or project average (${e.levels.length} floor${e.levels.length > 1 ? 's' : ''}). Enter a hard cost in Floors.` });
@@ -370,7 +374,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
   if (settings.publicPayer === 'ticketed_deck' && publicGfa > 0) reasons.push('Free floors are paid from ticket income inside the building (counted like a cross-subsidy).');
 
   // ledger (what the City receives)
-  const inKind = items.filter(i => ['C1', 'C2', 'C3', 'C4', 'R6', 'A2'].includes(i.rowId) || (i.earnsBy === 'public' && i.rowId === null))
+  const inKind = items.filter(i => i.earnsBy === 'public')
     .reduce((s, i) => s + i.hard + i.soft, 0);
   const ledger = { dcl: sum2(items, i => i.charges.dcl), utilitiesDcl: sum2(items, i => i.charges.util), acc: sum2(items, i => i.charges.acc) + (flatPermitFee ? val(data.charges.components.acc.flat_per_permit) : 0),
     other: sum2(items, i => i.charges.override), cac: cacCash, cacEndowment: cacGross - cacCash, inKindBuildCost: inKind };

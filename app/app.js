@@ -178,10 +178,13 @@ function renderTab() {
 function kpi(k, v, cls = '', tip = null, big = false) { return h('div', { class: `kpi${big ? ' big' : ''}`, 'data-tip': tip }, h('span', { class: 'k' }, k), h('span', { class: `v ${cls}` }, v)); }
 const signCls = x => (x < 0 ? 'neg' : x > 0 ? 'pos' : '');
 
-function numField(id, label, value, { step = 'any', min, max, onchange, src, unit, placeholder } = {}) {
+const TYPICAL_TIP = 'Typical estimate: a starting number so you do not need to know prices. It comes from a similar use (named in the note) or a quick 2025–26 search. Grade C: check it before relying on it, or type your own.';
+const typicalBadge = () => h('span', { class: 'typ', tabindex: '0', 'data-tip': TYPICAL_TIP }, 'typical estimate');
+const isTypical = id => { const p = prog(id), row = p?.value_status === 'linked' ? data.rows.get(p.value_ref) : null; return row?.value_basis === 'typical'; };
+function numField(id, label, value, { step = 'any', min, max, onchange, src, unit, placeholder, badge } = {}) {
   const inp = h('input', { id, type: 'number', step, min, max, value: value ?? '', placeholder });
   inp.addEventListener('change', () => { if (inp.value === '') return onchange(null); let v = Number(inp.value); if (!Number.isFinite(v)) { toast(`${label}: enter a number`); return; } if (min != null && v < Number(min)) v = Number(min); if (max != null && v > Number(max)) v = Number(max); inp.value = v; onchange(v); });
-  return h('div', { class: 'field' }, h('label', { for: id }, label, unit ? h('span', {}, `(${unit})`) : null, src ? gradeTag(src.grade) : null, src ? srcTag(src) : null), inp);
+  return h('div', { class: 'field' }, h('label', { for: id }, label, unit ? h('span', {}, `(${unit})`) : null, src ? gradeTag(src.grade) : null, src ? srcTag(src) : null, badge || null), inp);
 }
 function setSetting(k, v) { let c; try { c = checkSetting(k, v); } catch (e) { toast(e.message); renderTab(); return false; } pushHistory(); if (c === null) delete state.settings[k]; else state.settings[k] = c; refresh(); return true; }
 
@@ -261,7 +264,7 @@ function renderFloors() {
     const p = prog(m.programme_id);
     const inp = h('input', { id: `share-${k}`, type: 'number', min: 0, max: 100, step: 1, value: Math.round(m.share * 1000) / 10, 'aria-label': `Share of ${p?.name}` });
     inp.addEventListener('change', () => { editMix[k].share = Math.max(0, Number(inp.value) || 0) / 100; renderFloors(); });
-    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, h('i', { class: 'sw', style: `background:${famColour(p?.family_id)}` }), h('span', { title: p?.name }, `${m.programme_id} · ${p?.name}`)), inp,
+    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, h('i', { class: 'sw', style: `background:${famColour(p?.family_id)}` }), h('span', { title: p?.name }, `${m.programme_id} · ${p?.name}`), isTypical(m.programme_id) && !state.settings.programme?.[m.programme_id]?.valuePerM2Gfa ? h('span', { class: 'typ small', 'data-tip': TYPICAL_TIP }, 'typical') : null), inp,
       h('button', { 'aria-label': 'Remove', onclick: () => { editMix.splice(k, 1); renderFloors(); } }, '×'));
   }));
   const sumNote = h('div', { class: Math.abs(sum - 1) < 0.005 ? 'note' : 'neg' }, `Shares add up to ${(sum * 100).toFixed(1)}%${Math.abs(sum - 1) < 0.005 ? '.' : ' — must be 100%.'}`);
@@ -271,7 +274,7 @@ function renderFloors() {
   famSel.addEventListener('change', () => { pickFamily = famSel.value || null; pickProgramme = null; renderFloors(); });
   const progs = [...data.programmes.values()].filter(p => !pickFamily || p.family_id === pickFamily);
   const progSel = h('select', { id: 'pickProg', 'aria-label': 'Programme' }, h('option', { value: '' }, 'Programme…'),
-    progs.map(p => h('option', { value: p.id, selected: p.id === pickProgramme }, `${p.id} ${p.unconventional ? '★ ' : ''}${p.name}${p.needs_user_value ? ' (value: user to supply)' : ''}`)));
+    progs.map(p => h('option', { value: p.id, selected: p.id === pickProgramme }, `${p.id} ${p.unconventional ? '★ ' : ''}${p.name}${p.needs_user_value ? ' (value: user to supply)' : isTypical(p.id) ? ' (typical estimate)' : ''}`)));
   progSel.addEventListener('change', () => { pickProgramme = progSel.value || null; renderFloors(); });
   const addBtn = h('button', { onclick: () => { if (!pickProgramme) return; const left = Math.max(0, 1 - editMix.reduce((s, m) => s + m.share, 0)); editMix.push({ programme_id: pickProgramme, share: left || 0 }); renderFloors(); } }, 'Add');
   const actions = h('div', { class: 'toolbar' },
@@ -308,9 +311,10 @@ function programmeCard(id) {
       h('div', { class: 'note' }, `${fam.name}${fam.intensity ? ' · intensity ' + fam.intensity : ''} · fits ${p.fits.join(', ') || p.fits_text} · code group ${(p.occupancy_group || []).join(', ') || '—'} · users ${(p.users || []).join(', ')}`),
       row ? h('div', { class: 'note' }, `Value row ${row.id}: ${row.name} · earns by ${row.earns_by} · method ${row.method}`) : h('div', { class: 'note' }, p.value_status === 'zero' ? 'Earns nothing: cost only.' : 'No sourced value yet: enter your own below.'),
       h('div', { class: 'grid2' },
-        numField(`pv-${id}`, 'Value per m² GFA (before height premium; office before leasing costs)', o.valuePerM2Gfa ?? (row ? row.value_per_m2_gfa.value : (p.value_status === 'zero' ? 0 : null)), { step: 100, unit: 'C$/m²', placeholder: 'user to supply', src: row?.value_per_m2_gfa, onchange: v => setO('valuePerM2Gfa', v) }),
-        numField(`pc-${id}`, 'Hard cost per m² (before tall premium)', o.hardCostPerM2 ?? (baseCost || null), { step: 50, unit: 'C$/m²', placeholder: 'floor average', src: costSrc, onchange: v => setO('hardCostPerM2', v) }),
+        numField(`pv-${id}`, 'Value per m² GFA (before height premium; office before leasing costs)', o.valuePerM2Gfa ?? (row ? row.value_per_m2_gfa.value : (p.value_status === 'zero' ? 0 : null)), { step: 100, unit: 'C$/m²', placeholder: 'user to supply', src: row?.value_per_m2_gfa, badge: row?.value_basis === 'typical' && o.valuePerM2Gfa == null ? typicalBadge() : null, onchange: v => setO('valuePerM2Gfa', v) }),
+        numField(`pc-${id}`, 'Hard cost per m² (before tall premium)', o.hardCostPerM2 ?? (baseCost || null), { step: 50, unit: 'C$/m²', placeholder: 'floor average', src: costSrc, badge: lines.some(l => l.value_basis === 'typical') && o.hardCostPerM2 == null ? typicalBadge() : null, onchange: v => setO('hardCostPerM2', v) }),
         numField(`pe-${id}`, 'Efficiency (net ÷ gross)', o.efficiency ?? null, { step: 0.01, min: 0.3, max: 1, placeholder: 'from pack', onchange: v => setO('efficiency', v) })),
+      row?.value_basis === 'typical' && o.valuePerM2Gfa == null ? h('p', { class: 'note typ-note' }, `${row.value_per_m2_gfa.note} Range ${N(row.value_per_m2_gfa.range?.[0])}–${N(row.value_per_m2_gfa.range?.[1])} C$/m². Type your own number to replace it.`) : null,
       driftNote,
       o && Object.keys(o).length ? h('button', { onclick: () => { pushHistory(); delete state.settings.programme[id]; refresh(); } }, 'Use pack defaults') : null,
       h('p', { class: 'note' }, 'A hard cost you type here replaces the pack rate including the tall-building premium. Leave a field empty to use the pack.')));
@@ -602,6 +606,8 @@ function renderAssume() {
 function renderAbout() {
   const drift = [...data.rows.values()].map(r => ({ r, re: recomputeValue(r) })).filter(x => x.re != null && x.r.value_per_m2_gfa.value && Math.abs(x.re / x.r.value_per_m2_gfa.value - 1) > 0.05);
   const srcs = [...data.sources.values()].filter(s => s.id !== 'assumption');
+  const typRows = [...data.rows.values()].filter(r => r.value_basis === 'typical');
+  const typLines = data.raw.costs.typical_lines || [];
   $('#tab-about').replaceChildren(
     h('p', {}, LABEL),
     h('h4', { style: 'margin:0' }, 'How the numbers are made'),
@@ -619,8 +625,14 @@ function renderAbout() {
     h('h4', { style: 'margin:0' }, 'Sources'),
     h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Source'), h('th', {}, 'Published'), h('th', {}, 'How checked'))),
       h('tbody', {}, srcs.map(s => h('tr', { 'data-tip': s.note || '' }, h('td', {}, s.url ? h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.title) : s.title, s.publisher ? h('span', { class: 'note' }, ` · ${s.publisher}`) : null), h('td', {}, s.published || '—'), h('td', {}, s.checked)))))),
-    h('h4', { style: 'margin:0' }, 'Open data gaps (user to supply)'),
-    h('p', { class: 'note' }, 'Luxury hotel ADR; deck visitor numbers; supertall cost premium; Metro Vancouver and TransLink charges; efficiency curve vs CTBUH data; land price; values for branded residences, seniors housing, co-living, labs, galleries, conference and spa; downtown parking rates; public floor running cost.'));
+    h('h4', { style: 'margin:0' }, 'Typical estimates'),
+    h('p', { class: 'note' }, 'Some uses have no published Vancouver figure. So that you never have to invent a price, each has a typical estimate: taken from a similar use, or from a quick 2025–26 search. They are grade C and marked “typical estimate” wherever they appear. Type your own number in Floors to replace one.'),
+    h('details', {}, h('summary', {}, `Values (${typRows.length}) and hard costs (${typLines.length})`),
+      h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Row'), h('th', { class: 'num' }, 'C$/m² GFA'), h('th', {}, 'Basis'))),
+        h('tbody', {}, typRows.map(r => h('tr', {}, h('td', {}, `${r.id} · ${r.name}`), h('td', { class: 'num' }, N(r.value_per_m2_gfa.value)), h('td', { class: 'note' }, r.value_per_m2_gfa.note.replace(/^Typical estimate: /, '')))),
+          typLines.map(l => h('tr', {}, h('td', {}, `Hard cost · ${l.name}`), h('td', { class: 'num' }, N(l.default_m2.value)), h('td', { class: 'note' }, l.default_m2.note.replace(/^Typical estimate: /, '')))))))),
+    h('h4', { style: 'margin:0' }, 'Open data gaps'),
+    h('p', { class: 'note' }, 'Luxury hotel ADR; deck visitor numbers; supertall cost premium; Metro Vancouver and TransLink charges; efficiency curve vs CTBUH data; land price; downtown parking rates; public floor running cost. The typical estimates above should be replaced by sourced figures over time.'));
 }
 
 // ---------- import / export ----------
@@ -681,6 +693,7 @@ let sample = null, chatTurns = [], chatCtl = null, aiState = 'idle';
 const RULES = `You are the assistant inside Program Value Visualizer, a browser tool for early design of tall buildings in Vancouver. It estimates, floor by floor, the value, cost, City charges and developer profit of a programme mix, and the residual land value left for the land.
 Rules:
 - Every number is an indicative early-design estimate, never a feasibility study, appraisal or compliance check. Say so when you give a verdict.
+- Values marked value_basis "typical" are typical estimates (grade C), not sourced figures: say so when you use one.
 - Use the tools to read the current scheme before answering questions about it. Quote numbers from tool results, with their source and grade when you have them. Never invent prices.
 - When the user asks for a change (programme mix, assumptions, user-supplied values), make it with the tools, then report how the verdict and residual land value moved. Changes can be undone with the Undo button.
 - Programmes are chosen by id from the catalogue (use find_programmes). Shares on a floor must add up to 1.
@@ -708,7 +721,7 @@ const AI_TOOLS = [
   { name: 'get_programme', description: 'Details for one programme id: value per m2 GFA with source and grade, hard cost lines, efficiency, code group, fits, notes.', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] }, execute: ({ id }) => {
     const { p, row, o, lines } = programmeDefaults(String(id).toUpperCase()); if (!p) throw new Error('unknown programme id');
     return { id: p.id, name: p.name, family: data.families.get(p.family_id).name, fits: p.fits_text, code_groups: p.occupancy_group, value_status: p.value_status,
-      value_row: row ? { id: row.id, name: row.name, earns_by: row.earns_by, value_per_m2_gfa: row.value_per_m2_gfa.value, source: srcText(row.value_per_m2_gfa) } : null,
+      value_row: row ? { id: row.id, name: row.name, earns_by: row.earns_by, value_per_m2_gfa: row.value_per_m2_gfa.value, value_basis: row.value_basis, source: srcText(row.value_per_m2_gfa) } : null,
       user_overrides: o, hard_cost_lines: lines.map(l => ({ category: l.altus_category, low_m2: l.low_m2, high_m2: l.high_m2, add_on: l.add_on })) }; } },
   { name: 'set_mix', description: 'Set the programme mix for every floor from from_level to to_level. mix is a list of {programme_id, share}; shares must add up to 1. Returns the new summary.', inputSchema: { type: 'object', properties: { from_level: { type: 'number' }, to_level: { type: 'number' }, mix: { type: 'array', items: { type: 'object', properties: { programme_id: { type: 'string' }, share: { type: 'number' } }, required: ['programme_id', 'share'] } } }, required: ['from_level', 'to_level', 'mix'] }, execute: ({ from_level, to_level, mix }) => {
     const lo = Number(from_level), hi = Number(to_level);
@@ -777,6 +790,87 @@ function renderAI() {
   else status.textContent = 'Ask AI works when this tool is opened on claude.ai. Everything else works here.';
 }
 
+// ---------- Help guide and "Show me" tour ----------
+const HELP_KEY = 'pvv-help-seen';
+function openHelp() {
+  const dlg = $('#help');
+  const step = (n, title, ...body) => h('li', {}, h('strong', {}, title), ' ', ...body);
+  const pill = (cls, t) => h('span', { class: `pill ${cls}` }, t);
+  dlg.replaceChildren(h('div', { class: 'help' },
+    h('div', { class: 'help-head' }, h('h2', { id: 'helpTitle' }, 'How this tool works'), h('button', { class: 'close', 'aria-label': 'Close help', onclick: () => dlg.close() }, '×')),
+    h('p', {}, 'It answers one question: after paying for construction, City charges and a normal developer profit, ', h('b', {}, 'is there enough money left to pay for the land?')),
+    h('p', { class: 'note' }, 'You do not need to know any prices. Every use (programme) already has a number. You can change any of them.'),
+    h('h3', {}, 'Five steps'),
+    h('ol', { class: 'help-steps' },
+      step(1, 'Start with a tower.', 'A sample tower opens by default. To change it, open “Start from a new sample tower or your own floors” under the section. You can set the height and plate sizes, or import your floors from a CSV or JSON file.'),
+      step(2, 'Select floors.', 'Click a floor in the section (the tower drawing). Shift-click a second floor to select a range.'),
+      step(3, 'Set the mix.', 'In the Floors tab, pick an activity family and a programme, then press Add. Set each share (they must add to 100%), then press Apply. The programme card shows its value and cost per m². Type your own number there if you know better.'),
+      step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land.'),
+      step(5, 'Check, then ask.', 'The City ledger shows what the City receives. Sensitivity shows which numbers move the result most. The Map shows the neighbouring roofs around a point you click. Method & sources shows where every number comes from. Ask AI (on claude.ai) explains the result and can edit the scheme for you.')),
+    h('h3', {}, 'What the verdict means'),
+    h('ul', { class: 'help-list' },
+      h('li', {}, pill('works', 'Works'), ' There is enough money for the land at a normal profit (15%).'),
+      h('li', {}, pill('marginal', 'Marginal'), ' Close: within 10% of the land price, a thin profit, or it relies on condo presales in a weak market.'),
+      h('li', {}, pill('doesnt_work', "Doesn't work"), ' Not enough money, or it loses money even if the land were free.'),
+      h('li', {}, pill('needs_land', 'Land price needed'), ' Enter a land price to get a verdict; until then the tool shows the land budget.'),
+      h('li', {}, pill('incomplete', 'Incomplete'), ' No floors yet, or nothing on them has a cost.')),
+    h('h3', {}, 'How sure is each number?'),
+    h('ul', { class: 'help-list' },
+      h('li', {}, gradeTag('A'), ' From a professional 2025–26 report, checked on the page.'),
+      h('li', {}, gradeTag('B'), ' From a secondary or older source.'),
+      h('li', {}, gradeTag('C'), ' Arithmetic or an assumption.'),
+      h('li', {}, h('span', { class: 'typ' }, 'typical estimate'), ' A starting number for a use with no published Vancouver figure. It comes from a similar use or a quick search. Always grade C: check it before relying on it.'),
+      h('li', {}, 'Hover or tap “source” next to a number to see where it comes from and when it was published.')),
+    h('h3', {}, 'Limits'),
+    h('p', { class: 'note' }, 'Every result is an indicative early-design estimate. It is for comparing early options. It is not a feasibility study, an appraisal or a compliance check. Market data is a snapshot from 2026, and the map is visual context, not survey data.'),
+    h('div', { class: 'toolbar' }, h('button', { class: 'primary', onclick: () => { dlg.close(); startTour(); } }, 'Show me'), h('button', { onclick: () => dlg.close() }, 'Close'))));
+  dlg.showModal();
+  try { localStorage.setItem(HELP_KEY, '1'); } catch (e) { /* storage unavailable */ }
+}
+const TOUR = [
+  { sel: '#section', tab: null, title: '1 · The section', text: 'Your tower, drawn to scale. Each band is a floor, coloured by its main use. The bars on the right show value minus cost: green floors earn money, red floors need support from others. Click a floor to select it.' },
+  { sel: '#tabs button[data-tab="floors"]', tab: 'floors', title: '2 · Floors', text: 'Here you set the mix of the selected floors: pick a programme, set its share, press Apply. Every programme already has a value and cost; type your own to replace them.' },
+  { sel: '#tab-verdict .verdict', tab: 'verdict', title: '3 · The verdict', text: 'Works, Marginal or Doesn\'t work: does the building leave enough money for the land? Enter a land price below it, or read the land budget.' },
+  { sel: '#tabs button[data-tab="city"]', tab: 'city', title: '4 · City ledger', text: 'What the City and the public receive: development charges, amenity charges, community contributions and in-kind space.' },
+  { sel: '#tabs button[data-tab="sens"]', tab: 'sens', title: '5 · Sensitivity', text: 'Which numbers move the result most. Check the widest bars first.' },
+  { sel: '#tabs button[data-tab="map"]', tab: 'map', title: '6 · Map', text: 'Downtown Vancouver by building height. Click a point to estimate the neighbouring roofs.' },
+  { sel: '#tabs button[data-tab="ai"]', tab: 'ai', title: '7 · Ask AI', text: 'On claude.ai, ask questions in plain words or ask for changes. Undo reverses anything it does.' },
+  { sel: '#helpBtn', tab: 'verdict', title: 'That is it', text: 'Open Help again any time. Every number shows its source and grade when you hover or tap “source”.' },
+];
+let tourAt = -1;
+function startTour() { tourAt = 0; showTourStep(); }
+function endTour() { tourAt = -1; document.querySelector('.tour-ring')?.remove(); document.querySelector('.tour-card')?.remove(); window.removeEventListener('resize', showTourStep); }
+function showTourStep() {
+  if (tourAt < 0) return;
+  const s = TOUR[tourAt];
+  if (s.tab && activeTab !== s.tab) showTab(s.tab);
+  const el = document.querySelector(s.sel);
+  if (!el) { if (tourAt < TOUR.length - 1) { tourAt++; return showTourStep(); } return endTour(); }
+  el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  let ring = document.querySelector('.tour-ring'), card = document.querySelector('.tour-card');
+  if (!ring) { ring = h('div', { class: 'tour-ring', 'aria-hidden': 'true' }); document.body.append(ring); }
+  if (!card) { card = h('div', { class: 'tour-card', role: 'dialog', 'aria-live': 'polite', 'aria-label': 'Guided tour' }); document.body.append(card); window.addEventListener('resize', showTourStep); }
+  const last = tourAt === TOUR.length - 1;
+  card.replaceChildren(h('strong', {}, s.title), h('p', {}, s.text),
+    h('div', { class: 'toolbar' },
+      tourAt > 0 ? h('button', { onclick: () => { tourAt--; showTourStep(); } }, 'Back') : null,
+      h('button', { class: 'primary', onclick: () => { if (last) endTour(); else { tourAt++; showTourStep(); } } }, last ? 'Done' : 'Next'),
+      !last ? h('button', { onclick: endTour }, 'Skip') : null,
+      h('span', { class: 'note' }, `${tourAt + 1} / ${TOUR.length}`)));
+  card.querySelector('button.primary').focus({ preventScroll: true });
+  const place = () => {
+    const r = el.getBoundingClientRect(), pad = 6;
+    Object.assign(ring.style, { left: `${r.left - pad}px`, top: `${r.top - pad}px`, width: `${r.width + 2 * pad}px`, height: `${r.height + 2 * pad}px` });
+    const cw = card.offsetWidth, ch = card.offsetHeight, vw = window.innerWidth, vh = window.innerHeight;
+    if (vw < 600) { Object.assign(card.style, { left: '12px', right: '12px', top: 'auto', bottom: '12px' }); return; }
+    const below = r.bottom + 12 + ch < vh, top = below ? r.bottom + 12 : Math.max(12, r.top - ch - 12);
+    Object.assign(card.style, { right: 'auto', bottom: 'auto', left: `${Math.min(vw - cw - 12, Math.max(12, r.left))}px`, top: `${Math.min(vh - ch - 12, top)}px` });
+  };
+  place(); setTimeout(place, 350);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && tourAt >= 0) endTour(); });
+document.addEventListener('scroll', () => { if (tourAt >= 0) { const s = TOUR[tourAt], el = document.querySelector(s.sel), ring = document.querySelector('.tour-ring'); if (el && ring) { const r = el.getBoundingClientRect(); ring.style.left = `${r.left - 6}px`; ring.style.top = `${r.top - 6}px`; } } }, { passive: true });
+
 // ---------- boot ----------
 async function boot() {
   wireTips();
@@ -789,6 +883,8 @@ async function boot() {
   $('#briefSel').value = state.brief;
   $('#briefSel').addEventListener('change', e => { pushHistory(); state.brief = e.target.value; buildData(); refresh(); });
   $('#undoBtn').addEventListener('click', undo);
+  $('#helpBtn').addEventListener('click', openHelp);
+  let seen = false; try { seen = !!localStorage.getItem(HELP_KEY); } catch (e) { seen = true; }
   $('#themeBtn').addEventListener('click', () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; if (activeTab === 'map') renderMap(); });
   $('#section').addEventListener('click', onSectionClick);
   for (const b of document.querySelectorAll('#tabs button')) b.addEventListener('click', () => showTab(b.dataset.tab));
@@ -796,5 +892,6 @@ async function boot() {
   $('#fileIn').addEventListener('change', e => importFile(e.target.files[0]));
   $('#tmplBtn').addEventListener('click', async () => { try { await navigator.clipboard.writeText(TEMPLATE); toast('CSV template copied.'); } catch (e) { toast('Copy failed; the columns are listed below the buttons.'); } });
   refresh();
+  if (!seen) openHelp();   // first visit: show the guide once
 }
 boot();

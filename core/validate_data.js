@@ -18,6 +18,7 @@ const GROUPS = new Set(['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'C', 'D', 'E',
 const EARNS = new Set(['sell', 'lease', 'operate', 'public', 'support']);
 const METHODS = new Set(['sale', 'income', 'per_key', 'visitors', 'per_stall_sale', 'per_stall_income', 'stated', 'none', 'user']);
 const STATUS = new Set(['linked', 'zero', 'new', 'excluded']);
+const BASIS = new Set(['sourced', 'typical']);
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 export const RECOMPUTE_TOLERANCE = 0.05;
 // Inputs that do not set a row's grade: they move the value by little, or cancel out in the engine.
@@ -103,6 +104,10 @@ export function validate(root) {
     if (p.value_status === 'linked' && !valueRows.has(p.value_ref)) errors.push({ code: 'unknown_value_ref', where: w, msg: p.value_ref });
     if (p.value_hint && !valueRows.has(p.value_hint)) errors.push({ code: 'unknown_value_ref', where: w, msg: `hint ${p.value_hint}` });
     if (['new', 'excluded'].includes(p.value_status) && p.needs_user_value !== true) errors.push({ code: 'null_without_flag', where: w, msg: 'new/excluded must set needs_user_value' });
+    // every programme must resolve to a number: zero, or a linked row with a value (sourced or typical)
+    const linked = p.value_status === 'linked' ? valueRows.get(p.value_ref) : null;
+    if (p.value_status !== 'zero' && !(linked && typeof linked.value_per_m2_gfa?.value === 'number')) errors.push({ code: 'unresolved_value', where: w, msg: 'no value: link a sourced or typical value row' });
+    if (linked && p.needs_user_value) errors.push({ code: 'stale_user_flag', where: w, msg: 'has a value, so needs_user_value must be false' });
     if (!GRADES.has(p.grade)) errors.push({ code: 'bad_grade', where: w, msg: p.grade });
     if (p.city_charge_class && !(p.city_charge_class in charges.classes)) errors.push({ code: 'unknown_charge_class', where: w, msg: p.city_charge_class });
   }
@@ -116,6 +121,9 @@ export function validate(root) {
     if (!EARNS.has(r.earns_by)) errors.push({ code: 'bad_earns_by', where: w, msg: r.earns_by });
     if (!METHODS.has(r.method)) errors.push({ code: 'bad_method', where: w, msg: r.method });
     if (!chargeClasses.has(r.city_charge_class)) errors.push({ code: 'unknown_charge_class', where: w, msg: r.city_charge_class });
+    if (!BASIS.has(r.value_basis)) errors.push({ code: 'bad_value_basis', where: w, msg: String(r.value_basis) });
+    if (r.value_basis === 'typical' && r.value_per_m2_gfa && (r.value_per_m2_gfa.grade !== 'C' || !r.value_per_m2_gfa.note || typeof r.value_per_m2_gfa.value !== 'number'))
+      errors.push({ code: 'typical_not_flagged', where: w, msg: 'a typical value must be a number, grade C, with a note naming its basis' });
     if (!r.value_per_m2_gfa) { errors.push({ code: 'missing_field', where: w, msg: 'value_per_m2_gfa' }); continue; }
     const weakest = weakestKeyGrade(r);
     if (weakest && r.value_per_m2_gfa.grade < weakest) errors.push({ code: 'grade_above_inputs', where: w, msg: `value graded ${r.value_per_m2_gfa.grade}, but a key input is ${weakest}` });
@@ -139,6 +147,13 @@ export function validate(root) {
       if (Math.abs(conv - l[m]) > Math.max(0.005 * conv, 5.0001)) errors.push({ code: 'bad_conversion', where: `${w}.${m}`, msg: `${l[ft]} ft2 x 10.764 = ${conv.toFixed(1)}, file says ${l[m]}` });
     }
     if (!(l.low_ft2 <= l.high_ft2)) errors.push({ code: 'bad_range', where: w, msg: 'low > high' });
+  }
+  for (const l of costs.typical_lines || []) {
+    const w = `costs.typical_lines.${l.id}`;
+    if (lineIds.has(l.id)) errors.push({ code: 'duplicate_id', where: w, msg: l.id });
+    lineIds.add(l.id);
+    if (l.value_basis !== 'typical' || l.default_m2?.grade !== 'C' || !l.default_m2?.note || typeof l.default_m2?.value !== 'number')
+      errors.push({ code: 'typical_not_flagged', where: w, msg: 'a typical cost line must be a number, grade C, with a note' });
   }
   for (const [kind, map] of Object.entries({ by_value_row: costs.cost_map.by_value_row, by_programme: costs.cost_map.by_programme })) {
     for (const [id, refs] of Object.entries(map)) {

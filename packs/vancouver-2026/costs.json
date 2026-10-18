@@ -820,7 +820,7 @@
     }
   },
   "cost_map": {
-    "note": "Which Altus line prices each use. Programme-specific entries win over the value-row entry. Mapping is the pack author's judgement (grade C). null = no matching line: user to supply. Support space (core, mechanical) is costed with the floor it sits on (engine rule).",
+    "note": "Which Altus line prices each use. Programme-specific entries win over the value-row entry. Mapping is the pack author's judgement (grade C). null = no matching line: costed at the floor average and flagged. Lines starting typ_ are typical estimates (grade C) where Altus has no line. Support space (core, mechanical) is costed with the floor it sits on (engine rule).",
     "by_value_row": {
       "R1": [
         "condo_60plus"
@@ -900,12 +900,18 @@
       "T4": [
         "enclosed_mall"
       ],
-      "A1": null,
-      "A2": null,
+      "A1": [
+        "typ_observation_deck"
+      ],
+      "A2": [
+        "typ_observation_deck"
+      ],
       "A3": [
         "enclosed_mall"
       ],
-      "A4": null,
+      "A4": [
+        "hotel_4star"
+      ],
       "A5": [
         "museum_gallery"
       ],
@@ -916,8 +922,12 @@
       "C3": [
         "multi_use_rec"
       ],
-      "C4": null,
-      "C5": null,
+      "C4": [
+        "typ_transit_concourse"
+      ],
+      "C5": [
+        "office_a_31_60"
+      ],
       "P1": [
         "parking_underground"
       ],
@@ -926,7 +936,92 @@
       ],
       "S1": null,
       "S2": null,
-      "S3": null
+      "S3": null,
+      "MP1t": [
+        "office_a_31_60"
+      ],
+      "MP4t": [
+        "multi_use_rec"
+      ],
+      "MP5t": [
+        "multi_use_rec"
+      ],
+      "MP7t": [
+        "office_a_31_60"
+      ],
+      "MP8t": null,
+      "MP9t": [
+        "office_a_31_60"
+      ],
+      "GP1t": null,
+      "GP3t": [
+        "enclosed_mall"
+      ],
+      "GP9t": [
+        "enclosed_mall"
+      ],
+      "LE4t": [
+        "typ_specialty_attraction"
+      ],
+      "LE5t": [
+        "enclosed_mall"
+      ],
+      "LE6t": [
+        "museum_gallery"
+      ],
+      "SE6t": [
+        "enclosed_mall"
+      ],
+      "AM11t": [
+        "typ_roof_pad"
+      ],
+      "AM12t": null,
+      "MK1t": [
+        "office_a_31_60"
+      ],
+      "MK2t": [
+        "office_a_31_60"
+      ],
+      "MK3t": [
+        "typ_heavy_floor"
+      ],
+      "MK4t": [
+        "typ_sound_stage"
+      ],
+      "MK5t": [
+        "typ_acoustic_suite"
+      ],
+      "MK6t": [
+        "enclosed_mall"
+      ],
+      "MK7t": [
+        "typ_data_room"
+      ],
+      "LN1t": null,
+      "LN2t": null,
+      "CH3t": [
+        "medical_clinic"
+      ],
+      "CH5t": null,
+      "CH6t": [
+        "typ_hospital"
+      ],
+      "GS3t": [
+        "office_a_31_60"
+      ],
+      "GS4t": [
+        "typ_glass_crown"
+      ],
+      "GS7t": [
+        "typ_energy_crown"
+      ],
+      "ST4t": null,
+      "ST5t": [
+        "student_residence"
+      ],
+      "RR4t": [
+        "museum_gallery"
+      ]
     },
     "by_programme": {
       "MP2": [
@@ -981,5 +1076,194 @@
         "urban_storage"
       ]
     }
-  }
+  },
+  "typical_lines": [
+    {
+      "id": "typ_specialty_attraction",
+      "name": "Specialty attraction structure (glass floor, cantilever, sky bridge)",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 12000,
+        "unit": "CAD/m2",
+        "range": [
+          9000,
+          18000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Set a little above the Altus performing-arts line (11,520) for structural glass and cantilevers."
+      }
+    },
+    {
+      "id": "typ_roof_pad",
+      "name": "Rooftop landing pad and its structure",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 4000,
+        "unit": "CAD/m2",
+        "range": [
+          2500,
+          6000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Structural deck, edge protection and services on a roof."
+      }
+    },
+    {
+      "id": "typ_heavy_floor",
+      "name": "Stacked industrial floor (heavy loads, freight lift)",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 5000,
+        "unit": "CAD/m2",
+        "range": [
+          4000,
+          6500
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Office shell (4,465) plus about 10% for heavier floors and freight lifts."
+      }
+    },
+    {
+      "id": "typ_sound_stage",
+      "name": "Sound stage / LED volume",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 7500,
+        "unit": "CAD/m2",
+        "range": [
+          6000,
+          10000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Clear span, double height, acoustic isolation and heavy power."
+      }
+    },
+    {
+      "id": "typ_acoustic_suite",
+      "name": "Acoustic studio suites",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 7000,
+        "unit": "CAD/m2",
+        "range": [
+          5500,
+          9000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Office shell plus room-in-room acoustic construction."
+      }
+    },
+    {
+      "id": "typ_data_room",
+      "name": "Edge data room (power and cooling)",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 15000,
+        "unit": "CAD/m2",
+        "range": [
+          10000,
+          25000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Power, cooling and backup per m2 of floor; varies widely with power density."
+      }
+    },
+    {
+      "id": "typ_hospital",
+      "name": "Hospital wing",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 14000,
+        "unit": "CAD/m2",
+        "range": [
+          11000,
+          18000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line in this pack. Set above the Altus complex-care (5,545) and university-lab (12,515) lines."
+      }
+    },
+    {
+      "id": "typ_glass_crown",
+      "name": "Greenhouse / glass crown",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 9000,
+        "unit": "CAD/m2",
+        "range": [
+          7000,
+          12000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Glazed roof structure with growing services."
+      }
+    },
+    {
+      "id": "typ_energy_crown",
+      "name": "Wind turbine / solar crown",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 6000,
+        "unit": "CAD/m2",
+        "range": [
+          4000,
+          10000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Structure and equipment for a turbine or solar crown, per m2 of crown floor."
+      }
+    },
+    {
+      "id": "typ_observation_deck",
+      "name": "Observation deck (glazed, high-traffic)",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 10000,
+        "unit": "CAD/m2",
+        "range": [
+          8000,
+          14000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Near the Altus museum/gallery line (9,445), plus glazing and visitor lifts at height."
+      }
+    },
+    {
+      "id": "typ_transit_concourse",
+      "name": "Transit concourse / station link",
+      "value_basis": "typical",
+      "default_m2": {
+        "value": 8000,
+        "unit": "CAD/m2",
+        "range": [
+          6000,
+          12000
+        ],
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "note": "Typical estimate: No Altus line. Public circulation built to transit standards (finishes, wayfinding, fire separation)."
+      }
+    }
+  ]
 }

@@ -8,9 +8,9 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 **Every number is an indicative early-design estimate.** It is not a feasibility study, an appraisal or a compliance check, and the tool says so on every screen and export.
 
-Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (52 tests). See [Roadmap](#roadmap).
+Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (60 tests). See [Roadmap](#roadmap).
 
-Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai.
+Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
 
 ---
 
@@ -32,7 +32,7 @@ No account and no install: it runs as a static web page (静态网页) in a brow
    You can overwrite any value. Hover over a value to see where it comes from.
 2. **Neutral.** The tool has no preferred design. Defaults are a plain sample tower and published market data. Your floors and settings stay in your browser. The page loads its fonts from Google Fonts; Ask AI sends the current scheme summary to Claude only when you ask a question.
 3. **Transparent method.** The calculation is a set of pure functions (纯函数) with tests, documented in `docs/method.md` with a hand-worked check, and reviewed (`docs/critique_r1.md`, `docs/critique_r2.md`).
-4. **Honest about gaps.** Values nobody has sourced yet are shown as "user to supply", never guessed.
+4. **Honest about gaps.** You never have to invent a price. Uses with no published Vancouver figure carry a **typical estimate**: taken from a similar use, or from a quick 2025–26 search. Each is grade C, gives its basis and a range, and is marked "typical estimate" wherever it appears. Type your own number to replace it.
 
 ## How the calculation works (summary)
 

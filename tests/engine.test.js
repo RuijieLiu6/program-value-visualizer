@@ -151,7 +151,8 @@ test('empty building is incomplete, not "works"', () => {
 });
 
 test('a building with no priced programme is incomplete', () => {
-  const r = evaluate([fl(1, [{ programme_id: 'SE6', share: 1 }])], data, { programme: { SE6: { valuePerM2Gfa: 8000 } }, landPrice: 0 });
+  // SB9 (resident amenity) has no cost line of its own
+  const r = evaluate([fl(1, [{ programme_id: 'SB9', share: 1 }])], data, { programme: { SB9: { valuePerM2Gfa: 8000 } }, landPrice: 0 });
   assert.equal(r.verdict, 'incomplete');
 });
 
@@ -169,9 +170,9 @@ test('no land price gives "needs land" with the land budget, or "doesn\'t work" 
 });
 
 test('items without a cost line are flagged as estimated', () => {
-  // MP1 (fitness club) has no Altus line and no turnkey figure
-  const r = evaluate([fl(1, [{ programme_id: 'MP1', share: 0.5 }, { programme_id: 'WK1', share: 0.5 }])], data, {});
-  assert.ok(r.rules.some(x => x.type === 'cost_estimated' && x.text.startsWith('MP1')));
+  // SB9 (resident amenity) has no cost line, typical or published
+  const r = evaluate([fl(1, [{ programme_id: 'SB9', share: 0.5 }, { programme_id: 'WK1', share: 0.5 }])], data, {});
+  assert.ok(r.rules.some(x => x.type === 'cost_estimated' && x.text.startsWith('SB9')));
 });
 
 test('deck value is one total, spread over the deck area drawn', () => {

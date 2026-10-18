@@ -13,3 +13,5 @@
 | 18 Oct 2026 | Childcare cost | Turnkey cost per space ÷ an editable m² per space (16 m², grade C), treated as all-in hard + soft cost. |
 | 18 Oct 2026 | Row grades | A value row's grade is its weakest key input; the validator enforces it. |
 | 18 Oct 2026 | Map (G4) | Lightweight 2D plan of downtown (about 1 MB) instead of embedding a 3D viewer. No site marked; OpenStreetMap and NASA SRTM credited under the map. |
+| 18 Oct 2026 | Unpriced programmes | Give every programme a typical estimate (grade C, basis and range shown, marked in the page) instead of asking users for prices. Public and support uses stay at zero. |
+| 18 Oct 2026 | Help | A Help button opens a short guide (question, five steps, verdicts, grades, limits) with an optional guided tour. It opens once on a first visit. |

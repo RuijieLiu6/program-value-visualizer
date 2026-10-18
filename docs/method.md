@@ -57,7 +57,7 @@ Each line rounds its own result; the next line uses the unrounded figure.
 
 The test pins efficiency at 0.76. The engine's own curve gives 0.80 for floors 1–20, so the live tool shows slightly higher office value at that height.
 
-## Grades
+## Grades and typical estimates
 
 Each value row is graded by its weakest *key* input (A best, C weakest). Selling cost, leakage, deck area and the derivation efficiency are minor inputs and do not set the grade; the efficiency cancels out in the engine. `node core/validate_data.js` fails a row graded better than that.
 
@@ -67,3 +67,11 @@ Each value row is graded by its weakest *key* input (A best, C weakest). Selling
 - The value offered for the condo bonus is the tallest neighbour's roof level above the ground at the point: neighbour ground + neighbour height − ground here.
 - Sources: OpenStreetMap heights (measured, from floor count, or estimated by type) and SRTM ground.
 - Grade C. Details are in `basemap/README.md`.
+
+**Typical estimates.** Uses with no published Vancouver figure get a typical value (`value_basis: "typical"`). Some uses also get a typical hard cost per m² (`typ_*` lines). Each one:
+- comes from a similar use, or from a quick 2025–26 search;
+- is always grade C, with a range;
+- is marked "typical estimate" in the page;
+- is listed in an info rule whenever the scheme uses it.
+
+A value the user types replaces it (`valueBasis: "user"`).
