@@ -215,6 +215,16 @@ canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 
 .review-tbl .prog-cell select { max-width: 240px; }
 .conf { font: 600 11px/1 var(--mono); }
 .conf.low { color: var(--warn); }
+#optimise { width: min(820px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet); color: var(--ink); }
+#optimise::backdrop { background: rgba(10, 14, 18, .45); }
+.opt-grid { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.chk { font-size: 13px; display: block; line-height: 1.45; }
+.chk input { margin: 0 6px 0 0; vertical-align: -2px; }
+.opt-out { display: flex; flex-direction: column; gap: 10px; }
+.opt-report { white-space: pre-wrap; font: 12.5px/1.5 var(--body); background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--radius); padding: 10px 12px; margin: 0; max-height: 46vh; overflow: auto; }
+tr.chosen td { background: var(--accent-soft); font-weight: 600; }
+.opt-bar { justify-content: flex-start; }
+.lock-tag { font: 600 10px var(--mono); color: var(--warn); }
 .ph-btn { margin-left: auto; font-size: 12px; padding: 3px 10px; }
 #diagram { width: min(860px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet); color: var(--ink); }
 #diagram::backdrop { background: rgba(10, 14, 18, .45); }
@@ -311,5 +321,6 @@ canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 
 </div>
 <dialog id="help" aria-labelledby="helpTitle"></dialog>
 <dialog id="diagram" class="dg-dialog" aria-labelledby="diagramTitle"></dialog>
+<dialog id="optimise" aria-labelledby="optTitle"></dialog>
 <div id="tip" hidden></div>
 <script type="module" src="app/app.js"></script>

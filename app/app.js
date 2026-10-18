@@ -2,6 +2,7 @@
 import { drawIcon, SPECS } from './icons/icon_specs.js';
 import { wordStackLayout, wordStackSVG, inkOf, FONT_STACK } from '../core/wordstack.js';
 import { readPrompt, normaliseDiagramRead, floorsFromBands } from '../core/diagram_read.js';
+import { optimiseMix, optimiserDefaults } from '../core/optimiser.js';
 import { PRIORITIES, PLATES, planningGuide, stackToFloors, starterStack, explainStack } from '../core/planner.js';
 import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
 import { TYPICAL_BASES, indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
@@ -66,7 +67,7 @@ function normaliseFloors(list) {
     });
     const sum = mix.reduce((a, m) => a + m.share, 0);
     if (sum > 1.5 && Math.abs(sum - 100) < 1.5) mix = mix.map(m => ({ ...m, share: m.share / 100 }));   // percentages
-    out.push({ level, elevation_m: elev, height_m: height, area_m2: area, area_basis: f.area_basis === 'net' ? 'net' : 'gross', mix, ...(Array.isArray(f.tags) && f.tags.includes('seam') ? { tags: ['seam'] } : {}) });
+    out.push({ level, elevation_m: elev, height_m: height, area_m2: area, area_basis: f.area_basis === 'net' ? 'net' : 'gross', mix, ...(Array.isArray(f.tags) && f.tags.includes('seam') ? { tags: ['seam'] } : {}), ...(f.locked === true ? { locked: true } : {}) });
   });
   return out;
 }
@@ -148,7 +149,7 @@ function renderSection() {
     const bar = `<rect x="${(bl < 0 ? axis + bl : axis).toFixed(2)}" y="${y0.toFixed(2)}" width="${Math.abs(bl).toFixed(2)}" height="${hh.toFixed(2)}" fill="${net < 0 ? 'var(--bad)' : 'var(--good)'}" opacity=".85"/>`;
     const label = (f.level % 10 === 0 || f.level === 1 || f.level === floors[floors.length - 1].level || f.level === floors[0].level) ? `<text x="${x0 - 6}" y="${(y0 + hh * 0.8).toFixed(2)}" text-anchor="end">L${esc(f.level)}</text>` : '';
     const tip = `L${f.level} · ${f.elevation_m.toFixed(1)} m · ${N(f.area_m2)} m² ${f.area_basis}\n${f.mix.map(m => `${Math.round(m.share * 100)}% ${prog(m.programme_id)?.name || m.programme_id}`).join('\n')}\nvalue ${M(r?.value)} · cost ${M(r?.cost)} · profit ${M(r?.profit)}\nnet ${M(net)}`;
-    s += `<g class="floor" data-level="${esc(f.level)}" data-tip="${esc(tip)}"><rect class="slab" x="${x0.toFixed(2)}" y="${y0.toFixed(2)}" width="${w.toFixed(2)}" height="${hh.toFixed(2)}" fill="var(--line-2)"/>${segs}${bar}<rect x="20" y="${y0.toFixed(2)}" width="${W - 26}" height="${hh.toFixed(2)}" fill="transparent"/>${label}</g>`;
+    s += `<g class="floor" data-level="${esc(f.level)}" data-tip="${esc(tip)}"><rect class="slab" x="${x0.toFixed(2)}" y="${y0.toFixed(2)}" width="${w.toFixed(2)}" height="${hh.toFixed(2)}" fill="var(--line-2)"/>${segs}${f.locked ? `<rect x="${(x0 + 0.6).toFixed(2)}" y="${(y0 + 0.6).toFixed(2)}" width="${Math.max(0, w - 1.2).toFixed(2)}" height="${Math.max(0, hh - 1.2).toFixed(2)}" fill="none" stroke="var(--ink)" stroke-width="0.9" stroke-dasharray="3 2"><title>locked</title></rect>` : ''}${bar}<rect x="20" y="${y0.toFixed(2)}" width="${W - 26}" height="${hh.toFixed(2)}" fill="transparent"/>${label}</g>`;
   }
   if (sel) {
     const inSel = floors.filter(f => f.level >= sel[0] && f.level <= sel[1]);
@@ -250,6 +251,7 @@ const num0 = x => (typeof x === 'number' && Number.isFinite(x) ? x : 0);
 function renderVerdict() {
   const r = result, t = r.totals, S = settingsFull(), A = data.assumptions;
   const el = $('#tab-verdict');
+  const optBtn = h('div', { class: 'toolbar opt-bar' }, h('button', { class: 'primary', onclick: openOptimiser }, 'Find a mix that works'), h('span', { class: 'note' }, 'keeps your form, searches the uses'));
   const verdict = h('div', { class: `verdict ${r.verdict}` },
     h('span', { class: 'label-strip' }, 'Verdict'), h('h3', {}, VERDICT[r.verdict]),
     h('ul', {}, r.reasons.map(x => h('li', {}, x)), r.marketDependent ? h('li', {}, 'Market-dependent: the scheme relies on condo presales.') : null),
@@ -280,7 +282,7 @@ function renderVerdict() {
     h('tbody', {}, Object.entries(fam).sort((a, b) => b[1].net - a[1].net).map(([k, v]) => h('tr', {},
       h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:8px;align-items:center' }, familyIcon(k), data.families.get(k)?.name)),
       h('td', { class: 'num' }, N(v.gfa)), h('td', { class: 'num' }, M(v.value)), h('td', { class: 'num' }, M(v.cost)), h('td', { class: `num ${signCls(v.net)}` }, M(v.net)))))));
-  put(el, verdict, land, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
+  put(el, optBtn, verdict, land, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
 }
 /** A family's icon is its first programme's icon; a colour swatch if it has none. */
 function familyIcon(famId) { const first = [...data.programmes.values()].find(p => p.family_id === famId); return first && iconSvg(first.id) ? iconEl(first.id, 26) : h('i', { class: 'sw', style: `background:${famColour(famId)}` }); }
@@ -316,7 +318,8 @@ function renderFloors() {
   const sum = editMix.reduce((s, m) => s + m.share, 0);
   const mixed = fl.some(f => JSON.stringify(f.mix) !== JSON.stringify(fl[0].mix));
   const head = h('div', { class: 'toolbar' }, h('strong', {}, `L${state.sel[0]}${state.sel[1] !== state.sel[0] ? '–L' + state.sel[1] : ''} · ${fl.length} floor${fl.length > 1 ? 's' : ''} · ${N(fl.reduce((s, f) => s + f.area_m2, 0))} m²`),
-    h('button', { onclick: () => { state.sel = null; editMix = null; renderSection(); renderFloors(); } }, 'Clear selection'));
+    h('button', { onclick: () => { state.sel = null; editMix = null; renderSection(); renderFloors(); } }, 'Clear selection'),
+    (() => { const all = fl.every(f => f.locked); return h('button', { 'aria-pressed': String(all), title: 'Locked floors are kept as they are by “Find a mix that works”', onclick: () => { pushHistory(); fl.forEach(f => { if (all) delete f.locked; else f.locked = true; }); refresh(); } }, all ? 'Unlock these floors' : 'Lock these floors'); })());
   const rows = h('div', { style: 'display:flex;flex-direction:column;gap:6px' }, editMix.map((m, k) => {
     const p = prog(m.programme_id);
     const inp = h('input', { id: `share-${k}`, type: 'number', min: 0, max: 100, step: 1, value: Math.round(m.share * 1000) / 10, 'aria-label': `Share of ${p?.name}` });
@@ -458,7 +461,7 @@ function floorTable() {
   return h('details', { open: !state.sel }, h('summary', {}, `All floors (${rows.length})`), h('div', { class: 'tbl', style: 'max-height:420px;overflow:auto' }, h('table', {},
     h('thead', {}, h('tr', {}, h('th', {}, 'Level'), h('th', { class: 'num' }, 'Elev. m'), h('th', { class: 'num' }, 'Area m²'), h('th', {}, 'Mix'), h('th', { class: 'num' }, 'Value'), h('th', { class: 'num' }, 'Cost+profit'), h('th', { class: 'num' }, 'Net'))),
     h('tbody', {}, rows.map(f => h('tr', { style: 'cursor:pointer', onclick: () => { state.sel = [f.level, f.level]; editMix = null; renderSection(); renderFloors(); } },
-      h('td', {}, `L${f.level}`), h('td', { class: 'num' }, f.elevation_m.toFixed(1)), h('td', { class: 'num' }, N(f.area_m2)),
+      h('td', {}, `L${f.level}`, state.floors.find(x => x.level === f.level)?.locked ? h('span', { class: 'lock-tag', title: 'Locked' }, ' locked') : null), h('td', { class: 'num' }, f.elevation_m.toFixed(1)), h('td', { class: 'num' }, N(f.area_m2)),
       h('td', { title: f.items.map(i => `${i.programme_id} ${Math.round(i.share * 100)}%`).join(' · ') }, f.items.map(i => `${Math.round(i.share * 100)}% ${i.name}`).join(' · ')),
       h('td', { class: 'num' }, M(f.value)), h('td', { class: 'num' }, M(f.cost + f.profit)), h('td', { class: `num ${signCls(f.net)}` }, M(f.net))))))));
 }
@@ -930,6 +933,15 @@ function applyStackToPage(stack, { hotelNonres } = {}) {
   return built;
 }
 const PLAN_TOOLS = [
+  { name: 'optimise_mix', description: 'Find a mix that works for the current building form: keeps floors, heights, plates and locked floors; searches uses floor by floor with the full calculator under the brief FSR rule and market caps; compares strategies (all uses, no sale condos, employment only, no deck). Returns verdict, headroom, strategies and a report. apply: true puts the best stack on the section (one Undo reverses it).', inputSchema: { type: 'object', properties: { apply: { type: 'boolean' }, respectFsr: { type: 'boolean' }, allowSale: { type: 'boolean' }, allowDeck: { type: 'boolean' }, keepPublic: { type: 'boolean' }, inclusionary: { type: 'boolean' }, maxHotelKeys: { type: 'number' } } },
+    execute: ({ apply, ...o }) => {
+      const clean = {};
+      for (const k of ['respectFsr', 'allowSale', 'allowDeck', 'keepPublic', 'inclusionary']) if (typeof o[k] === 'boolean') clean[k] = o[k];
+      if (o.maxHotelKeys != null) { const n = Number(o.maxHotelKeys); if (!Number.isFinite(n) || n < 0 || n > 2000) throw new Error('maxHotelKeys must be 0-2000'); clean.maxHotelKeys = n; }
+      const res = runOptimiser({ ...optimiserDefaults(data), ...clean });
+      const applied = apply ? applyOptimised(res) : false;
+      return { ...optSummary(res), applied };
+    } },
   { name: 'get_planning_guide', description: 'The tool’s own planning rules and the full programme catalogue: id, name, family, fits (B G L M H T S), intensity, code group, how it earns, value per m2 GFA and its basis (sourced / researched / analogy / no income). Read this before proposing a stack.', execute: () => planningGuide(data) },
   { name: 'apply_stack', description: 'Replace the whole building in one step (one Undo reverses it). tower: {height_m 40-500, podium_floors 0-12, podium_plate_m2, tower_plate_m2, top_plate_m2, below_grade 0-8}. bands: [{from_level, to_level, mix: [{programme_id, share}]}] from below grade (negative levels) to the crown; shares add up to 1; a later band wins where bands overlap. The generator puts a plant floor (SB2) about every 20 floors: it stays unless a one-level band names that level. Floors no band covers copy the nearest band. Returns verdict, totals, FSR both ways, top rules and net value by family.', inputSchema: { type: 'object', properties: { tower: { type: 'object', properties: { height_m: { type: 'number' }, podium_floors: { type: 'number' }, podium_plate_m2: { type: 'number' }, tower_plate_m2: { type: 'number' }, top_plate_m2: { type: 'number' }, below_grade: { type: 'number' } } }, bands: { type: 'array', items: { type: 'object', properties: { from_level: { type: 'number' }, to_level: { type: 'number' }, mix: { type: 'array', items: { type: 'object', properties: { programme_id: { type: 'string' }, share: { type: 'number' } }, required: ['programme_id', 'share'] } } }, required: ['from_level', 'to_level', 'mix'] } } }, required: ['tower', 'bands'] },
     execute: input => { const b = applyStackToPage(input, { hotelNonres: conceptAnswers?.hotel_nonres }); return stackSummary({ floors_filled_from_nearest_band: b.filled.length, plant_floors_kept: b.keptMech, bands_outside_the_tower: b.outside }); } },
@@ -1120,7 +1132,8 @@ function renderAI() {
   const ui = { msgs, status, stop };
   const diagramSlot = h('div', { id: 'diagramSlot' });
   const explainBtn = h('button', { class: 'explain', onclick: () => { if (aiState !== 'busy') explainCurrent(ui); } }, 'Explain my current stack');
-  const chips = h('div', { class: 'chips' }, explainBtn, ['Explain the verdict in plain words', 'Which floors lose the most money, and why?', 'How could this scheme meet the 9.0 FSR non-residential rule?', 'What are the weakest numbers in the data?'].map(q => h('button', { onclick: () => { ta.value = q; ask(); } }, q)));
+  const optChip = h('button', { class: 'explain', onclick: openOptimiser }, 'Find a mix that works');
+  const chips = h('div', { class: 'chips' }, explainBtn, optChip, ['Explain the verdict in plain words', 'Which floors lose the most money, and why?', 'How could this scheme meet the 9.0 FSR non-residential rule?', 'What are the weakest numbers in the data?'].map(q => h('button', { onclick: () => { ta.value = q; ask(); } }, q)));
   const ask = async () => {
     const q = ta.value.trim(); if (!q || aiState === 'busy') return;
     if (!sample) { status.textContent = 'Ask AI works when this tool is opened on claude.ai.'; return; }
@@ -1209,6 +1222,85 @@ function openDiagram() {
   dlg.showModal();
 }
 
+// ---------- Find a mix that works ----------
+let optOpts = null, lastOpt = null;
+const VERDICT_RANK_UI = { works: 4, marginal: 3, needs_land: 2, doesnt_work: 1, incomplete: 0 };
+function runOptimiser(o) {
+  const res = optimiseMix(state.floors, data, state.settings, o);
+  lastOpt = res;
+  return res;
+}
+/** Put the optimiser's stack on the section: one Undo reverses it. */
+function applyOptimised(res) {
+  if (!res?.best || res.best.keptCurrent) return false;
+  const byLevel = new Map(res.best.floors.map(f => [f.level, f.mix]));
+  pushHistory();
+  state.floors = state.floors.map(f => (byLevel.has(f.level) ? { ...f, mix: byLevel.get(f.level).map(m => ({ ...m })) } : f));
+  state.sel = null; editMix = null; refresh();
+  return true;
+}
+function optSummary(res) {
+  const b = res.best, r = b?.result, head = x => (x ? +(((x.totals.rlvAfterCac) - (x.totals.landPrice ?? 0)) / 1e6).toFixed(1) : null);
+  return {
+    verdict: r ? VERDICT[r.verdict] : 'no feasible mix', headroom_cad_millions: head(r), strategy: b?.strategy.name ?? null, kept_current: !!b?.keptCurrent,
+    current: { verdict: VERDICT[res.current.verdict], headroom_cad_millions: head(res.current) },
+    strategies: res.strategies.map(s => ({ name: s.strategy.name, feasible: s.feasible, verdict: s.result ? VERDICT[s.result.verdict] : null, headroom_cad_millions: head(s.result), cac_cad_millions: s.result ? +(s.result.totals.cac / 1e6).toFixed(1) : null })),
+    report: res.report, ms: res.ms,
+  };
+}
+function openOptimiser() {
+  const dlg = $('#optimise');
+  const D = optimiserDefaults(data);
+  const o = optOpts || { ...D };
+  const brief = data.brief?.rules?.some(r => r.id === 'min_nonres_fsr');
+  const check = (key, label, note) => { const i = h('input', { type: 'checkbox', id: `op-${key}`, checked: !!o[key] }); i.addEventListener('change', () => { o[key] = i.checked; }); return h('label', { for: `op-${key}`, class: 'chk' }, i, ' ', label, note ? h('span', { class: 'note' }, ` — ${note}`) : null); };
+  const numIn = (key, label, step, min, max, unit, src) => numField(`op-${key}`, label, o[key], { step, min, max, unit, src, onchange: v => { o[key] = v == null ? D[key] : v; } });
+  const A = data.assumptions.optimiser || {};
+  const out = h('div', { class: 'opt-out' });
+  const runBtn = h('button', { class: 'primary', onclick: () => {
+    runBtn.disabled = true; runBtn.textContent = 'Searching…';
+    setTimeout(() => {   // let the button repaint first
+      try { optOpts = o; const res = runOptimiser(o); showResult(res); } catch (e) { put(out, h('p', { class: 'neg' }, e.message)); }
+      runBtn.disabled = false; runBtn.textContent = 'Search again';
+    }, 30);
+  } }, 'Find a mix');
+  const showResult = res => {
+    const b = res.best, r = b?.result, cur = res.current;
+    const hr = x => (x ? x.totals.rlvAfterCac - (x.totals.landPrice ?? 0) : null);
+    const kpis = h('div', { class: 'kpis' },
+      kpi('Best found', r ? VERDICT[r.verdict] : 'No mix meets the rules', r ? (r.verdict === 'works' ? 'pos' : r.verdict === 'doesnt_work' ? 'neg' : '') : 'neg'),
+      kpi('Headroom over land', r ? M(hr(r)) : '—', r ? signCls(hr(r)) : '', 'Residual land value after CAC − land price'),
+      kpi('Current stack', `${VERDICT[cur.verdict]} · ${M(hr(cur))}`),
+      kpi('Strategy', b ? b.strategy.name : '—'));
+    const tbl = h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Strategy'), h('th', {}, 'Verdict'), h('th', { class: 'num' }, 'Headroom'), h('th', { class: 'num' }, 'CAC'))),
+      h('tbody', {}, res.strategies.map(s => h('tr', { class: b && s.strategy.id === b.strategy.id ? 'chosen' : null }, h('td', {}, s.strategy.name), h('td', {}, s.result ? VERDICT[s.result.verdict] : 'not possible'), h('td', { class: `num ${signCls(s.headroom)}` }, s.result ? M(s.headroom) : '—'), h('td', { class: 'num' }, s.result ? M(s.result.totals.cac) : '—'))))));
+    const apply = h('button', { class: 'primary', disabled: !b || b.keptCurrent, onclick: () => { if (applyOptimised(res)) { dlg.close(); toast('Mix applied. Undo reverses it.'); } } }, b?.keptCurrent ? 'The current stack is already the best' : 'Apply to section');
+    put(out, kpis, tbl, h('pre', { class: 'opt-report' }, res.report), h('p', { class: 'note' }, `Searched ${res.strategies.length} strategies in ${res.ms} ms. Nothing changes until you press Apply; one Undo reverses it.`), h('div', { class: 'toolbar' }, apply, h('button', { onclick: () => dlg.close() }, 'Close')));
+  };
+  put(dlg, h('div', { class: 'help opt' },
+    h('div', { class: 'help-head' }, h('h2', { id: 'optTitle' }, 'Find a mix that works'), h('button', { class: 'close', 'aria-label': 'Close', onclick: () => dlg.close() }, '×')),
+    h('p', { class: 'note' }, 'Keeps your building form (floors, heights, plates) and searches for the uses that give the best verdict and the most headroom over the land price, within the brief and market caps. Each floor is scored with the full calculator; a step-by-step search picks the stack; whole buildings are then checked again.'),
+    h('details', { open: !lastOpt }, h('summary', {}, 'Options'),
+      h('div', { class: 'opt-grid' },
+        check('respectFsr', 'Meet the brief’s 9.0 FSR non-residential rule', brief ? `hotel counts as ${settingsFull().hotelAsNonResidential ? 'non-residential' : 'residential'} (Assumptions)` : 'no brief rule'),
+        check('allowSale', 'Allow condos for sale'),
+        check('allowDeck', 'Allow a ticketed observation deck'),
+        check('keepPublic', 'Keep the public and civic floors you have'),
+        check('inclusionary', 'Keep a share of housing as below-market rental', 'optional policy proxy')),
+      h('p', { class: 'note' }, 'Locked floors (Floors tab) are never changed. Below grade becomes parking; plant floors stay.'),
+      h('div', { class: 'grid3' },
+        numIn('inclusionaryShare', 'Below-market share', 0.05, 0, 0.4, 'share', A.inclusionary_share),
+        numIn('maxHotelKeys', 'Most hotel keys', 10, 0, 2000, 'keys', A.max_hotel_keys),
+        numIn('maxDeckFloors', 'Most deck floors', 1, 0, 3, null, A.max_deck_floors),
+        numIn('maxLuxuryShare', 'Luxury share of sale housing', 0.05, 0, 1, 'share', A.max_luxury_condo_share),
+        numIn('minBand', 'Shortest run of one use', 1, 1, 8, 'floors', A.min_band_floors),
+        numIn('switchPenaltyShare', 'Penalty per change of use', 0.005, 0, 0.1, 'of a floor', A.switch_penalty_share))),
+    h('div', { class: 'toolbar' }, runBtn, h('span', { class: 'note' }, 'Takes about a second.')),
+    out));
+  if (lastOpt) showResult(lastOpt);
+  dlg.showModal();
+}
+
 // ---------- Help guide and "Show me" tour ----------
 const HELP_KEY = 'pvv-help-seen';
 function openHelp() {
@@ -1224,7 +1316,7 @@ function openHelp() {
       step(1, 'Start with a tower.', 'A sample tower opens by default. Or answer a few questions in “Start from your concept” (Ask AI tab): it arranges a starting stack and explains why, with AI or with fixed rules. You can also set the height and plate sizes under the section, or import your floors from a CSV or JSON file.'),
       step(2, 'Select floors.', 'Click a floor in the section (the tower drawing). Shift-click a second floor to select a range.'),
       step(3, 'Set the mix.', 'In the Floors tab, press “Add a programme…” and pick from the picture list (filter by family or search; arrow keys and Enter work too). It joins the mix. Set each share (they must add to 100%), then press Apply. The programme card shows its value and cost per m². Type your own number there if you know better.'),
-      step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land.'),
+      step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land. “Find a mix that works” keeps your floors and searches the uses that give the best result, and says plainly when nothing works.'),
       step(5, 'Check, then ask.', 'The City ledger shows what the City receives. Sensitivity shows which numbers move the result most. The Map shows the neighbouring roofs around a point you click. “Diagram” (above the section) exports a programme word-stack drawing as SVG or PNG. Method & sources shows where every number comes from. Ask AI (on claude.ai) explains the result and can edit the scheme for you.')),
     h('h3', {}, 'What the verdict means'),
     h('ul', { class: 'help-list' },

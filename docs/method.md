@@ -127,3 +127,47 @@ A value the user types replaces it (`valueBasis: "user"`).
 - B2/B3 care uses kept at or below the podium.
 
 If the FSR rule is asked for, it moves homes to offices (or to hotel when visitors are a priority) in 3% steps until the rule passes. If it can't pass, it says so. The same template explains the result, labelled "rule-based starter (no AI)". "Explain my current stack" explains the floors on screen in the same format.
+
+## Optimiser ("Find a mix that works")
+
+`core/optimiser.js` keeps the building form fixed (levels, elevations, heights, plate areas, area basis). It chooses a use for each floor to get the best verdict and then the most headroom (residual after CAC − land price).
+
+1. **Skeleton.** These floors are not decided by the solver:
+   - Locked floors (Floors tab) and, by default, the user's public and civic floors are kept.
+   - Below grade becomes parking.
+   - Plant floors stay; if there are none, one is placed about every 20 floors above the podium.
+   - Level 1 can only take retail and lobby mixes; the podium can also take a food hall, fitness or cinema.
+   - The top two floors can take a sky restaurant, and the very top floor a ticketed deck.
+2. **Candidates.** A short, earning-oriented set of uses:
+   - offices, co-working, medical;
+   - three hotel types;
+   - rental, student housing, condos, luxury condos;
+   - a deck and a sky restaurant.
+
+   A use is allowed on a floor only if its programmes "fit" the floor's height band. If nothing fits, that floor takes any use and the report says so. B2/B3 uses stay at or below storey 3; F1 uses are never chosen; max_floor is respected.
+3. **Score table.** For each candidate, one evaluation with every free floor set to it. This gives every floor's value − cost − profit in the real building context: height premium, retail factor, efficiency, tall-building premium. It also gives the floor's non-residential FSR area and hotel keys.
+4. **Dynamic programming over the floors**, bottom to top.
+   - State: the previous floor's use, the non-residential area so far (1,000 m² steps), and hotel keys so far (25-key steps).
+   - The objective is the sum of floor scores, minus a switch penalty for each change of use (1% of an average floor's value) and an extra penalty for an intensity jump of 3 or more.
+   - The FSR minimum is a hard end condition, and the keys cap is a hard limit.
+   - If the FSR minimum can't be met with uses in their usual height bands, non-residential uses may go outside them, and the report says so.
+5. **Checks and polish.**
+   - Runs shorter than the minimum band (3 floors, outside the podium and crown) are merged into a neighbour.
+   - The whole building is evaluated with the full engine: CAC, public costs, deck spread, land estimate.
+   - Every cap is checked. If rounding left the FSR short, the solver asks for more and solves again.
+   - A local polish then tries each run's top-3 alternatives and one-floor extensions, keeping only whole-building improvements.
+6. **Strategies.** The search runs four times:
+   - all uses;
+   - no condos for sale, which avoids the weak-presale cap;
+   - employment only, where no housing means the CAC is 0 by policy;
+   - all uses with no deck, to show how much the result depends on visitor numbers.
+
+   The best is ranked by verdict, then headroom. A current stack that already meets the rules and does better is kept.
+7. **Report.**
+   - the verdict and headroom, with a table of the strategies;
+   - binding constraints, for example how much non-residential area the FSR rule forces and at what loss per m²;
+   - each band with its reason.
+   - If nothing reaches Works: the land price that would work, the hard-cost cut and value rise that would work (searched with the engine), whether normal presales or no CAC would flip it, and form changes to try.
+   - Always: "indicative early-design estimate; a starting point, not a recommendation".
+
+The caps are in `assumptions.json` `optimiser`, all grade C and editable in the panel: 450 hotel keys, 2 deck floors, luxury condos at most 40% of sale housing, 3-floor minimum band, 1% switch penalty, and an optional 20% below-market share. A 100-floor tower takes well under a second.

@@ -194,6 +194,17 @@ export function estimateLand(settings, floors) {
 }
 
 /** Floor position bands: B below grade, G podium, L low (<= 60 m), M mid, H high, T top, S seam (tagged). */
+/** How a programme counts for the non-residential FSR rule: 'excluded' (not counted), 'residential', 'hotel' or 'nonres'. */
+export function fsrClass(programmeId, data) {
+  if (NO_FSR_PROGRAMMES.has(programmeId)) return 'excluded';
+  const p = data.programmes.get(programmeId), rowId = p?.value_status === 'linked' ? p.value_ref : null;
+  if (RESIDENTIAL_ROWS.has(rowId)) return 'residential';
+  if (HOTEL_ROWS.has(rowId)) return 'hotel';
+  return 'nonres';
+}
+export const isSaleRow = rowId => SALE_ROWS.has(rowId);
+export const isResidentialRow = rowId => RESIDENTIAL_ROWS.has(rowId);
+
 export function floorBands(floor, ctx) {
   const bands = new Set();
   if (floor.level <= 0) { bands.add('B'); return bands; }

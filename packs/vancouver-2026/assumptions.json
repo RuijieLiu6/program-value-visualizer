@@ -434,5 +434,80 @@
       100000,
       800000
     ]
+  },
+  "optimiser": {
+    "note": "Market caps and settings for 'Find a mix that works'. Assumptions (grade C): edit them in the optimiser panel.",
+    "max_hotel_keys": {
+      "value": 450,
+      "unit": "count",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Most hotel rooms one tower can fill in this market; downtown hotels of 400-500 keys are large. Assumption.",
+      "range": [
+        150,
+        800
+      ]
+    },
+    "max_deck_floors": {
+      "value": 2,
+      "unit": "count",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Observation deck floors at most (the visitor total does not grow with area).",
+      "range": [
+        0,
+        3
+      ]
+    },
+    "max_luxury_condo_share": {
+      "value": 0.4,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Luxury / penthouse condos at most this share of sale housing (thin buyer pool). Assumption.",
+      "range": [
+        0,
+        1
+      ]
+    },
+    "min_band_floors": {
+      "value": 3,
+      "unit": "count",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Shortest run of one use, except in the podium and the crown (lift zones and stacking). Assumption.",
+      "range": [
+        1,
+        6
+      ]
+    },
+    "switch_penalty_share": {
+      "value": 0.01,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Penalty for each change of use between neighbouring floors, as a share of an average floor's value (transfers, separations, lift zones). Assumption.",
+      "range": [
+        0,
+        0.05
+      ]
+    },
+    "inclusionary_share": {
+      "value": 0.2,
+      "unit": "ratio",
+      "source": "city-contributions-2026",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Optional: share of housing kept as below-market rental. Off by default. The 2026 contributions framework (City of Vancouver) asks large rezonings for public benefits; this is a simple proxy, not the policy text.",
+      "range": [
+        0,
+        0.4
+      ]
+    }
   }
 }
