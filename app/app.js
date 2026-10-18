@@ -1436,7 +1436,7 @@ function openHelp(view = 'use', chapter = 0) {
   const box = dlg.querySelector('.help'), head = box.firstChild;
   const useView = h('div', { class: 'help-view', id: 'helpUse', role: 'tabpanel' }); while (head.nextSibling) useView.append(head.nextSibling);
   const moneyView = h('div', { class: 'help-view', id: 'helpMoney', role: 'tabpanel', hidden: true });
-  useView.prepend(h('p', { class: 'help-promo' }, h('span', { 'aria-hidden': 'true', html: sym('coins', 22) }), 'New to development finance? ', h('button', { class: 'linkish', onclick: () => setView('money') }, 'Read “How the money works”'), ': 13 short illustrated chapters in plain language, with the same symbols as the tool.'));
+  useView.prepend(h('p', { class: 'help-promo' }, h('span', { 'aria-hidden': 'true', html: sym('coins', 22) }), 'New to development finance? ', h('button', { class: 'linkish', onclick: () => setView('money') }, 'Read “How the money works”'), ': 13 short illustrated chapters with the same symbols as the tool, in a Designer edition (plain language, real terms) and a simpler Starter edition (everyday words).'));
   const tabBtn = (v, label) => h('button', { role: 'tab', class: 'help-tab', 'data-view': v, 'aria-selected': 'false', onclick: () => setView(v) }, label);
   const tabs = h('div', { class: 'help-tabs', role: 'tablist', 'aria-label': 'Help' }, tabBtn('use', 'Using the tool'), tabBtn('money', 'How the money works'));
   let rendered = false;

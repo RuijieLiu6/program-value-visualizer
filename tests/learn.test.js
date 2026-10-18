@@ -8,6 +8,7 @@ import { indexData, evaluate, sampleTower } from '../core/econ_core.js';
 import { moneySteps, toySteps, moneyStackHTML } from '../core/money_steps.js';
 import { sym, SYMBOL_NAMES, trafficLight } from '../app/learn/symbols.js';
 import { CHAPTERS, SYMBOL_KEY, playTower, PLAY_SETTINGS } from '../app/learn/money_story.js';
+import { EDITIONS, EDITION_IDS } from '../app/learn/editions.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const J = rel => JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8'));
@@ -43,7 +44,8 @@ test('every money symbol is a well-formed SVG; unknown names throw; labels give 
   assert.match(sym('coin', 20, 'Coins <in>'), /role="img" aria-label="Coins &lt;in&gt;"/);
   assert.throws(() => sym('nope'), /unknown symbol/);
   for (const v of ['works', 'marginal', 'doesnt_work', 'needs_land']) assert.equal(wellFormed(trafficLight(v)), null);
-  for (const [s] of SYMBOL_KEY) assert.ok(SYMBOL_NAMES.includes(s), s);
+  for (const id of EDITION_IDS) for (const [s] of EDITIONS[id].key) assert.ok(SYMBOL_NAMES.includes(s), `${id}: ${s}`);
+  assert.equal(SYMBOL_KEY, EDITIONS.designer.key);
 });
 
 const condoTower = playTower({ ground: 'shops', low: 'condo', mid: 'condo', high: 'condo', top: 'public' });
@@ -78,10 +80,9 @@ test('the worked example uses the tool’s own ratios and verdict rule', () => {
   assert.ok(Math.abs(f.rate.value * f.build_years.value * f.draw_factor.value - 0.195) < 1e-9);
 });
 
-test('13 chapters, in order, each with a title, short sentences and a way into the tool', () => {
-  assert.equal(CHAPTERS.length, 13);
-  assert.equal(new Set(CHAPTERS.map(c => c.id)).size, 13);
-  for (const c of CHAPTERS) {
+test('13 chapters, in order, each with a title, short sentences and a way into the tool (both editions)', () => {
+  assert.equal(CHAPTERS, EDITIONS.designer.chapters, 'the Designer edition is the default');
+  for (const c of EDITION_IDS.flatMap(id => EDITIONS[id].chapters)) {
     assert.ok(c.title && c.text.length >= 1, c.id);
     for (const t of c.text) {
       for (const [, n] of t.matchAll(/\{([a-z]+)\}/g)) assert.ok(SYMBOL_NAMES.includes(n), `${c.id}: {${n}}`);
@@ -90,11 +91,42 @@ test('13 chapters, in order, each with a title, short sentences and a way into t
     if (c.tool) assert.ok(['floors', 'verdict', 'city', 'sens', 'assume', 'about', 'map', 'ai'].includes(c.tool.tab), c.id);
   }
   assert.deepEqual(CHAPTERS.slice(0, 7).map(c => c.id), ['stack', 'earn', 'tree', 'height', 'costs', 'profit', 'land']);
+  // the two editions tell the same story: same chapters, pictures, things to try and ways into the tool
+  const shape = id => EDITIONS[id].chapters.map(c => [c.id, c.scene, c.tryIt || null, c.tool?.tab || null].join('|'));
+  assert.equal(EDITIONS.starter.chapters.length, 13);
+  assert.equal(new Set(CHAPTERS.map(c => c.id)).size, 13);
+  assert.deepEqual(shape('starter'), shape('designer'));
   // written for adults with no finance background: real terms, defined once, a design takeaway, no pretend money
   const all = CHAPTERS.flatMap(c => [c.title, ...c.text, c.design || '', c.tool?.text || '']).join(' ').replace(/\{[a-z]+\}/g, '');
   for (const term of ['cap rate', 'gross development value', 'residual land value', 'community amenity contribution', 'presales', 'Floor space ratio', 'Hard cost', 'Soft cost', 'Finance cost']) assert.ok(all.toLowerCase().includes(term.toLowerCase()), term);
   assert.ok(!/\bcoins?\b|thank-you|pretend/i.test(all), 'childish wording left');
   assert.ok(CHAPTERS.filter(c => c.design).length >= 11, 'design takeaways');
+  // the Starter edition keeps the simplest words (pretend coins) but still names the key ideas once
+  const starter = EDITIONS.starter.chapters.flatMap(c => [c.title, ...c.text]).join(' ').replace(/\{[a-z]+\}/g, '');
+  assert.match(starter, /\bcoins\b/);
+  for (const term of ['cap rate', 'residual land value', 'CAC', 'presales', 'FSR']) assert.ok(starter.includes(term), `starter: ${term}`);
+});
+
+test('both editions supply every word the things-to-try use, and name each other', () => {
+  // label maps that may be null (keep the standard labels) count as one entry
+  const OPTIONAL = ['stackLabels', 'waterfall.labels'];
+  const leaves = (o, at = '') => Object.entries(o).flatMap(([k, v]) => v && typeof v === 'object' && !Array.isArray(v) && !OPTIONAL.includes(`${at}${k}`) ? leaves(v, `${at}${k}.`) : [`${at}${k}`]);
+  const keys = id => leaves(EDITIONS[id].words).sort();
+  assert.deepEqual(keys('starter'), keys('designer'));
+  for (const id of EDITION_IDS) {
+    const E = EDITIONS[id], W = E.words;
+    for (const f of ['name', 'about', 'other', 'switchChapter', 'guideIntro', 'openBook']) assert.ok(typeof E[f] === 'string' && E[f].length > 3, `${id}.${f}`);
+    for (const f of ['eyebrow', 'dek', 'lede', 'rule']) assert.ok(E.masthead[f].length > 10, `${id}.masthead.${f}`);
+    const samples = [W.amt(12), W.playAmt(57e6), W.stack.aria(3, 'Hotel'), W.stack.now(3, 'hotel', W.stack.say.operate, 'operate'), W.quiz.some(3),
+      W.tree.line(1, 0.05, 20), W.waterfall.enough(12, 10), W.waterfall.short(4, 10), W.presales.unit(6), W.fsr.say(9, 3, true), W.leverage.line(110, 18, '+125%')];
+    for (const t of samples) assert.ok(typeof t === 'string' && t.length && !/undefined|NaN/.test(t), `${id}: ${t}`);
+    for (const k of ['value', 'hard', 'soft', 'finance', 'charges', 'profit']) assert.ok(W.floor.labels[k], `${id}: floor.${k}`);
+    if (W.waterfall.labels) for (const s of toySteps().steps) assert.ok(W.waterfall.labels[s.key], `${id}: waterfall.${s.key}`);
+    if (W.stackLabels) for (const k of ['value', 'public', 'hard', 'soft', 'finance', 'charges', 'profit', 'cac']) assert.ok(W.stackLabels[k], `${id}: stack.${k}`);
+    assert.equal(W.map.length, 8);
+  }
+  assert.match(EDITIONS.designer.other, /Starter edition/);
+  assert.match(EDITIONS.starter.other, /Designer edition/);
 });
 
 test('every chapter picture exists, is well formed, themed through tokens and safe to draw twice', async () => {
@@ -131,5 +163,6 @@ test('the tool uses the same money stack, symbols and Help book', () => {
   assert.match(app, /renderMoneyStory\(moneyView, \{ data, mode: 'guide'/);
   const page = fs.readFileSync(path.join(ROOT, 'money-book.html'), 'utf8');
   assert.match(page, /<title>Tower Money Book<\/title>/);
-  assert.match(page, /renderMoneyStory\(document\.getElementById\('book'\), \{ data, mode: 'book' \}\)/);
+  assert.match(page, /renderMoneyStory\(document\.getElementById\('book'\), \{ data, mode: 'book', onEdition: masthead \}\)/);
+  for (const id of ['mast-eyebrow', 'mast-dek', 'mast-lede', 'mast-rule']) assert.match(page, new RegExp(`id="${id}"`));
 });

@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,600&display=swap">
 <style>
-/* Layout: an illustrated guide set like a newspaper feature: masthead, symbol key, then chapters with an illustration beside short text and one thing to try. Same tokens as Program Value Visualizer, plus an editorial serif for headlines and the illustration palette. */
+/* Layout: an illustrated guide set like a newspaper feature: masthead, edition switch (Designer or Starter), symbol key, then chapters with an illustration beside short text and one thing to try. Same tokens as Program Value Visualizer, plus an editorial serif for headlines and the illustration palette. */
 :root {
   --paper: #f3f4f1; --sheet: #ffffff; --ink: #1d2730; --muted: #5d6973; --line: #d5dad7; --line-2: #e7eaec;
   --accent: #1f5f8b; --accent-soft: #e2edf5; --good: #2f7d4f; --warn: #a86a12; --bad: #b23b3b;
@@ -53,17 +53,17 @@ input[type=range] { accent-color: var(--accent); }
 <div class="page">
   <header class="mast">
     <div>
-      <p class="eyebrow">An illustrated guide for designers · Program Value Visualizer</p>
+      <p class="eyebrow" id="mast-eyebrow">An illustrated guide for designers · Program Value Visualizer</p>
       <h1>Tower Money Book</h1>
-      <p class="dek">How a tall building pays for itself, explained in plain language for architects.</p>
+      <p class="dek" id="mast-dek">How a tall building pays for itself, explained in plain language for architects.</p>
     </div>
     <div class="lede">
       <figure id="hero"></figure>
     </div>
   </header>
   <div class="lede">
-    <p>A tall building is a large bet. A developer commits hundreds of millions of dollars to concrete, steel and glass years before anyone moves in, and most of a tower’s design decisions are also money decisions. This guide explains where the money comes from, where it goes, and how the calculator decides whether a scheme <b>works</b>. No finance background is needed: each term is explained the first time it appears.</p>
-    <p class="coin-rule">Worked examples use round numbers in millions of Canadian dollars (C$ M) to keep the arithmetic easy. Chapters 4, 5 and 12 use the tool’s own 2026 Vancouver data.</p>
+    <p id="mast-lede">A tall building is a large bet. A developer commits hundreds of millions of dollars to concrete, steel and glass years before anyone moves in, and most of a tower’s design decisions are also money decisions. This guide explains where the money comes from, where it goes, and how the calculator decides whether a scheme <b>works</b>. No finance background is needed: each term is explained the first time it appears.</p>
+    <p class="coin-rule" id="mast-rule">Worked examples use round numbers in millions of Canadian dollars (C$ M) to keep the arithmetic easy. Chapters 4, 5 and 12 use the tool’s own 2026 Vancouver data.</p>
   </div>
   <main id="book" aria-label="Tower Money Book"><p>Loading the book…</p></main>
   <footer class="foot">Tower Money Book · Program Value Visualizer · indicative early-design estimates, not a feasibility study, appraisal or compliance check · illustrations drawn for this guide in an editorial style</footer>
@@ -71,7 +71,7 @@ input[type=range] { accent-color: var(--accent); }
 
 <script type="module">
 import { indexData } from './core/econ_core.js';
-import { renderMoneyStory } from './app/learn/money_story.js';
+import { renderMoneyStory, richText } from './app/learn/money_story.js';
 const get = p => fetch(p).then(r => { if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.json(); });
 const P = 'packs/vancouver-2026/';
 let data = null;
@@ -81,6 +81,12 @@ try {
     get(P + 'assumptions.json'), get(P + 'code_rules.json'), get(P + 'sources.json'), get('briefs/none/brief.json')]);
   data = indexData({ families, programmes, values, costs, charges, assumptions, codeRules, sources, brief });
 } catch (e) { /* the picture chapters still work; the calculator chapters say they could not load */ }
-await renderMoneyStory(document.getElementById('book'), { data, mode: 'book' });
+// The masthead follows the reader's edition (Designer or Starter); the book draws the switch itself.
+const masthead = E => {
+  const m = E.masthead, set = (id, v) => { document.getElementById(id).textContent = v; };
+  set('mast-eyebrow', m.eyebrow); set('mast-dek', m.dek); set('mast-rule', m.rule);
+  document.getElementById('mast-lede').innerHTML = richText(m.lede);
+};
+await renderMoneyStory(document.getElementById('book'), { data, mode: 'book', onEdition: masthead });
 try { const { SCENES } = await import('./app/learn/scenes.js'); document.getElementById('hero').innerHTML = SCENES.stack(); } catch (e) { /* no hero picture */ }
 </script>
