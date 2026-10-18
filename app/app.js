@@ -18,6 +18,8 @@ const h = (tag, attrs = {}, ...kids) => {
   for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
   return el;
 };
+// replaceChildren prints null/false as text; drop empty children first
+const put = (el, ...kids) => el.replaceChildren(...kids.flat().filter(k => k != null && k !== false));
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const M = (x, d = 1) => (x == null || !Number.isFinite(x) ? '—' : `${x < 0 ? '−' : ''}C$${(Math.abs(x) / 1e6).toFixed(d)} M`);
 const N = x => (x == null || !Number.isFinite(x) ? '—' : Math.round(x).toLocaleString('en-CA'));
@@ -152,7 +154,7 @@ function renderSection() {
   svg.setAttribute('viewBox', `0 0 ${W} ${H.toFixed(0)}`);
   svg.innerHTML = s;
   const fams = [...new Set(state.floors.flatMap(f => f.mix.map(m => prog(m.programme_id)?.family_id)))].filter(Boolean);
-  $('#legend').replaceChildren(...fams.map(id => h('span', {}, h('i', { style: `background:${famColour(id)}` }), data.families.get(id).name)),
+  put($('#legend'), ...fams.map(id => h('span', {}, h('i', { style: `background:${famColour(id)}` }), data.families.get(id).name)),
     h('span', {}, h('i', { style: 'background:var(--good)' }), 'creates value'), h('span', {}, h('i', { style: 'background:var(--bad)' }), 'needs support'));
   $('#sectionNote').textContent = sel ? `Selected L${sel[0]}${sel[1] !== sel[0] ? '–L' + sel[1] : ''}. Edit the mix in Floors.` : 'Click a floor; shift-click to select a range.';
 }
@@ -227,7 +229,7 @@ function renderVerdict() {
     h('tbody', {}, Object.entries(fam).sort((a, b) => b[1].net - a[1].net).map(([k, v]) => h('tr', {},
       h('td', {}, h('span', { class: 'nm', style: 'display:inline-flex;gap:8px;align-items:center' }, familyIcon(k), data.families.get(k)?.name)),
       h('td', { class: 'num' }, N(v.gfa)), h('td', { class: 'num' }, M(v.value)), h('td', { class: 'num' }, M(v.cost)), h('td', { class: `num ${signCls(v.net)}` }, M(v.net)))))));
-  el.replaceChildren(verdict, land, hint, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
+  put(el, verdict, land, hint, kpis, h('h4', { style: 'margin:0' }, 'Brief check'), fsr, h('p', { class: 'note' }, f.note), h('h4', { style: 'margin:0' }, 'Where value is made and lost'), famTbl, rulesBlock(), warningsBlock());
 }
 /** A family's icon is its first programme's icon; a colour swatch if it has none. */
 function familyIcon(famId) { const first = [...data.programmes.values()].find(p => p.family_id === famId); return first && iconSvg(first.id) ? iconEl(first.id, 26) : h('i', { class: 'sw', style: `background:${famColour(famId)}` }); }
@@ -235,7 +237,7 @@ function rulesBlock() {
   const rs = result.rules, order = { block: 0, error: 1, warning: 2, info: 3 };
   const sorted = [...rs].sort((a, b) => order[a.severity] - order[b.severity]);
   const box = h('div', { class: 'rules' });
-  const show = n => box.replaceChildren(...sorted.slice(0, n).map(r => h('div', { class: `rule ${r.severity}` }, h('b', {}, r.severity), h('span', {}, r.text))),
+  const show = n => put(box, ...sorted.slice(0, n).map(r => h('div', { class: `rule ${r.severity}` }, h('b', {}, r.severity), h('span', {}, r.text))),
     sorted.length > n ? h('button', { onclick: () => show(sorted.length) }, `Show all ${sorted.length}`) : null);
   show(8);
   return h('div', { style: 'display:flex;flex-direction:column;gap:8px' }, h('h4', { style: 'margin:0' }, `Design checks (${rs.length})`), rs.length ? box : h('p', { class: 'note' }, 'No rule flags.'),
@@ -255,7 +257,7 @@ function programmeDefaults(id) {
 function renderFloors() {
   const el = $('#tab-floors'), fl = selectedFloors();
   if (!fl.length) {
-    el.replaceChildren(h('p', { class: 'note' }, 'Select one floor or a range in the section (shift-click), then set which programmes share the plate.'), floorTable());
+    put(el, h('p', { class: 'note' }, 'Select one floor or a range in the section (shift-click), then set which programmes share the plate.'), floorTable());
     return;
   }
   if (!editMix) editMix = fl[0].mix.map(m => ({ ...m }));
@@ -279,7 +281,7 @@ function renderFloors() {
   const geo = h('div', { class: 'grid2' },
     numField('fArea', 'Plate area each floor', fl.length === 1 ? fl[0].area_m2 : null, { step: 10, min: 10, unit: 'm²', placeholder: 'mixed', onchange: v => { if (v) { pushHistory(); fl.forEach(f => { f.area_m2 = v; }); refresh(); } } }),
     h('div', { class: 'field' }, h('label', { for: 'fBasis' }, 'Area basis'), (() => { const s = h('select', { id: 'fBasis' }, h('option', { value: 'gross', selected: fl[0].area_basis !== 'net' }, 'gross (core included)'), h('option', { value: 'net', selected: fl[0].area_basis === 'net' }, 'net (core removed)')); s.addEventListener('change', () => { pushHistory(); fl.forEach(f => { f.area_basis = s.value; }); refresh(); }); return s; })()));
-  el.replaceChildren(head, mixed ? h('p', { class: 'note' }, `These floors have different mixes. Showing L${fl[0].level}; Apply replaces the mix on every selected floor.`) : null, h('h4', { style: 'margin:0' }, 'Programme mix'), rows, sumNote, programmePicker(), actions,
+  put(el, head, mixed ? h('p', { class: 'note' }, `These floors have different mixes. Showing L${fl[0].level}; Apply replaces the mix on every selected floor.`) : null, h('h4', { style: 'margin:0' }, 'Programme mix'), rows, sumNote, programmePicker(), actions,
     pickProgramme ? programmeCard(pickProgramme) : (editMix[0] ? programmeCard(editMix[0].programme_id) : null),
     h('details', {}, h('summary', {}, 'Floor size and area basis'), geo), floorTable());
 }
@@ -418,7 +420,7 @@ function renderCity() {
   const run = h('div', { class: 'grid2' },
     numField('runCost', 'Running cost of public floors', S.publicRunningCostPerM2, { step: 10, min: 0, unit: 'C$/m²/yr', placeholder: 'user to supply', src: A.public_running_cost.cost_per_m2_year, onchange: v => setSetting('publicRunningCostPerM2', v) }),
     h('div', { class: 'field' }, h('label', { for: 'payer' }, 'Who pays'), payer));
-  el('#tab-city').replaceChildren(
+  put(el('#tab-city'), 
     h('p', { class: 'note' }, 'What the City and public receive from this tower, separate from whether it pays back the investors. Charges use rates for a permit on ' + S.permitDate + '.'),
     tbl,
     h('h4', { style: 'margin:0' }, 'Public floors cost money every year'),
@@ -559,7 +561,7 @@ function setMapSite(x, y) {
 function renderMap() {
   const box = $('#tab-map');
   if (!mapView.map) {
-    box.replaceChildren(h('p', { class: 'note' }, mapView.error ? `Could not load the base map: ${mapView.error}` : 'Loading the downtown base map (about 1 MB)…'));
+    put(box, h('p', { class: 'note' }, mapView.error ? `Could not load the base map: ${mapView.error}` : 'Loading the downtown base map (about 1 MB)…'));
     if (!mapView.error) loadBasemap().then(() => { if (activeTab === 'map') renderMap(); });
     return;
   }
@@ -581,13 +583,13 @@ function renderMap() {
   function fillInfo() {
     const nb = mapView.nb;
     if (!state.mapSite || !nb) {
-      info.replaceChildren(h('p', { class: 'note' }, 'Click the map to place a study point. The tool lists the buildings around it and estimates how high their roofs are, which can feed the condo “above neighbouring roofs” bonus. No site is marked: the brief’s site is hypothetical.'));
+      put(info, h('p', { class: 'note' }, 'Click the map to place a study point. The tool lists the buildings around it and estimates how high their roofs are, which can feed the condo “above neighbouring roofs” bonus. No site is marked: the brief’s site is hypothetical.'));
       return;
     }
     const ll = toLatLon(man, nb.x, nb.y), tower = result.height;
     const useVal = nb.aboveSiteGround.max ?? nb.height.max;
     const f0 = x => (x == null ? '—' : `${x.toFixed(0)} m`);
-    info.replaceChildren(
+    put(info, 
       h('div', { class: 'kpis' },
         kpi('Buildings within ' + nb.radius + ' m', String(nb.count), '', `Measured ${nb.bySource.measured} · from floor count ${nb.bySource.levels} · estimated by type ${nb.bySource.estimated}`),
         kpi('Tallest neighbour', f0(nb.height.max), '', 'Its own height above its ground (OpenStreetMap)'),
@@ -602,7 +604,7 @@ function renderMap() {
       h('p', { class: 'note' }, 'Grade C: heights come from OpenStreetMap and are partly estimated; ground levels from SRTM. Floors at or above this height get the condo “above neighbours” bonus (Assumptions tab).'));
   }
   fillInfo();
-  box.replaceChildren(
+  put(box, 
     h('p', { class: 'note' }, 'Downtown Vancouver in plan, buildings coloured by height. Drag to pan, scroll or use +/− to zoom, hover for a building, click to place a study point.'),
     h('div', { class: 'toolbar map-tools' }, tools, radius), legend,
     h('div', { class: 'mapwrap' }, canvas), credits, info,
@@ -633,7 +635,7 @@ function renderSens() {
     s += `<text x="${xs(t.high) + 4}" y="${y + 16}" style="font-size:10px;fill:var(--muted)">${esc(M(t.high, 0))}</text>`;
   });
   s += `<text x="${(padL + W - padR) / 2}" y="${H - 6}" text-anchor="middle" style="fill:var(--muted)">Residual land value after CAC</text>`;
-  $('#tab-sens').replaceChildren(
+  put($('#tab-sens'), 
     h('p', { class: 'note' }, 'How far the residual land value moves when one input changes at a time. The widest bars are the numbers to check first.'),
     h('div', { class: 'tbl', html: `<svg class="tornado" viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Tornado chart of residual land value after CAC">${s}</svg>` }),
     h('p', { class: 'note' }, 'Condo height premium spans the two Vancouver studies: about 0.1%/floor when unit quality is controlled (UBC) and up to 1.5%/floor in raw sales data (Roomvu). Deck visitors only matter if the scheme has a ticketed deck (LE1).'));
@@ -645,7 +647,7 @@ function renderAssume() {
   const f = (id, label, key, src, opts = {}) => numField(id, label, S[key], { ...opts, src, onchange: v => setSetting(key, v) });
   const sel = (id, label, key, options, src) => { const s = h('select', { id }, options.map(([v, l]) => h('option', { value: String(v), selected: String(S[key]) === String(v) }, l))); s.addEventListener('change', () => setSetting(key, s.value === 'true' ? true : s.value === 'false' ? false : s.value)); return h('div', { class: 'field' }, h('label', { for: id }, label, src ? gradeTag(src.grade) : null, src ? srcTag(src) : null), s); };
   const brief = data.brief;
-  $('#tab-assume').replaceChildren(
+  put($('#tab-assume'), 
     h('h4', { style: 'margin:0' }, 'Project'),
     h('div', { class: 'grid2' },
       f('aPodium', 'Podium top floor (height premium starts above it)', 'podiumTopFloor', null, { step: 1, min: 0 }),
@@ -687,7 +689,7 @@ function renderAbout() {
   const srcs = [...data.sources.values()].filter(s => s.id !== 'assumption');
   const typRows = [...data.rows.values()].filter(r => r.value_basis === 'typical');
   const typLines = data.raw.costs.typical_lines || [];
-  $('#tab-about').replaceChildren(
+  put($('#tab-about'), 
     h('p', {}, LABEL),
     h('h4', { style: 'margin:0' }, 'How the numbers are made'),
     h('ol', { class: 'note', style: 'margin:0;padding-left:20px' },
@@ -862,7 +864,7 @@ function renderAI() {
   send.addEventListener('click', ask);
   stop.addEventListener('click', () => chatCtl?.abort());
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) ask(); });
-  box.replaceChildren(
+  put(box, 
     h('p', { class: 'note' }, 'Ask questions about the current scheme or ask for changes. The assistant reads the same numbers you see and can edit the floor mix and assumptions (Undo reverses any change). It uses your own Claude account.'),
     chips, h('div', { class: 'chat' }, msgs, ta, h('div', { class: 'toolbar' }, send, stop, h('span', { class: 'note' }, '⌘/Ctrl + Enter to send')), status));
   if (window.claude) window.claude.use('sample').then(s => { sample = s; if (!s) status.textContent = 'Ask AI is not available in this view.'; }).catch(() => { status.textContent = 'Ask AI is not available in this view.'; });
@@ -875,7 +877,7 @@ function openHelp() {
   const dlg = $('#help');
   const step = (n, title, ...body) => h('li', {}, h('strong', {}, title), ' ', ...body);
   const pill = (cls, t) => h('span', { class: `pill ${cls}` }, t);
-  dlg.replaceChildren(h('div', { class: 'help' },
+  put(dlg, h('div', { class: 'help' },
     h('div', { class: 'help-head' }, h('h2', { id: 'helpTitle' }, 'How this tool works'), h('button', { class: 'close', 'aria-label': 'Close help', onclick: () => dlg.close() }, '×')),
     h('p', {}, 'It answers one question: after paying for construction, City charges and a normal developer profit, ', h('b', {}, 'is there enough money left to pay for the land?')),
     h('p', { class: 'note' }, 'You do not need to know any prices. Every use (programme) already has a number. You can change any of them.'),
@@ -930,7 +932,7 @@ function showTourStep() {
   if (!ring) { ring = h('div', { class: 'tour-ring', 'aria-hidden': 'true' }); document.body.append(ring); }
   if (!card) { card = h('div', { class: 'tour-card', role: 'dialog', 'aria-live': 'polite', 'aria-label': 'Guided tour' }); document.body.append(card); window.addEventListener('resize', showTourStep); }
   const last = tourAt === TOUR.length - 1;
-  card.replaceChildren(h('strong', {}, s.title), h('p', {}, s.text),
+  put(card, h('strong', {}, s.title), h('p', {}, s.text),
     h('div', { class: 'toolbar' },
       tourAt > 0 ? h('button', { onclick: () => { tourAt--; showTourStep(); } }, 'Back') : null,
       h('button', { class: 'primary', onclick: () => { if (last) endTour(); else { tourAt++; showTourStep(); } } }, last ? 'Done' : 'Next'),
@@ -953,7 +955,7 @@ document.addEventListener('scroll', () => { if (tourAt >= 0) { const s = TOUR[to
 // ---------- boot ----------
 async function boot() {
   wireTips();
-  try { await loadData(); } catch (e) { $('#tab-verdict').replaceChildren(h('p', { class: 'neg' }, 'Could not load the data pack: ' + e.message)); return; }
+  try { await loadData(); } catch (e) { put($('#tab-verdict'), h('p', { class: 'neg' }, 'Could not load the data pack: ' + e.message)); return; }
   const saved = load();
   if (saved) { state.brief = raw.briefs[saved.brief] ? saved.brief : 'vtc-2026'; const ms = saved.mapSite; if (ms && Number.isFinite(ms.x) && Number.isFinite(ms.y) && Math.abs(ms.x) < 1e5 && Math.abs(ms.y) < 1e5) state.mapSite = { x: ms.x, y: ms.y }; }
   buildData();
