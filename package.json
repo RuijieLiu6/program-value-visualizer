@@ -1,0 +1,9 @@
+{
+  "name": "program-value-visualizer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node core/validate_data.js",
+    "test": "node --test tests/*.test.js"
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "meta": {
+    "pack": "vancouver-2026",
+    "note": "City of Vancouver charges paid at building permit, per m2 of floor area. Regional charges (Metro Vancouver, TransLink) are not included: open data gap.",
+    "residential_definition": "Residential above 1.5 FSR (the rate that applies to a tower)."
+  },
+  "classes": {
+    "residential": {
+      "name": "Residential above 1.5 FSR",
+      "dcl": true,
+      "utilities_dcl": "residential",
+      "acc": "residential"
+    },
+    "commercial": {
+      "name": "Commercial and most other uses",
+      "dcl": true,
+      "utilities_dcl": "commercial",
+      "acc": "commercial",
+      "note": "Hotel is placed here (pack author's reading, grade C)."
+    },
+    "below_market_inclusionary": {
+      "name": "Inclusionary below-market rental floor area",
+      "dcl": true,
+      "utilities_dcl": "residential",
+      "acc": "exempt",
+      "note": "ACC exempt (bulletin). DCL treatment not confirmed: residential rates assumed."
+    },
+    "social_housing": {
+      "name": "Social housing",
+      "dcl": true,
+      "utilities_dcl": "residential",
+      "acc": "exempt",
+      "note": "ACC exempt (bulletin). DCL treatment not confirmed: residential rates assumed; check the DCL by-law."
+    },
+    "civic_flat": {
+      "name": "Childcare, library, community centre, cultural facility (incl. artist studios)",
+      "dcl": true,
+      "utilities_dcl": "commercial",
+      "acc": "flat_per_permit",
+      "note": "ACC is a flat C$10 per building permit. DCL treatment not confirmed: commercial rates assumed."
+    },
+    "unknown": {
+      "name": "Not classified (parking, transit, core, reserved space)",
+      "dcl": true,
+      "utilities_dcl": "commercial",
+      "acc": "commercial",
+      "note": "Treatment not confirmed; commercial rates used as a cautious default. User should check."
+    }
+  },
+  "components": {
+    "dcl": {
+      "name": "Vancouver Development Cost Levy (after 20% temporary reduction)",
+      "rates": {
+        "residential": {
+          "value": 214.89,
+          "unit": "CAD/m2",
+          "source": "council-dcl-2025",
+          "grade": "B",
+          "as_of": "2025-12-10"
+        },
+        "commercial": {
+          "value": 214.89,
+          "unit": "CAD/m2",
+          "source": "council-dcl-2025",
+          "grade": "B",
+          "as_of": "2025-12-10"
+        }
+      }
+    },
+    "utilities_dcl": {
+      "name": "Utilities DCL (after 20% temporary reduction)",
+      "rates": {
+        "residential": {
+          "value": 134.65,
+          "unit": "CAD/m2",
+          "source": "council-dcl-2025",
+          "grade": "B",
+          "as_of": "2025-12-10"
+        },
+        "commercial": {
+          "value": 67.33,
+          "unit": "CAD/m2",
+          "source": "council-dcl-2025",
+          "grade": "B",
+          "as_of": "2025-12-10"
+        }
+      }
+    },
+    "acc": {
+      "name": "Amenity Cost Charge",
+      "steps": [
+        {
+          "from": "2026-09-30",
+          "rates": {
+            "residential": {
+              "value": 53.82,
+              "unit": "CAD/m2",
+              "source": "city-acc-bulletin-2026",
+              "grade": "A",
+              "as_of": "2026-08-01"
+            },
+            "commercial": {
+              "value": 32.29,
+              "unit": "CAD/m2",
+              "source": "city-acc-bulletin-2026",
+              "grade": "A",
+              "as_of": "2026-08-01"
+            }
+          }
+        },
+        {
+          "from": "2027-09-30",
+          "rates": {
+            "residential": {
+              "value": 110.87,
+              "unit": "CAD/m2",
+              "source": "city-acc-bulletin-2026",
+              "grade": "A",
+              "as_of": "2026-08-01"
+            },
+            "commercial": {
+              "value": 32.29,
+              "unit": "CAD/m2",
+              "source": "city-acc-bulletin-2026",
+              "grade": "A",
+              "as_of": "2026-08-01"
+            }
+          }
+        }
+      ],
+      "flat_per_permit": {
+        "value": 10,
+        "unit": "CAD/permit",
+        "source": "city-acc-bulletin-2026",
+        "grade": "A",
+        "as_of": "2026-08-01"
+      }
+    }
+  },
+  "escalation": {
+    "value": 0.03,
+    "unit": "ratio/yr",
+    "source": "city-acc-bulletin-2026",
+    "grade": "A",
+    "as_of": "2026-08-01",
+    "note": "ACC and DCL rise 3% a year through 2029.",
+    "applies_to": [
+      "dcl",
+      "utilities_dcl",
+      "acc"
+    ],
+    "until_year": 2029
+  },
+  "default_permit_date": "2027-09-30",
+  "rental_waivers": {
+    "note": "Only for 100% rental projects: 100% ACC waiver with 20%+ below-market; 86% waiver for 100% market rental. A tower with condos does not qualify.",
+    "source": "city-acc-bulletin-2026",
+    "grade": "A"
+  },
+  "cac": {
+    "note": "Negotiated Community Amenity Contribution for large, complex rezonings: share of land lift. Zero if the lift is negative or the rezoning is 100% employment.",
+    "share_of_lift": {
+      "value": 0.75,
+      "unit": "ratio",
+      "source": "lincoln-cac-2018",
+      "grade": "B",
+      "as_of": "2018-01-01",
+      "range": [
+        0.0,
+        0.8
+      ],
+      "note": "City historically took about 70-80% of the lift after a 15% developer profit."
+    },
+    "employment_only_exempt": {
+      "value": true,
+      "source": "city-contributions-2026",
+      "grade": "A",
+      "as_of": "2026-07-14",
+      "unit": "boolean"
+    }
+  },
+  "gaps": [
+    "Metro Vancouver and TransLink development cost charges (2026 rates not found).",
+    "DCL treatment of social housing, civic and parking floor area not confirmed."
+  ]
+}

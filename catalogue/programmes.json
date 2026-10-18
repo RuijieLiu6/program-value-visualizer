@@ -1,0 +1,3544 @@
+{
+  "meta": {
+    "name": "Activity-based programme catalogue",
+    "version": "0.2-neutral",
+    "as_of": "2026-10-17",
+    "basis": "Designer's synthesis (grade C): activity families, users, rhythm, access, building-code occupancy group (NBC 2020 / VBBL 2025 letters) and where on the section each programme fits. No prices: money data lives in packs.",
+    "fits_legend": {
+      "B": "below grade",
+      "G": "ground / podium",
+      "L": "low (up to ~60 m)",
+      "M": "mid",
+      "H": "high",
+      "T": "top / crown",
+      "S": "seam (mechanical, transfer or belt level)"
+    },
+    "rhythm_legend": {
+      "24": "all day",
+      "Day": "weekday daytime",
+      "Eve": "evening",
+      "Wk": "weekend",
+      "Ev": "event / seasonal"
+    },
+    "value_status_legend": {
+      "linked": "value comes from the pack row named in value_ref",
+      "zero": "earns nothing; cost only",
+      "new": "no sourced value yet: user to supply",
+      "excluded": "not recommended in a tower; user to supply if used"
+    },
+    "programme_count": 112,
+    "family_count": 14
+  },
+  "programmes": [
+    {
+      "id": "MP1",
+      "family_id": "MP",
+      "name": "Fitness club / gym",
+      "unconventional": false,
+      "users": [
+        "Members",
+        "residents"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": "O5",
+      "value_text": "new (lease like O5)",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP2",
+      "family_id": "MP",
+      "name": "Lap / leisure pool",
+      "unconventional": false,
+      "users": [
+        "Residents",
+        "public"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Members",
+        "public"
+      ],
+      "occupancy_group": [
+        "A3"
+      ],
+      "code_text": "A3",
+      "fits": [
+        "G",
+        "S"
+      ],
+      "fits_text": "G, S",
+      "value_status": "linked",
+      "value_ref": "S2",
+      "value_hint": "C3",
+      "value_text": "S2 or C3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP3",
+      "family_id": "MP",
+      "name": "Public baths, sauna, cold plunge",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Eve",
+        "Wk"
+      ],
+      "access": [
+        "Ticketed",
+        "free"
+      ],
+      "occupancy_group": [
+        "A2",
+        "A3"
+      ],
+      "code_text": "A2 / A3",
+      "fits": [
+        "G",
+        "S"
+      ],
+      "fits_text": "G, S",
+      "value_status": "linked",
+      "value_ref": "C3",
+      "value_hint": null,
+      "value_text": "C3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP4",
+      "family_id": "MP",
+      "name": "Sky sports court (basketball, padel, badminton)",
+      "unconventional": true,
+      "users": [
+        "Public",
+        "members"
+      ],
+      "rhythm": [
+        "Eve",
+        "Wk"
+      ],
+      "access": [
+        "Booked"
+      ],
+      "occupancy_group": [
+        "A2",
+        "A3"
+      ],
+      "code_text": "A2 / A3",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S (double height)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP5",
+      "family_id": "MP",
+      "name": "Climbing / bouldering wall in an atrium",
+      "unconventional": true,
+      "users": [
+        "Members"
+      ],
+      "rhythm": [
+        "Eve",
+        "Wk"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP6",
+      "family_id": "MP",
+      "name": "Running loop or public stair-climb route",
+      "unconventional": true,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2 / exit stair",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Any",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP7",
+      "family_id": "MP",
+      "name": "Dance, yoga, martial-arts studios",
+      "unconventional": false,
+      "users": [
+        "Members"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP8",
+      "family_id": "MP",
+      "name": "Small ice rink / winter skate deck",
+      "unconventional": true,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Ev (winter)"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A3",
+        "A4"
+      ],
+      "code_text": "A3 / A4",
+      "fits": [
+        "G",
+        "S"
+      ],
+      "fits_text": "G roof, S",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MP9",
+      "family_id": "MP",
+      "name": "Indoor kids' play / family centre",
+      "unconventional": false,
+      "users": [
+        "Children",
+        "parents"
+      ],
+      "rhythm": [
+        "Day",
+        "Wk"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP1",
+      "family_id": "GP",
+      "name": "Theatre / concert hall (fixed seats)",
+      "unconventional": false,
+      "users": [
+        "Visitors",
+        "public"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A1"
+      ],
+      "code_text": "A1",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "G, B",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP2",
+      "family_id": "GP",
+      "name": "Black-box / flexible performance room",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Booked"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "L",
+        "S"
+      ],
+      "fits_text": "L, S",
+      "value_status": "linked",
+      "value_ref": "A4",
+      "value_hint": null,
+      "value_text": "A4",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP3",
+      "family_id": "GP",
+      "name": "Cinema (no daylight needed)",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Eve",
+        "Wk"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A1"
+      ],
+      "code_text": "A1",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "B, G",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP4",
+      "family_id": "GP",
+      "name": "Conference centre / ballroom",
+      "unconventional": false,
+      "users": [
+        "Visitors",
+        "workers"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Booked"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "linked",
+      "value_ref": "H4",
+      "value_hint": null,
+      "value_text": "H4",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP5",
+      "family_id": "GP",
+      "name": "Community hall / multipurpose rooms",
+      "unconventional": false,
+      "users": [
+        "Public",
+        "residents"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Free",
+        "booked"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Any, S",
+      "value_status": "linked",
+      "value_ref": "C3",
+      "value_hint": null,
+      "value_text": "C3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP6",
+      "family_id": "GP",
+      "name": "Museum / gallery / exhibition",
+      "unconventional": false,
+      "users": [
+        "Visitors",
+        "public"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Ticketed",
+        "free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G",
+        "T"
+      ],
+      "fits_text": "G, T",
+      "value_status": "linked",
+      "value_ref": "A5",
+      "value_hint": null,
+      "value_text": "A5",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP7",
+      "family_id": "GP",
+      "name": "Sky event hall / wedding venue",
+      "unconventional": true,
+      "users": [
+        "Visitors"
+      ],
+      "rhythm": [
+        "Ev"
+      ],
+      "access": [
+        "Booked"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "linked",
+      "value_ref": "A4",
+      "value_hint": null,
+      "value_text": "A4",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP8",
+      "family_id": "GP",
+      "name": "Covered all-weather public room at grade",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2",
+        "A4"
+      ],
+      "code_text": "A2 / A4",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GP9",
+      "family_id": "GP",
+      "name": "Esports / gaming arena",
+      "unconventional": true,
+      "users": [
+        "Young adults"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "G, B",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LE1",
+      "family_id": "LE",
+      "name": "Ticketed observation deck",
+      "unconventional": false,
+      "users": [
+        "Tourists"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A2",
+        "A4"
+      ],
+      "code_text": "A2 / A4",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "linked",
+      "value_ref": "A1",
+      "value_hint": null,
+      "value_text": "A1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LE2",
+      "family_id": "LE",
+      "name": "Free public deck",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "H",
+        "T"
+      ],
+      "fits_text": "H, T",
+      "value_status": "linked",
+      "value_ref": "A2",
+      "value_hint": null,
+      "value_text": "A2 (cost)",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LE3",
+      "family_id": "LE",
+      "name": "Sky restaurant / bar",
+      "unconventional": false,
+      "users": [
+        "Visitors",
+        "residents"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Paid"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "linked",
+      "value_ref": "A3",
+      "value_hint": null,
+      "value_text": "A3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LE4",
+      "family_id": "LE",
+      "name": "Edge walk / glass floor / sky bridge",
+      "unconventional": true,
+      "users": [
+        "Tourists"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A4"
+      ],
+      "code_text": "A4",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LE5",
+      "family_id": "LE",
+      "name": "Immersive / digital attraction (dark floor)",
+      "unconventional": false,
+      "users": [
+        "Visitors"
+      ],
+      "rhythm": [
+        "Day",
+        "Wk"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "G, B, core-locked floors",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LE6",
+      "family_id": "LE",
+      "name": "Planetarium / observatory",
+      "unconventional": true,
+      "users": [
+        "Public",
+        "students"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "A1",
+        "A2"
+      ],
+      "code_text": "A1 / A2",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T (sway-sensitive)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SE1",
+      "family_id": "SE",
+      "name": "Street retail units (CRU)",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "E"
+      ],
+      "code_text": "E",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G",
+      "value_status": "linked",
+      "value_ref": "T1",
+      "value_hint": null,
+      "value_text": "T1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SE2",
+      "family_id": "SE",
+      "name": "Grocery / large-format store",
+      "unconventional": false,
+      "users": [
+        "Residents",
+        "workers"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "E"
+      ],
+      "code_text": "E",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "G, B",
+      "value_status": "linked",
+      "value_ref": "T2",
+      "value_hint": null,
+      "value_text": "T2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SE3",
+      "family_id": "SE",
+      "name": "Market hall / food hall",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "E",
+        "A2"
+      ],
+      "code_text": "E / A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "linked",
+      "value_ref": "T3",
+      "value_hint": null,
+      "value_text": "T3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SE4",
+      "family_id": "SE",
+      "name": "Restaurant / café",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Paid"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G",
+      "value_status": "linked",
+      "value_ref": "T4",
+      "value_hint": null,
+      "value_text": "T4",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SE5",
+      "family_id": "SE",
+      "name": "Vertical retail loop / sky mall",
+      "unconventional": true,
+      "users": [
+        "Shoppers"
+      ],
+      "rhythm": [
+        "Wk"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "E"
+      ],
+      "code_text": "E",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G–L",
+      "value_status": "linked",
+      "value_ref": "T1",
+      "value_hint": null,
+      "value_text": "T1 at L1–2, then 0",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SE6",
+      "family_id": "SE",
+      "name": "Night market / pop-up flex hall",
+      "unconventional": true,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Eve",
+        "Ev"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "E",
+        "A4"
+      ],
+      "code_text": "E / A4",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SE7",
+      "family_id": "SE",
+      "name": "Personal services: pharmacy, bank, salon",
+      "unconventional": false,
+      "users": [
+        "Residents",
+        "workers"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "D",
+        "E"
+      ],
+      "code_text": "D / E",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "linked",
+      "value_ref": "T1",
+      "value_hint": null,
+      "value_text": "T1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM1",
+      "family_id": "AM",
+      "name": "Transit concourse / station link",
+      "unconventional": false,
+      "users": [
+        "Everyone"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [],
+      "code_text": "—",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "B, G",
+      "value_status": "linked",
+      "value_ref": "C4",
+      "value_hint": null,
+      "value_text": "C4",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM2",
+      "family_id": "AM",
+      "name": "Ground lobby — residential",
+      "unconventional": false,
+      "users": [
+        "Residents"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM3",
+      "family_id": "AM",
+      "name": "Ground lobby — hotel",
+      "unconventional": false,
+      "users": [
+        "Guests"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Guests"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM4",
+      "family_id": "AM",
+      "name": "Ground lobby — public / deck / civic",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM5",
+      "family_id": "AM",
+      "name": "Sky lobby / lift transfer floor",
+      "unconventional": false,
+      "users": [
+        "Everyone"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "By zone"
+      ],
+      "occupancy_group": [],
+      "code_text": "—",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM6",
+      "family_id": "AM",
+      "name": "Bike parking and repair hub",
+      "unconventional": false,
+      "users": [
+        "Residents",
+        "workers"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "F3"
+      ],
+      "code_text": "F3",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "B, G",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM7",
+      "family_id": "AM",
+      "name": "Parking — residential",
+      "unconventional": false,
+      "users": [
+        "Residents"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "F3"
+      ],
+      "code_text": "F3 (storage garage)",
+      "fits": [
+        "B"
+      ],
+      "fits_text": "B",
+      "value_status": "linked",
+      "value_ref": "P1",
+      "value_hint": null,
+      "value_text": "P1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM8",
+      "family_id": "AM",
+      "name": "Parking — public pay",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Paid"
+      ],
+      "occupancy_group": [
+        "F3"
+      ],
+      "code_text": "F3",
+      "fits": [
+        "B"
+      ],
+      "fits_text": "B",
+      "value_status": "linked",
+      "value_ref": "P2",
+      "value_hint": null,
+      "value_text": "P2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM9",
+      "family_id": "AM",
+      "name": "Car share / EV charging",
+      "unconventional": false,
+      "users": [
+        "Members"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "F3"
+      ],
+      "code_text": "F3",
+      "fits": [
+        "B"
+      ],
+      "fits_text": "B",
+      "value_status": "linked",
+      "value_ref": "P1",
+      "value_hint": null,
+      "value_text": "P1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM10",
+      "family_id": "AM",
+      "name": "Loading, waste, delivery and micro-logistics hub",
+      "unconventional": false,
+      "users": [
+        "Operators"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "F3"
+      ],
+      "code_text": "F3",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "G, B (lane)",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM11",
+      "family_id": "AM",
+      "name": "Drone / parcel landing pad",
+      "unconventional": true,
+      "users": [
+        "Operators"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [],
+      "code_text": "—",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T (NAV CANADA rules)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "AM12",
+      "family_id": "AM",
+      "name": "Fire hall / ambulance station at grade",
+      "unconventional": true,
+      "users": [
+        "Fire crews",
+        "public"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "D",
+        "F3"
+      ],
+      "code_text": "D / F3",
+      "fits": [
+        "G"
+      ],
+      "fits_text": "G (apparatus bay on the street)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new (City-funded)",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MK1",
+      "family_id": "MK",
+      "name": "Artist studios",
+      "unconventional": false,
+      "users": [
+        "Artists"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "F3",
+        "A2"
+      ],
+      "code_text": "F3 / A2",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new (ACC: flat rate as cultural facility)",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MK2",
+      "family_id": "MK",
+      "name": "Maker space / fab lab",
+      "unconventional": false,
+      "users": [
+        "Members",
+        "students"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "F3"
+      ],
+      "code_text": "F3",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MK3",
+      "family_id": "MK",
+      "name": "Stacked light industrial / production",
+      "unconventional": true,
+      "users": [
+        "Workers"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "F2",
+        "F3"
+      ],
+      "code_text": "F2 / F3",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L (freight lift, 5–6 m floors)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MK4",
+      "family_id": "MK",
+      "name": "Film / TV sound stage or virtual-production (LED) volume",
+      "unconventional": true,
+      "users": [
+        "Crews"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "F3",
+        "A2"
+      ],
+      "code_text": "F3 / A2",
+      "fits": [
+        "G",
+        "S"
+      ],
+      "fits_text": "G, S (9–12 m clear)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MK5",
+      "family_id": "MK",
+      "name": "Recording and media studios",
+      "unconventional": false,
+      "users": [
+        "Creators"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "D",
+        "F3"
+      ],
+      "code_text": "D / F3",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Any (acoustic isolation)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MK6",
+      "family_id": "MK",
+      "name": "Commercial / community kitchen, food production",
+      "unconventional": false,
+      "users": [
+        "Operators"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "F3",
+        "A2"
+      ],
+      "code_text": "F3 / A2",
+      "fits": [
+        "B",
+        "G"
+      ],
+      "fits_text": "G, B (exhaust riser)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "MK7",
+      "family_id": "MK",
+      "name": "Edge data room",
+      "unconventional": true,
+      "users": [
+        "Operators"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "F3"
+      ],
+      "code_text": "F3",
+      "fits": [
+        "B",
+        "L"
+      ],
+      "fits_text": "B, L (power and cooling)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "WK1",
+      "family_id": "WK",
+      "name": "Office, Class AAA / A",
+      "unconventional": false,
+      "users": [
+        "Workers"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "D"
+      ],
+      "code_text": "D",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "O1",
+      "value_hint": null,
+      "value_text": "O1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "WK2",
+      "family_id": "WK",
+      "name": "Office, Class B / lower spec",
+      "unconventional": false,
+      "users": [
+        "Workers"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "D"
+      ],
+      "code_text": "D",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L",
+      "value_status": "linked",
+      "value_ref": "O2",
+      "value_hint": null,
+      "value_text": "O2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "WK3",
+      "family_id": "WK",
+      "name": "Flexible office / coworking",
+      "unconventional": false,
+      "users": [
+        "Freelancers",
+        "startups"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "D"
+      ],
+      "code_text": "D",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "O3",
+      "value_hint": null,
+      "value_text": "O3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "WK4",
+      "family_id": "WK",
+      "name": "Lab / life-science floor",
+      "unconventional": true,
+      "users": [
+        "Researchers"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants"
+      ],
+      "occupancy_group": [
+        "D",
+        "F3"
+      ],
+      "code_text": "D / F3",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L (4.5 m+ floors, exhaust)",
+      "value_status": "linked",
+      "value_ref": "O4",
+      "value_hint": null,
+      "value_text": "O4",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "WK5",
+      "family_id": "WK",
+      "name": "Government / civic office",
+      "unconventional": false,
+      "users": [
+        "Staff"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants",
+        "public counter"
+      ],
+      "occupancy_group": [
+        "D"
+      ],
+      "code_text": "D",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L",
+      "value_status": "linked",
+      "value_ref": "O6",
+      "value_hint": null,
+      "value_text": "O6",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "WK6",
+      "family_id": "WK",
+      "name": "Incubator / startup floor",
+      "unconventional": false,
+      "users": [
+        "Startups"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Members"
+      ],
+      "occupancy_group": [
+        "D"
+      ],
+      "code_text": "D",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "O3",
+      "value_hint": null,
+      "value_text": "O3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LN1",
+      "family_id": "LN",
+      "name": "Elementary school",
+      "unconventional": true,
+      "users": [
+        "Children"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Students"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L (outdoor play)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new (public)",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LN2",
+      "family_id": "LN",
+      "name": "Secondary school / college",
+      "unconventional": true,
+      "users": [
+        "Students"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Students"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LN3",
+      "family_id": "LN",
+      "name": "University / institute campus floors",
+      "unconventional": false,
+      "users": [
+        "Students",
+        "researchers"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Students",
+        "public events"
+      ],
+      "occupancy_group": [
+        "A2",
+        "D"
+      ],
+      "code_text": "A2 / D",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "O6",
+      "value_hint": null,
+      "value_text": "O6",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LN4",
+      "family_id": "LN",
+      "name": "Library branch",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day",
+        "Eve"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L (heavy stacks)",
+      "value_status": "linked",
+      "value_ref": "C2",
+      "value_hint": null,
+      "value_text": "C2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LN5",
+      "family_id": "LN",
+      "name": "Adult education / language / skills centre",
+      "unconventional": false,
+      "users": [
+        "Adults"
+      ],
+      "rhythm": [
+        "Eve"
+      ],
+      "access": [
+        "Paid"
+      ],
+      "occupancy_group": [
+        "A2",
+        "D"
+      ],
+      "code_text": "A2 / D",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "O6",
+      "value_hint": null,
+      "value_text": "O6",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LN6",
+      "family_id": "LN",
+      "name": "Public learning floor",
+      "unconventional": false,
+      "users": [
+        "Public",
+        "schools"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH1",
+      "family_id": "CH",
+      "name": "Childcare",
+      "unconventional": false,
+      "users": [
+        "Children 0–5"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Enrolled"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L2 or terrace (14 m² outdoor per child)",
+      "value_status": "linked",
+      "value_ref": "C1",
+      "value_hint": null,
+      "value_text": "C1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH2",
+      "family_id": "CH",
+      "name": "Medical / dental clinic",
+      "unconventional": false,
+      "users": [
+        "Patients"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Paid"
+      ],
+      "occupancy_group": [
+        "D"
+      ],
+      "code_text": "D",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "O5",
+      "value_hint": null,
+      "value_text": "O5",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH3",
+      "family_id": "CH",
+      "name": "Urgent care / day surgery",
+      "unconventional": true,
+      "users": [
+        "Patients"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Paid",
+        "public"
+      ],
+      "occupancy_group": [
+        "B2"
+      ],
+      "code_text": "B2",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L (B above 18 m triggers more)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH4",
+      "family_id": "CH",
+      "name": "Seniors independent / assisted living",
+      "unconventional": false,
+      "users": [
+        "Seniors"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Residents"
+      ],
+      "occupancy_group": [
+        "C",
+        "B3"
+      ],
+      "code_text": "C / B3",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "R8",
+      "value_hint": null,
+      "value_text": "R8",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH5",
+      "family_id": "CH",
+      "name": "Long-term care",
+      "unconventional": true,
+      "users": [
+        "Frail seniors"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Residents"
+      ],
+      "occupancy_group": [
+        "B3"
+      ],
+      "code_text": "B3",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH6",
+      "family_id": "CH",
+      "name": "Vertical hospital wing",
+      "unconventional": true,
+      "users": [
+        "Patients"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Public"
+      ],
+      "occupancy_group": [
+        "B2"
+      ],
+      "code_text": "B2",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M (heavy MEP)",
+      "value_status": "excluded",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "excluded for now",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH7",
+      "family_id": "CH",
+      "name": "Community health / counselling centre",
+      "unconventional": false,
+      "users": [
+        "Public"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "D"
+      ],
+      "code_text": "D",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH8",
+      "family_id": "CH",
+      "name": "Physiotherapy, wellness, spa",
+      "unconventional": false,
+      "users": [
+        "Clients",
+        "guests"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Paid"
+      ],
+      "occupancy_group": [
+        "D",
+        "A2"
+      ],
+      "code_text": "D / A2",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L",
+      "value_status": "linked",
+      "value_ref": "H5",
+      "value_hint": null,
+      "value_text": "H5",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "CH9",
+      "family_id": "CH",
+      "name": "Emergency shelter and community meals",
+      "unconventional": true,
+      "users": [
+        "People in need"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "C",
+        "A2"
+      ],
+      "code_text": "C / A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0 (cost)",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS1",
+      "family_id": "GS",
+      "name": "Sky garden / terrace on each floor",
+      "unconventional": false,
+      "users": [
+        "Residents",
+        "tenants"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "A4"
+      ],
+      "code_text": "A4",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Any",
+      "value_status": "linked",
+      "value_ref": "S2",
+      "value_hint": null,
+      "value_text": "S2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS2",
+      "family_id": "GS",
+      "name": "Community garden plots",
+      "unconventional": false,
+      "users": [
+        "Residents"
+      ],
+      "rhythm": [
+        "Wk"
+      ],
+      "access": [
+        "Residents"
+      ],
+      "occupancy_group": [
+        "A4"
+      ],
+      "code_text": "A4",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Roofs, terraces",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS3",
+      "family_id": "GS",
+      "name": "Urban farm / hydroponic floor",
+      "unconventional": true,
+      "users": [
+        "Operators",
+        "schools"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Tenants",
+        "tours"
+      ],
+      "occupancy_group": [
+        "F3",
+        "D"
+      ],
+      "code_text": "F3 / D",
+      "fits": [
+        "M",
+        "S"
+      ],
+      "fits_text": "M, S (loads if soil)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS4",
+      "family_id": "GS",
+      "name": "Greenhouse crown",
+      "unconventional": true,
+      "users": [
+        "Operators",
+        "visitors"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Ticketed"
+      ],
+      "occupancy_group": [
+        "F3",
+        "A2"
+      ],
+      "code_text": "F3 / A2",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS5",
+      "family_id": "GS",
+      "name": "Rainwater cistern, detention, greywater",
+      "unconventional": false,
+      "users": [
+        "Operators"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [],
+      "code_text": "—",
+      "fits": [
+        "B",
+        "S"
+      ],
+      "fits_text": "B, S (break tanks)",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS6",
+      "family_id": "GS",
+      "name": "District energy / heat-recovery plant",
+      "unconventional": false,
+      "users": [
+        "Operators"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "F2",
+        "F3"
+      ],
+      "code_text": "F2 / F3",
+      "fits": [
+        "B",
+        "T"
+      ],
+      "fits_text": "B, T",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS7",
+      "family_id": "GS",
+      "name": "Wind turbines / solar crown",
+      "unconventional": true,
+      "users": [
+        "Operators"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [],
+      "code_text": "—",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T (vibration)",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "GS8",
+      "family_id": "GS",
+      "name": "Habitat floor (birds, pollinators)",
+      "unconventional": true,
+      "users": [
+        "Wildlife",
+        "visitors"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A4"
+      ],
+      "code_text": "A4",
+      "fits": [
+        "M",
+        "H"
+      ],
+      "fits_text": "M, H",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "ST1",
+      "family_id": "ST",
+      "name": "Luxury hotel rooms",
+      "unconventional": false,
+      "users": [
+        "Visitors"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Guests"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "T"
+      ],
+      "fits_text": "L or T",
+      "value_status": "linked",
+      "value_ref": "H1",
+      "value_hint": null,
+      "value_text": "H1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "ST2",
+      "family_id": "ST",
+      "name": "Upscale / select-service hotel",
+      "unconventional": false,
+      "users": [
+        "Visitors"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Guests"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "H2",
+      "value_hint": null,
+      "value_text": "H2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "ST3",
+      "family_id": "ST",
+      "name": "Extended-stay / serviced apartments",
+      "unconventional": false,
+      "users": [
+        "Visitors",
+        "workers"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Guests"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "M"
+      ],
+      "fits_text": "M",
+      "value_status": "linked",
+      "value_ref": "H3",
+      "value_hint": null,
+      "value_text": "H3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "ST4",
+      "family_id": "ST",
+      "name": "Hostel / budget stay",
+      "unconventional": true,
+      "users": [
+        "Young travellers"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Guests"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "ST5",
+      "family_id": "ST",
+      "name": "Artist or researcher residency",
+      "unconventional": true,
+      "users": [
+        "Fellows"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Invited"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "M"
+      ],
+      "fits_text": "M",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV1",
+      "family_id": "LV",
+      "name": "Market condo",
+      "unconventional": false,
+      "users": [
+        "Owners"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "M",
+        "H"
+      ],
+      "fits_text": "M, H",
+      "value_status": "linked",
+      "value_ref": "R1",
+      "value_hint": null,
+      "value_text": "R1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV2",
+      "family_id": "LV",
+      "name": "Luxury / estate condo, penthouse",
+      "unconventional": false,
+      "users": [
+        "Owners"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "H",
+        "T"
+      ],
+      "fits_text": "H, T",
+      "value_status": "linked",
+      "value_ref": "R2",
+      "value_hint": null,
+      "value_text": "R2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV3",
+      "family_id": "LV",
+      "name": "Branded residence",
+      "unconventional": false,
+      "users": [
+        "Owners"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "H"
+      ],
+      "fits_text": "H",
+      "value_status": "linked",
+      "value_ref": "R3",
+      "value_hint": null,
+      "value_text": "R3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV4",
+      "family_id": "LV",
+      "name": "Market rental",
+      "unconventional": false,
+      "users": [
+        "Renters"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "R4",
+      "value_hint": null,
+      "value_text": "R4",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV5",
+      "family_id": "LV",
+      "name": "Below-market rental",
+      "unconventional": false,
+      "users": [
+        "Renters"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "R5",
+      "value_hint": null,
+      "value_text": "R5",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV6",
+      "family_id": "LV",
+      "name": "Social housing",
+      "unconventional": false,
+      "users": [
+        "Low-income households"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "R6",
+      "value_hint": null,
+      "value_text": "R6",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV7",
+      "family_id": "LV",
+      "name": "Student housing",
+      "unconventional": false,
+      "users": [
+        "Students"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "R7",
+      "value_hint": null,
+      "value_text": "R7",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV8",
+      "family_id": "LV",
+      "name": "Co-living / micro units",
+      "unconventional": false,
+      "users": [
+        "Young adults"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "M"
+      ],
+      "fits_text": "M",
+      "value_status": "linked",
+      "value_ref": "R9",
+      "value_hint": null,
+      "value_text": "R9",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV9",
+      "family_id": "LV",
+      "name": "Family homes with play terraces",
+      "unconventional": false,
+      "users": [
+        "Families"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L",
+        "M"
+      ],
+      "fits_text": "L, M",
+      "value_status": "linked",
+      "value_ref": "R4",
+      "value_hint": "R1",
+      "value_text": "R4 / R1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV10",
+      "family_id": "LV",
+      "name": "Live-work units",
+      "unconventional": false,
+      "users": [
+        "Small businesses"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C",
+        "D"
+      ],
+      "code_text": "C / D",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L",
+      "value_status": "linked",
+      "value_ref": "R1",
+      "value_hint": null,
+      "value_text": "R1",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "LV11",
+      "family_id": "LV",
+      "name": "Supportive housing",
+      "unconventional": false,
+      "users": [
+        "People with support needs"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Private"
+      ],
+      "occupancy_group": [
+        "C"
+      ],
+      "code_text": "C",
+      "fits": [
+        "L"
+      ],
+      "fits_text": "L",
+      "value_status": "linked",
+      "value_ref": "R6",
+      "value_hint": null,
+      "value_text": "R6",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "RR1",
+      "family_id": "RR",
+      "name": "Place of worship (church, mosque, temple, gurdwara)",
+      "unconventional": false,
+      "users": [
+        "Faith groups"
+      ],
+      "rhythm": [
+        "Wk",
+        "Ev"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "G",
+        "L"
+      ],
+      "fits_text": "G, L",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "RR2",
+      "family_id": "RR",
+      "name": "Multi-faith / quiet room",
+      "unconventional": false,
+      "users": [
+        "Everyone"
+      ],
+      "rhythm": [
+        "24"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Any",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "RR3",
+      "family_id": "RR",
+      "name": "Reserved space, programme set with partners (envelope only)",
+      "unconventional": false,
+      "users": [
+        "partners"
+      ],
+      "rhythm": [
+        "as agreed"
+      ],
+      "access": [
+        "as agreed"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [],
+      "fits_text": "As agreed",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "RR4",
+      "family_id": "RR",
+      "name": "Columbarium / memorial floor",
+      "unconventional": true,
+      "users": [
+        "Families"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free",
+        "paid niches"
+      ],
+      "occupancy_group": [
+        "A2"
+      ],
+      "code_text": "A2",
+      "fits": [
+        "M",
+        "H"
+      ],
+      "fits_text": "M, H",
+      "value_status": "new",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "new",
+      "needs_user_value": true,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "RR5",
+      "family_id": "RR",
+      "name": "Meditation / contemplative terrace",
+      "unconventional": false,
+      "users": [
+        "Everyone"
+      ],
+      "rhythm": [
+        "Day"
+      ],
+      "access": [
+        "Free"
+      ],
+      "occupancy_group": [
+        "A4"
+      ],
+      "code_text": "A4",
+      "fits": [
+        "H",
+        "T"
+      ],
+      "fits_text": "H, T",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "public",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB1",
+      "family_id": "SB",
+      "name": "Core: lifts, stairs, shafts",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Grows downward as lift zones add up",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Every floor",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB2",
+      "family_id": "SB",
+      "name": "Mechanical floor",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Every 15–20 floors; double height",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB3",
+      "family_id": "SB",
+      "name": "Refuge / safe floor (optional in Canada)",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Can share a mechanical or belt floor",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB4",
+      "family_id": "SB",
+      "name": "Belt-truss / outrigger floor",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Structural; low daylight, can host public use between trusses",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB5",
+      "family_id": "SB",
+      "name": "Transfer floor",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Where plates change; heavy structure",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB6",
+      "family_id": "SB",
+      "name": "Tuned mass damper / crown plant",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Top; can be shown to visitors",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB7",
+      "family_id": "SB",
+      "name": "Water break tank / pressure-break",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Every ~100 m of height",
+      "fits": [
+        "S"
+      ],
+      "fits_text": "S",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB8",
+      "family_id": "SB",
+      "name": "Facade maintenance (BMU) and roof plant",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Top",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB9",
+      "family_id": "SB",
+      "name": "Resident amenity floor (lounge, co-work room)",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Raises home prices; not income",
+      "fits": [
+        "M"
+      ],
+      "fits_text": "M",
+      "value_status": "linked",
+      "value_ref": "S2",
+      "value_hint": null,
+      "value_text": "S2",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB10",
+      "family_id": "SB",
+      "name": "Storage lockers",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Low value area; fills dark corners",
+      "fits": [
+        "B",
+        "L"
+      ],
+      "fits_text": "B, L",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB11",
+      "family_id": "SB",
+      "name": "Waste and recycling rooms, chutes",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Every residential floor + ground",
+      "fits": [
+        "B",
+        "G",
+        "L",
+        "M",
+        "H",
+        "T",
+        "S"
+      ],
+      "fits_text": "Any",
+      "value_status": "zero",
+      "value_ref": null,
+      "value_hint": null,
+      "value_text": "0",
+      "needs_user_value": false,
+      "earns_by": "support",
+      "grade": "C",
+      "as_of": "2026-10-17"
+    },
+    {
+      "id": "SB12",
+      "family_id": "SB",
+      "name": "Rooftop telecom and signage",
+      "unconventional": false,
+      "users": [
+        "operators"
+      ],
+      "rhythm": [],
+      "access": [
+        "private"
+      ],
+      "occupancy_group": [],
+      "placement_note": "Small lease income",
+      "fits": [
+        "T"
+      ],
+      "fits_text": "T",
+      "value_status": "linked",
+      "value_ref": "S3",
+      "value_hint": null,
+      "value_text": "S3",
+      "needs_user_value": false,
+      "grade": "C",
+      "as_of": "2026-10-17"
+    }
+  ]
+}

@@ -1,0 +1,958 @@
+{
+  "meta": {
+    "pack": "vancouver-2026",
+    "ft2_per_m2": 10.764,
+    "rounding": "C$/m2 rounded to the nearest 10",
+    "scope_note": "Altus rates cover above-grade work incl. foundations; below-grade work is priced with the parking line. They exclude site development, unique-architecture premiums, hotel and school FF&E, VAT and tariffs, and treat office and retail as stand-alone buildings, so a mixed-use supertall will sit above them. Apply to gross area to the outside face of walls; zoning area can understate cost by up to 12% (Altus p.9)."
+  },
+  "lines": [
+    {
+      "id": "condo_60plus",
+      "altus_category": "Condominiums/apartments, 60+ storeys",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 370,
+      "high_ft2": 480,
+      "low_m2": 3980,
+      "high_m2": 5170,
+      "default_m2": {
+        "value": 4575,
+        "unit": "CAD/m2",
+        "range": [
+          3980,
+          5170
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "premium_high_quality",
+      "altus_category": "Condominiums, premium for high quality",
+      "table": "private",
+      "page": 5,
+      "add_on": true,
+      "low_ft2": 0,
+      "high_ft2": 285,
+      "low_m2": 0,
+      "high_m2": 3070,
+      "default_m2": {
+        "value": null,
+        "unit": "CAD/m2",
+        "range": [
+          0,
+          3070
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "add-on: 'up to' figure; user chooses how much applies",
+        "needs_user_value": true
+      }
+    },
+    {
+      "id": "seniors_independent",
+      "altus_category": "Independent / supportive living residences",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 330,
+      "high_ft2": 430,
+      "low_m2": 3550,
+      "high_m2": 4630,
+      "default_m2": {
+        "value": 4090,
+        "unit": "CAD/m2",
+        "range": [
+          3550,
+          4630
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "seniors_assisted",
+      "altus_category": "Assisted living residences",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 320,
+      "high_ft2": 455,
+      "low_m2": 3440,
+      "high_m2": 4900,
+      "default_m2": {
+        "value": 4170,
+        "unit": "CAD/m2",
+        "range": [
+          3440,
+          4900
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "seniors_complex_care",
+      "altus_category": "Complex care residences",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 415,
+      "high_ft2": 615,
+      "low_m2": 4470,
+      "high_m2": 6620,
+      "default_m2": {
+        "value": 5545,
+        "unit": "CAD/m2",
+        "range": [
+          4470,
+          6620
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "office_a_5_30",
+      "altus_category": "Office buildings, 5-30 storeys (Class A)",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 345,
+      "high_ft2": 425,
+      "low_m2": 3710,
+      "high_m2": 4570,
+      "default_m2": {
+        "value": 4140,
+        "unit": "CAD/m2",
+        "range": [
+          3710,
+          4570
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "office_a_31_60",
+      "altus_category": "Office buildings, 31-60 storeys (Class A)",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 370,
+      "high_ft2": 460,
+      "low_m2": 3980,
+      "high_m2": 4950,
+      "default_m2": {
+        "value": 4465,
+        "unit": "CAD/m2",
+        "range": [
+          3980,
+          4950
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "fitout_a",
+      "altus_category": "Office interior fit-out (Class A)",
+      "table": "private",
+      "page": 5,
+      "add_on": true,
+      "low_ft2": 165,
+      "high_ft2": 295,
+      "low_m2": 1780,
+      "high_m2": 3180,
+      "default_m2": {
+        "value": null,
+        "unit": "CAD/m2",
+        "range": [
+          1780,
+          3180
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "add-on: 'up to' figure; user chooses how much applies",
+        "needs_user_value": true
+      }
+    },
+    {
+      "id": "fitout_b",
+      "altus_category": "Office interior fit-out (Class B)",
+      "table": "private",
+      "page": 5,
+      "add_on": true,
+      "low_ft2": 90,
+      "high_ft2": 175,
+      "low_m2": 970,
+      "high_m2": 1880,
+      "default_m2": {
+        "value": null,
+        "unit": "CAD/m2",
+        "range": [
+          970,
+          1880
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "add-on: 'up to' figure; user chooses how much applies",
+        "needs_user_value": true
+      }
+    },
+    {
+      "id": "enclosed_mall",
+      "altus_category": "Retail, enclosed mall",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 350,
+      "high_ft2": 460,
+      "low_m2": 3770,
+      "high_m2": 4950,
+      "default_m2": {
+        "value": 4360,
+        "unit": "CAD/m2",
+        "range": [
+          3770,
+          4950
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "hotel_budget",
+      "altus_category": "Hotels, budget",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 240,
+      "high_ft2": 320,
+      "low_m2": 2580,
+      "high_m2": 3440,
+      "default_m2": {
+        "value": 3010,
+        "unit": "CAD/m2",
+        "range": [
+          2580,
+          3440
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "hotel_suite",
+      "altus_category": "Hotels, suite hotel",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 350,
+      "high_ft2": 460,
+      "low_m2": 3770,
+      "high_m2": 4950,
+      "default_m2": {
+        "value": 4360,
+        "unit": "CAD/m2",
+        "range": [
+          3770,
+          4950
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "hotel_4star",
+      "altus_category": "Hotels, 4-star full service",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 400,
+      "high_ft2": 570,
+      "low_m2": 4310,
+      "high_m2": 6140,
+      "default_m2": {
+        "value": 5225,
+        "unit": "CAD/m2",
+        "range": [
+          4310,
+          6140
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "premium_luxury_hotel",
+      "altus_category": "Hotels, premium for luxury",
+      "table": "private",
+      "page": 5,
+      "add_on": true,
+      "low_ft2": 0,
+      "high_ft2": 250,
+      "low_m2": 0,
+      "high_m2": 2690,
+      "default_m2": {
+        "value": null,
+        "unit": "CAD/m2",
+        "range": [
+          0,
+          2690
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "add-on: 'up to' figure; user chooses how much applies",
+        "needs_user_value": true
+      }
+    },
+    {
+      "id": "parking_underground",
+      "altus_category": "Underground parking garages",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 195,
+      "high_ft2": 300,
+      "low_m2": 2100,
+      "high_m2": 3230,
+      "default_m2": {
+        "value": 2665,
+        "unit": "CAD/m2",
+        "range": [
+          2100,
+          3230
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "parking_unusual_premium",
+      "altus_category": "Underground parking, premium for unusual circumstances",
+      "table": "private",
+      "page": 5,
+      "add_on": true,
+      "low_ft2": 0,
+      "high_ft2": 220,
+      "low_m2": 0,
+      "high_m2": 2370,
+      "default_m2": {
+        "value": null,
+        "unit": "CAD/m2",
+        "range": [
+          0,
+          2370
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "add-on: 'up to' figure; user chooses how much applies",
+        "needs_user_value": true
+      }
+    },
+    {
+      "id": "urban_storage",
+      "altus_category": "Urban storage facility",
+      "table": "private",
+      "page": 5,
+      "add_on": false,
+      "low_ft2": 120,
+      "high_ft2": 175,
+      "low_m2": 1290,
+      "high_m2": 1880,
+      "default_m2": {
+        "value": 1585,
+        "unit": "CAD/m2",
+        "range": [
+          1290,
+          1880
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "school_elementary",
+      "altus_category": "Elementary school",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 425,
+      "high_ft2": 600,
+      "low_m2": 4570,
+      "high_m2": 6460,
+      "default_m2": {
+        "value": 5515,
+        "unit": "CAD/m2",
+        "range": [
+          4570,
+          6460
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "school_secondary",
+      "altus_category": "Secondary school",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 445,
+      "high_ft2": 610,
+      "low_m2": 4790,
+      "high_m2": 6570,
+      "default_m2": {
+        "value": 5680,
+        "unit": "CAD/m2",
+        "range": [
+          4790,
+          6570
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "uni_teaching",
+      "altus_category": "Universities & colleges, teaching and lecture hall building",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 750,
+      "high_ft2": 1250,
+      "low_m2": 8070,
+      "high_m2": 13460,
+      "default_m2": {
+        "value": 10765,
+        "unit": "CAD/m2",
+        "range": [
+          8070,
+          13460
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "uni_labs",
+      "altus_category": "Universities & colleges, laboratories (Level 1 and 2)",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 925,
+      "high_ft2": 1400,
+      "low_m2": 9960,
+      "high_m2": 15070,
+      "default_m2": {
+        "value": 12515,
+        "unit": "CAD/m2",
+        "range": [
+          9960,
+          15070
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "student_residence",
+      "altus_category": "Universities & colleges, student residence",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 395,
+      "high_ft2": 580,
+      "low_m2": 4250,
+      "high_m2": 6240,
+      "default_m2": {
+        "value": 5245,
+        "unit": "CAD/m2",
+        "range": [
+          4250,
+          6240
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "medical_clinic",
+      "altus_category": "Medical clinic / treatment centre",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 550,
+      "high_ft2": 950,
+      "low_m2": 5920,
+      "high_m2": 10230,
+      "default_m2": {
+        "value": 8075,
+        "unit": "CAD/m2",
+        "range": [
+          5920,
+          10230
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "fire_ems",
+      "altus_category": "Fire / EMS station",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 600,
+      "high_ft2": 865,
+      "low_m2": 6460,
+      "high_m2": 9310,
+      "default_m2": {
+        "value": 7885,
+        "unit": "CAD/m2",
+        "range": [
+          6460,
+          9310
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "municipal_office",
+      "altus_category": "Municipal office (including fit-up)",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 450,
+      "high_ft2": 530,
+      "low_m2": 4840,
+      "high_m2": 5700,
+      "default_m2": {
+        "value": 5270,
+        "unit": "CAD/m2",
+        "range": [
+          4840,
+          5700
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "library",
+      "altus_category": "Library",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 455,
+      "high_ft2": 800,
+      "low_m2": 4900,
+      "high_m2": 8610,
+      "default_m2": {
+        "value": 6755,
+        "unit": "CAD/m2",
+        "range": [
+          4900,
+          8610
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "ice_arena",
+      "altus_category": "Ice arena",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 395,
+      "high_ft2": 510,
+      "low_m2": 4250,
+      "high_m2": 5490,
+      "default_m2": {
+        "value": 4870,
+        "unit": "CAD/m2",
+        "range": [
+          4250,
+          5490
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "aquatic",
+      "altus_category": "Community aquatic facility",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 560,
+      "high_ft2": 930,
+      "low_m2": 6030,
+      "high_m2": 10010,
+      "default_m2": {
+        "value": 8020,
+        "unit": "CAD/m2",
+        "range": [
+          6030,
+          10010
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "multi_use_rec",
+      "altus_category": "Multi-use recreational centre",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 600,
+      "high_ft2": 1075,
+      "low_m2": 6460,
+      "high_m2": 11570,
+      "default_m2": {
+        "value": 9015,
+        "unit": "CAD/m2",
+        "range": [
+          6460,
+          11570
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "performing_arts",
+      "altus_category": "Performing arts building",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 890,
+      "high_ft2": 1250,
+      "low_m2": 9580,
+      "high_m2": 13460,
+      "default_m2": {
+        "value": 11520,
+        "unit": "CAD/m2",
+        "range": [
+          9580,
+          13460
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    },
+    {
+      "id": "museum_gallery",
+      "altus_category": "Museum / gallery",
+      "table": "public",
+      "page": 6,
+      "add_on": false,
+      "low_ft2": 555,
+      "high_ft2": 1200,
+      "low_m2": 5970,
+      "high_m2": 12920,
+      "default_m2": {
+        "value": 9445,
+        "unit": "CAD/m2",
+        "range": [
+          5970,
+          12920
+        ],
+        "source": "altus-2026",
+        "grade": "A",
+        "as_of": "2026-01-31",
+        "note": "midpoint of the Altus range"
+      }
+    }
+  ],
+  "other": {
+    "supertall_premium": {
+      "value": 0.15,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "range": [
+        0.1,
+        0.25
+      ],
+      "note": "Added to hard cost when the tower is taller than the threshold. Replace with a cost consultant's figure.",
+      "applies_above_height_m": 250
+    },
+    "soft_cost": {
+      "value": 0.25,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "range": [
+        0.2,
+        0.3
+      ],
+      "note": "Share of hard cost: design, permits, insurance, legal, marketing."
+    },
+    "office_tenant_allowance": {
+      "value": 860,
+      "unit": "CAD/m2",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "note": "Tenant allowance added to office shell cost in the research worked check; alternative to the Altus fit-out add-on."
+    },
+    "office_leasing_cost": {
+      "value": 0.15,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "range": [
+        0.1,
+        0.2
+      ],
+      "note": "Incentives, free rent and commissions, as a share of office value."
+    },
+    "hotel_ffe_per_key": {
+      "value": 100000,
+      "unit": "CAD/key",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "range": [
+        60000,
+        150000
+      ],
+      "note": "Luxury hotel FF&E and pre-opening (Altus rates exclude hotel FF&E)."
+    },
+    "childcare_turnkey_per_space": {
+      "value": 175400,
+      "unit": "CAD/space",
+      "source": "morehousing-130wb",
+      "grade": "B",
+      "as_of": "2023-01-01",
+      "note": "C$6.49 M for one turnkey 37-space centre delivered in-kind (6,490,000 / 37, rounded). No Altus line for childcare."
+    }
+  },
+  "cost_map": {
+    "note": "Which Altus line prices each use. Programme-specific entries win over the value-row entry. Mapping is the pack author's judgement (grade C). null = no matching line: user to supply. Support space (core, mechanical) is costed with the floor it sits on (engine rule).",
+    "by_value_row": {
+      "R1": [
+        "condo_60plus"
+      ],
+      "R2": [
+        "condo_60plus",
+        "premium_high_quality"
+      ],
+      "R3": [
+        "condo_60plus",
+        "premium_high_quality"
+      ],
+      "R4": [
+        "condo_60plus"
+      ],
+      "R5": [
+        "condo_60plus"
+      ],
+      "R6": [
+        "condo_60plus"
+      ],
+      "R7": [
+        "student_residence"
+      ],
+      "R8": [
+        "seniors_assisted"
+      ],
+      "R9": [
+        "condo_60plus"
+      ],
+      "H1": [
+        "hotel_4star",
+        "premium_luxury_hotel"
+      ],
+      "H2": [
+        "hotel_suite"
+      ],
+      "H3": [
+        "hotel_suite"
+      ],
+      "H4": [
+        "hotel_4star"
+      ],
+      "H5": [
+        "hotel_4star"
+      ],
+      "O1": [
+        "office_a_31_60",
+        "fitout_a"
+      ],
+      "O2": [
+        "office_a_31_60",
+        "fitout_b"
+      ],
+      "O3": [
+        "office_a_31_60",
+        "fitout_a"
+      ],
+      "O4": [
+        "uni_labs"
+      ],
+      "O5": [
+        "medical_clinic"
+      ],
+      "O6": [
+        "office_a_31_60"
+      ],
+      "T1": [
+        "enclosed_mall"
+      ],
+      "T2": [
+        "enclosed_mall"
+      ],
+      "T3": [
+        "enclosed_mall"
+      ],
+      "T4": [
+        "enclosed_mall"
+      ],
+      "A1": null,
+      "A2": null,
+      "A3": [
+        "enclosed_mall"
+      ],
+      "A4": null,
+      "A5": [
+        "museum_gallery"
+      ],
+      "C1": null,
+      "C2": [
+        "library"
+      ],
+      "C3": [
+        "multi_use_rec"
+      ],
+      "C4": null,
+      "C5": null,
+      "P1": [
+        "parking_underground"
+      ],
+      "P2": [
+        "parking_underground"
+      ],
+      "S1": null,
+      "S2": null,
+      "S3": null
+    },
+    "by_programme": {
+      "MP2": [
+        "aquatic"
+      ],
+      "MP3": [
+        "aquatic"
+      ],
+      "MP8": [
+        "ice_arena"
+      ],
+      "GP1": [
+        "performing_arts"
+      ],
+      "GP6": [
+        "museum_gallery"
+      ],
+      "LN1": [
+        "school_elementary"
+      ],
+      "LN2": [
+        "school_secondary"
+      ],
+      "LN3": [
+        "uni_teaching"
+      ],
+      "LN4": [
+        "library"
+      ],
+      "CH4": [
+        "seniors_assisted"
+      ],
+      "CH5": [
+        "seniors_complex_care"
+      ],
+      "LV11": [
+        "seniors_independent"
+      ],
+      "WK4": [
+        "uni_labs"
+      ],
+      "WK5": [
+        "municipal_office"
+      ],
+      "AM12": [
+        "fire_ems"
+      ],
+      "ST4": [
+        "hotel_budget"
+      ],
+      "SB10": [
+        "urban_storage"
+      ]
+    }
+  }
+}
