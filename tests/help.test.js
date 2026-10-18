@@ -20,7 +20,7 @@ test('the guide covers the question, five steps, verdicts, grades, typical estim
   assert.match(body, /enough money left to pay for the land/);
   assert.equal((body.match(/step\(\d, /g) || []).length, 5);
   for (const v of ['Works', 'Marginal', "Doesn't work", 'Land price needed', 'Incomplete']) assert.ok(body.includes(v), v);
-  for (const g of ["gradeTag('A')", "gradeTag('B')", "gradeTag('C')", 'typical estimate', 'indicative early-design estimate']) assert.ok(body.includes(g), g);
+  for (const g of ["gradeTag('A')", "gradeTag('B')", "gradeTag('C')", 'typical · researched', 'typical · analogy', 'indicative early-design estimate']) assert.ok(body.includes(g), g);
 });
 
 test('the tour points at parts of the page that exist', () => {

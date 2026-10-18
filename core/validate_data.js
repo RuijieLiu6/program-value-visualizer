@@ -18,7 +18,8 @@ const GROUPS = new Set(['A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'C', 'D', 'E',
 const EARNS = new Set(['sell', 'lease', 'operate', 'public', 'support']);
 const METHODS = new Set(['sale', 'income', 'per_key', 'visitors', 'per_stall_sale', 'per_stall_income', 'stated', 'none', 'user']);
 const STATUS = new Set(['linked', 'zero', 'new', 'excluded']);
-const BASIS = new Set(['sourced', 'typical']);
+const BASIS = new Set(['sourced', 'researched', 'analogy', 'no_income']);
+const TYPICAL = new Set(['researched', 'analogy', 'no_income']);
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 export const RECOMPUTE_TOLERANCE = 0.05;
 // Inputs that do not set a row's grade: they move the value by little, or cancel out in the engine.
@@ -122,8 +123,12 @@ export function validate(root) {
     if (!METHODS.has(r.method)) errors.push({ code: 'bad_method', where: w, msg: r.method });
     if (!chargeClasses.has(r.city_charge_class)) errors.push({ code: 'unknown_charge_class', where: w, msg: r.city_charge_class });
     if (!BASIS.has(r.value_basis)) errors.push({ code: 'bad_value_basis', where: w, msg: String(r.value_basis) });
-    if (r.value_basis === 'typical' && r.value_per_m2_gfa && (r.value_per_m2_gfa.grade !== 'C' || !r.value_per_m2_gfa.note || typeof r.value_per_m2_gfa.value !== 'number'))
+    if (TYPICAL.has(r.value_basis) && r.value_per_m2_gfa && (r.value_per_m2_gfa.grade !== 'C' || !r.value_per_m2_gfa.note || typeof r.value_per_m2_gfa.value !== 'number'))
       errors.push({ code: 'typical_not_flagged', where: w, msg: 'a typical value must be a number, grade C, with a note naming its basis' });
+    if (r.value_basis === 'no_income' && r.value_per_m2_gfa?.value !== 0) errors.push({ code: 'no_income_with_value', where: w, msg: 'no_income rows must be worth 0' });
+    // researched rows must name a real (non-assumption) source for the value and for at least one key input
+    if (r.value_basis === 'researched' && (r.value_per_m2_gfa?.source === 'assumption' || !Object.entries(r.inputs || {}).some(([k, x]) => !MINOR_INPUTS.has(k) && x.source !== 'assumption')))
+      errors.push({ code: 'researched_without_source', where: w, msg: 'a researched value needs a cited source on the value and on a key input' });
     if (!r.value_per_m2_gfa) { errors.push({ code: 'missing_field', where: w, msg: 'value_per_m2_gfa' }); continue; }
     const weakest = weakestKeyGrade(r);
     if (weakest && r.value_per_m2_gfa.grade < weakest) errors.push({ code: 'grade_above_inputs', where: w, msg: `value graded ${r.value_per_m2_gfa.grade}, but a key input is ${weakest}` });

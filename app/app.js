@@ -1,7 +1,7 @@
 // Program Value Visualizer — page script. All maths lives in core/econ_core.js.
 import { drawIcon, SPECS } from './icons/icon_specs.js';
 import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
-import { indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
+import { TYPICAL_BASES, indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
 
 const STORE_KEY = 'pvv-project-v1';
 const PACK = 'packs/vancouver-2026/';
@@ -181,9 +181,11 @@ function renderTab() {
 function kpi(k, v, cls = '', tip = null, big = false) { return h('div', { class: `kpi${big ? ' big' : ''}`, 'data-tip': tip }, h('span', { class: 'k' }, k), h('span', { class: `v ${cls}` }, v)); }
 const signCls = x => (x < 0 ? 'neg' : x > 0 ? 'pos' : '');
 
-const TYPICAL_TIP = 'Typical estimate: a starting number so you do not need to know prices. It comes from a similar use (named in the note) or a quick 2025–26 search. Grade C: check it before relying on it, or type your own.';
-const typicalBadge = () => h('span', { class: 'typ', tabindex: '0', 'data-tip': TYPICAL_TIP }, 'typical estimate');
-const isTypical = id => { const p = prog(id), row = p?.value_status === 'linked' ? data.rows.get(p.value_ref) : null; return row?.value_basis === 'typical'; };
+const TYPICAL_TIP = 'A typical estimate is a starting number so you do not need to know prices. Grade C: check it before relying on it, or type your own.';
+const typicalBadge = (basis = 'researched') => h('span', { class: `typ ${basis}`, tabindex: '0', 'data-tip': (BASIS_TIP[basis] || '') + TYPICAL_TIP }, basis === 'analogy' ? 'typical · analogy' : basis === 'researched' ? 'typical · researched' : 'typical estimate');
+const rowOf = id => { const p = prog(id); return p?.value_status === 'linked' ? data.rows.get(p.value_ref) : null; };
+const isTypical = id => TYPICAL_BASES.has(rowOf(id)?.value_basis);
+const BASIS_TIP = { researched: 'Researched: built from a 2025–26 Vancouver, BC or Canadian figure found by web search, with stated assumptions. ', analogy: 'Analogy: no usable figure was found, so it borrows from a similar use. ' };
 function numField(id, label, value, { step = 'any', min, max, onchange, src, unit, placeholder, badge } = {}) {
   const inp = h('input', { id, type: 'number', step, min, max, value: value ?? '', placeholder });
   inp.addEventListener('change', () => { if (inp.value === '') return onchange(null); let v = Number(inp.value); if (!Number.isFinite(v)) { toast(`${label}: enter a number`); return; } if (min != null && v < Number(min)) v = Number(min); if (max != null && v > Number(max)) v = Number(max); inp.value = v; onchange(v); });
@@ -269,7 +271,7 @@ function renderFloors() {
     const p = prog(m.programme_id);
     const inp = h('input', { id: `share-${k}`, type: 'number', min: 0, max: 100, step: 1, value: Math.round(m.share * 1000) / 10, 'aria-label': `Share of ${p?.name}` });
     inp.addEventListener('change', () => { editMix[k].share = Math.max(0, Number(inp.value) || 0) / 100; renderFloors(); });
-    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, iconEl(m.programme_id, 28), h('span', { title: p?.name }, `${m.programme_id} · ${p?.name}`), isTypical(m.programme_id) && !state.settings.programme?.[m.programme_id]?.valuePerM2Gfa ? h('span', { class: 'typ small', 'data-tip': TYPICAL_TIP }, 'typical') : null), inp,
+    return h('div', { class: 'mix-row' }, h('div', { class: 'nm' }, iconEl(m.programme_id, 28), h('span', { title: p?.name }, `${m.programme_id} · ${p?.name}`), isTypical(m.programme_id) && !state.settings.programme?.[m.programme_id]?.valuePerM2Gfa ? h('span', { class: `typ small ${rowOf(m.programme_id).value_basis}`, 'data-tip': (BASIS_TIP[rowOf(m.programme_id).value_basis] || '') + TYPICAL_TIP }, rowOf(m.programme_id).value_basis) : null), inp,
       h('button', { 'aria-label': 'Remove', onclick: () => { editMix.splice(k, 1); renderFloors(); } }, '×'));
   }));
   const sumNote = h('div', { class: Math.abs(sum - 1) < 0.005 ? 'note' : 'neg' }, `Shares add up to ${(sum * 100).toFixed(1)}%${Math.abs(sum - 1) < 0.005 ? '.' : ' — must be 100%.'}`);
@@ -301,9 +303,9 @@ const iconEl = (id, px) => h('span', { class: 'picon', 'aria-hidden': 'true', st
 function valueKind(id) {
   const p = prog(id), row = p?.value_status === 'linked' ? data.rows.get(p.value_ref) : null;
   if (p?.value_status === 'zero' || row?.value_per_m2_gfa?.value === 0) return 'none';
-  return row?.value_basis === 'typical' ? 'typical' : 'sourced';
+  return TYPICAL_BASES.has(row?.value_basis) ? row.value_basis : 'sourced';
 }
-const KIND_LABEL = { sourced: 'sourced', typical: 'typical estimate', none: 'no income' };
+const KIND_LABEL = { sourced: 'sourced', researched: 'researched', analogy: 'analogy', none: 'no income' };
 let pickerOpen = false, pickerQuery = '';
 function addProgramme(id) {
   pickProgramme = id;
@@ -355,7 +357,7 @@ function programmePicker() {
   });
   const panel = h('div', { id: 'pickerPanel', class: 'picker-panel', role: 'dialog', 'aria-label': 'Choose a programme' },
     h('div', { class: 'pp-head' }, search, h('button', { 'aria-label': 'Close the programme list', onclick: () => { pickerOpen = false; renderFloors(); document.querySelector('#pickerBtn')?.focus(); } }, '×')),
-    chips, h('div', { class: 'pp-legend note' }, h('span', { class: 'pt-kind sourced' }, 'sourced'), ' published figure · ', h('span', { class: 'pt-kind typical' }, 'typical estimate'), ' starting number, check it · ', h('span', { class: 'pt-kind none' }, 'no income'), ' cost only'),
+    chips, h('div', { class: 'pp-legend note' }, h('span', { class: 'pt-kind sourced' }, 'sourced'), ' pack figure · ', h('span', { class: 'pt-kind researched' }, 'researched'), ' typical, from a 2025–26 figure · ', h('span', { class: 'pt-kind analogy' }, 'analogy'), ' typical, from a similar use · ', h('span', { class: 'pt-kind none' }, 'no income'), ' cost only'),
     grid, empty);
   panel.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); pickerOpen = false; renderFloors(); document.querySelector('#pickerBtn')?.focus(); } });
   filter();
@@ -384,10 +386,10 @@ function programmeCard(id) {
       h('div', { class: 'note' }, `${fam.name}${fam.intensity ? ' · intensity ' + fam.intensity : ''} · fits ${p.fits.join(', ') || p.fits_text} · code group ${(p.occupancy_group || []).join(', ') || '—'} · users ${(p.users || []).join(', ')}`),
       row ? h('div', { class: 'note' }, `Value row ${row.id}: ${row.name} · earns by ${row.earns_by} · method ${row.method}`) : h('div', { class: 'note' }, p.value_status === 'zero' ? 'Earns nothing: cost only.' : 'No sourced value yet: enter your own below.'),
       h('div', { class: 'grid2' },
-        numField(`pv-${id}`, 'Value per m² GFA (before height premium; office before leasing costs)', o.valuePerM2Gfa ?? (row ? row.value_per_m2_gfa.value : (p.value_status === 'zero' ? 0 : null)), { step: 100, unit: 'C$/m²', placeholder: 'user to supply', src: row?.value_per_m2_gfa, badge: row?.value_basis === 'typical' && o.valuePerM2Gfa == null ? typicalBadge() : null, onchange: v => setO('valuePerM2Gfa', v) }),
-        numField(`pc-${id}`, 'Hard cost per m² (before tall premium)', o.hardCostPerM2 ?? (baseCost || null), { step: 50, unit: 'C$/m²', placeholder: 'floor average', src: costSrc, badge: lines.some(l => l.value_basis === 'typical') && o.hardCostPerM2 == null ? typicalBadge() : null, onchange: v => setO('hardCostPerM2', v) }),
+        numField(`pv-${id}`, 'Value per m² GFA (before height premium; office before leasing costs)', o.valuePerM2Gfa ?? (row ? row.value_per_m2_gfa.value : (p.value_status === 'zero' ? 0 : null)), { step: 100, unit: 'C$/m²', placeholder: 'user to supply', src: row?.value_per_m2_gfa, badge: TYPICAL_BASES.has(row?.value_basis) && o.valuePerM2Gfa == null ? typicalBadge(row.value_basis) : null, onchange: v => setO('valuePerM2Gfa', v) }),
+        numField(`pc-${id}`, 'Hard cost per m² (before tall premium)', o.hardCostPerM2 ?? (baseCost || null), { step: 50, unit: 'C$/m²', placeholder: 'floor average', src: costSrc, badge: lines.some(l => l.value_basis === 'typical') && o.hardCostPerM2 == null ? typicalBadge('cost') : null, onchange: v => setO('hardCostPerM2', v) }),
         numField(`pe-${id}`, 'Efficiency (net ÷ gross)', o.efficiency ?? null, { step: 0.01, min: 0.3, max: 1, placeholder: 'from pack', onchange: v => setO('efficiency', v) })),
-      row?.value_basis === 'typical' && o.valuePerM2Gfa == null ? h('p', { class: 'note typ-note' }, `${row.value_per_m2_gfa.note} Range ${N(row.value_per_m2_gfa.range?.[0])}–${N(row.value_per_m2_gfa.range?.[1])} C$/m². Type your own number to replace it.`) : null,
+      (TYPICAL_BASES.has(row?.value_basis) || row?.value_basis === 'no_income') && o.valuePerM2Gfa == null ? h('p', { class: 'note typ-note' }, `${row.value_per_m2_gfa.note} Range ${N(row.value_per_m2_gfa.range?.[0])}–${N(row.value_per_m2_gfa.range?.[1])} C$/m². Type your own number to replace it.`) : null,
       driftNote,
       o && Object.keys(o).length ? h('button', { onclick: () => { pushHistory(); delete state.settings.programme[id]; refresh(); } }, 'Use pack defaults') : null,
       h('p', { class: 'note' }, 'A hard cost you type here replaces the pack rate including the tall-building premium. Leave a field empty to use the pack.')));
@@ -687,7 +689,7 @@ function renderAssume() {
 function renderAbout() {
   const drift = [...data.rows.values()].map(r => ({ r, re: recomputeValue(r) })).filter(x => x.re != null && x.r.value_per_m2_gfa.value && Math.abs(x.re / x.r.value_per_m2_gfa.value - 1) > 0.05);
   const srcs = [...data.sources.values()].filter(s => s.id !== 'assumption');
-  const typRows = [...data.rows.values()].filter(r => r.value_basis === 'typical');
+  const typRows = [...data.rows.values()].filter(r => TYPICAL_BASES.has(r.value_basis) || r.value_basis === 'no_income');
   const typLines = data.raw.costs.typical_lines || [];
   put($('#tab-about'), 
     h('p', {}, LABEL),
@@ -707,10 +709,10 @@ function renderAbout() {
     h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Source'), h('th', {}, 'Published'), h('th', {}, 'How checked'))),
       h('tbody', {}, srcs.map(s => h('tr', { 'data-tip': s.note || '' }, h('td', {}, s.url ? h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.title) : s.title, s.publisher ? h('span', { class: 'note' }, ` · ${s.publisher}`) : null), h('td', {}, s.published || '—'), h('td', {}, s.checked)))))),
     h('h4', { style: 'margin:0' }, 'Typical estimates'),
-    h('p', { class: 'note' }, 'Some uses have no published Vancouver figure. So that you never have to invent a price, each has a typical estimate: taken from a similar use, or from a quick 2025–26 search. They are grade C and marked “typical estimate” wherever they appear. Type your own number in Floors to replace one.'),
+    h('p', { class: 'note' }, 'Some uses have no figure in the pack’s main sources. So that you never have to invent a price, each has a typical estimate (grade C). “Researched” ones are built from a 2025–26 Vancouver, BC or Canadian figure found by web search; “analogy” ones borrow from a similar use because nothing usable was found. Both are marked wherever they appear. Type your own number in Floors to replace one. The full table of all 112 programmes is in docs/value_defaults.md.'),
     h('details', {}, h('summary', {}, `Values (${typRows.length}) and hard costs (${typLines.length})`),
       h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Row'), h('th', { class: 'num' }, 'C$/m² GFA'), h('th', {}, 'Basis'))),
-        h('tbody', {}, typRows.map(r => h('tr', {}, h('td', {}, `${r.id} · ${r.name}`), h('td', { class: 'num' }, N(r.value_per_m2_gfa.value)), h('td', { class: 'note' }, r.value_per_m2_gfa.note.replace(/^Typical estimate: /, '')))),
+        h('tbody', {}, typRows.map(r => h('tr', {}, h('td', {}, `${r.id} · ${r.name}`), h('td', { class: 'num' }, N(r.value_per_m2_gfa.value)), h('td', { class: 'note' }, h('span', { class: `pt-kind ${r.value_basis === 'no_income' ? 'none' : r.value_basis}` }, r.value_basis === 'no_income' ? 'no income' : r.value_basis), ' ', r.value_per_m2_gfa.note.replace(/^Typical estimate \(\w+\): |^Earns nothing: /, '')))),
           typLines.map(l => h('tr', {}, h('td', {}, `Hard cost · ${l.name}`), h('td', { class: 'num' }, N(l.default_m2.value)), h('td', { class: 'note' }, l.default_m2.note.replace(/^Typical estimate: /, '')))))))),
     h('h4', { style: 'margin:0' }, 'Open data gaps'),
     h('p', { class: 'note' }, 'Luxury hotel ADR; deck visitor numbers; supertall cost premium; Metro Vancouver and TransLink charges; efficiency curve vs CTBUH data; land price; downtown parking rates; public floor running cost. The typical estimates above should be replaced by sourced figures over time.'));
@@ -774,7 +776,7 @@ let sample = null, chatTurns = [], chatCtl = null, aiState = 'idle';
 const RULES = `You are the assistant inside Program Value Visualizer, a browser tool for early design of tall buildings in Vancouver. It estimates, floor by floor, the value, cost, City charges and developer profit of a programme mix, and the residual land value left for the land.
 Rules:
 - Every number is an indicative early-design estimate, never a feasibility study, appraisal or compliance check. Say so when you give a verdict.
-- Values marked value_basis "typical" are typical estimates (grade C), not sourced figures: say so when you use one.
+- Values with value_basis "researched" or "analogy" are typical estimates (grade C), not the pack's sourced figures: say which when you use one. "no_income" means the use earns nothing for the owner.
 - Use the tools to read the current scheme before answering questions about it. Quote numbers from tool results, with their source and grade when you have them. Never invent prices.
 - When the user asks for a change (programme mix, assumptions, user-supplied values), make it with the tools, then report how the verdict and residual land value moved. Changes can be undone with the Undo button.
 - Programmes are chosen by id from the catalogue (use find_programmes). Shares on a floor must add up to 1.
@@ -900,7 +902,8 @@ function openHelp() {
       h('li', {}, gradeTag('A'), ' From a professional 2025–26 report, checked on the page.'),
       h('li', {}, gradeTag('B'), ' From a secondary or older source.'),
       h('li', {}, gradeTag('C'), ' Arithmetic or an assumption.'),
-      h('li', {}, h('span', { class: 'typ' }, 'typical estimate'), ' A starting number for a use with no published Vancouver figure. It comes from a similar use or a quick search. Always grade C: check it before relying on it.'),
+      h('li', {}, h('span', { class: 'typ researched' }, 'typical · researched'), ' A starting number built from a 2025–26 Vancouver, BC or Canadian figure found by search. Grade C.'),
+      h('li', {}, h('span', { class: 'typ analogy' }, 'typical · analogy'), ' No usable figure was found, so it borrows from a similar use. Grade C: the weakest numbers in the tool.'),
       h('li', {}, 'Hover or tap “source” next to a number to see where it comes from and when it was published.')),
     h('h3', {}, 'Limits'),
     h('p', { class: 'note' }, 'Every result is an indicative early-design estimate. It is for comparing early options. It is not a feasibility study, an appraisal or a compliance check. Market data is a snapshot from 2026, and the map is visual context, not survey data.'),

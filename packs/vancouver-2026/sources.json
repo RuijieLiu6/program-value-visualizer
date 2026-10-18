@@ -352,6 +352,166 @@
       "checked": "summary",
       "local_copy": false,
       "note": "Vancouver industrial cap rate 4.40% (Q1 2026: 4.20%); vacancy 4.5%."
+    },
+    {
+      "id": "hostelz-vancouver-2025",
+      "title": "Hostels in Vancouver: prices",
+      "publisher": "Hostelz",
+      "url": "https://www.hostelz.com/en/hostels/Canada/British-Columbia/Vancouver",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Dorm beds about $34-74 a night by month (Feb lowest, June highest); private rooms from about $90. Aggregator listings.",
+      "local_copy": false
+    },
+    {
+      "id": "seniors-advocate-ltc-2025",
+      "title": "Long-Term Care and Assisted Living Directory, summary report 2025",
+      "publisher": "Office of the Seniors Advocate BC",
+      "url": "https://www.seniorsadvocatebc.ca/app/uploads/sites/4/2026/01/ltc-al-directory-report-2025.pdf",
+      "published": "2026-01",
+      "checked": "summary",
+      "note": "2024/25: contracted long-term care per diem averaged $293.63 a bed-day (range $258.68-408.80); average resident client fee $2,215 a month.",
+      "local_copy": false
+    },
+    {
+      "id": "comfortlife-al-vancouver",
+      "title": "Assisted living costs in Vancouver",
+      "publisher": "Comfort Life",
+      "url": "https://comfortlife.ca/retirement-communities/vancouver-assisted-living",
+      "published": null,
+      "checked": "summary",
+      "note": "Private assisted living in Vancouver from about $4,070 a month (meals and housekeeping included, care extra). Survey year not stated.",
+      "local_copy": false
+    },
+    {
+      "id": "tagvenue-vancouver-2025",
+      "title": "Venue and studio hire prices, Vancouver",
+      "publisher": "Tagvenue",
+      "url": "https://www.tagvenue.com/ca/hire/large-event-venues/vancouver",
+      "published": "2025-12",
+      "checked": "summary",
+      "note": "Large venues (225+ guests) about C$3,000 per event; wedding venues C$175-400 an hour; recording studios average C$125 an hour (Dec 2025 listing data).",
+      "local_copy": false
+    },
+    {
+      "id": "cbre-hotel-spa-2024",
+      "title": "The role of hotel spa departments",
+      "publisher": "CBRE Hotels Research",
+      "url": "https://www.cbre.com/insights/articles/the-role-of-hotel-spa-departments",
+      "published": "2025",
+      "checked": "summary",
+      "note": "2024, 297 US hotels with spas: spa revenue US$9,847 per available room at luxury hotels (US$6,061 all); spa is about 4% of luxury hotel revenue.",
+      "local_copy": false
+    },
+    {
+      "id": "cineplex-2025",
+      "title": "Cineplex reports fourth quarter and annual 2025 results",
+      "publisher": "Cineplex",
+      "url": "https://mediafiles.cineplex.com/investor-relations/earnings-calls/Q4%202025%20Press%20Release.pdf",
+      "published": "2026-02",
+      "checked": "summary",
+      "note": "2025: attendance 42.18 million; box office per patron $13.29; concession per patron $9.72; 154 theatres, 1,606 screens.",
+      "local_copy": false
+    },
+    {
+      "id": "expatistan-gym-2025",
+      "title": "Price of a monthly gym membership in Vancouver",
+      "publisher": "Expatistan",
+      "url": "https://expatistan.com/price/gym/vancouver",
+      "published": "2025-11",
+      "checked": "summary",
+      "note": "Business-district gym about C$72 a month (six price points, updated 11 Nov 2025); city guides give $65-90.",
+      "local_copy": false
+    },
+    {
+      "id": "yyoga-classpack-2025",
+      "title": "YYOGA holiday class pack",
+      "publisher": "Daily Hive",
+      "url": "https://dailyhive.com/vancouver/yyoga-holiday-class-pack-2025",
+      "published": "2025-12",
+      "checked": "summary",
+      "note": "10-class pack $180 ($18 a class); boutique drop-in about $30.",
+      "local_copy": false
+    },
+    {
+      "id": "vancouver-parks-fees-2025",
+      "title": "2025 Fees and Charges, Parks and Recreation (Appendix A)",
+      "publisher": "Vancouver Board of Parks and Recreation",
+      "url": "https://parkboardmeetings.vancouver.ca/2024/20241125/REPORT-2025FeesCharges-ParksRecreation-APPENDIXA-20241125.pdf",
+      "published": "2024-11",
+      "checked": "summary",
+      "note": "Kerrisdale Play Palace drop-in $4.70-6.72 a child. City rink rental promotional rate $105 an hour (March 2025).",
+      "local_copy": false
+    },
+    {
+      "id": "playstreet-2025",
+      "title": "Play Street Museum Vancouver admission",
+      "publisher": "Play Street Museum",
+      "url": "https://book.playstreetmuseum.com/p/n/Cm3frgGt",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Admission $16 + tax a child (ages 1-8). Private play centre.",
+      "local_copy": false
+    },
+    {
+      "id": "edgewalk-ticket",
+      "title": "EdgeWalk at the CN Tower",
+      "publisher": "Lonely Planet",
+      "url": "https://www.lonelyplanet.com/pois/393191",
+      "published": null,
+      "checked": "summary",
+      "note": "Ticket about $195; runs May to October in small groups. No visitor count published.",
+      "local_copy": false
+    },
+    {
+      "id": "flyover-2026",
+      "title": "FlyOver Canada review: tickets",
+      "publisher": "Vancouver Tourism guide",
+      "url": "https://vancouvertourism.org/flyover-canada-review/",
+      "published": "2026",
+      "checked": "summary",
+      "note": "Adult tickets about $35 online, $40 at the door. No visitor count published.",
+      "local_copy": false
+    },
+    {
+      "id": "kitchendoor-vancouver",
+      "title": "Commercial kitchens for rent, Vancouver",
+      "publisher": "The Kitchen Door",
+      "url": "https://www.thekitchendoor.com/kitchen-rental/commercial-kitchen-for-rent-fully-equipped-vancouver",
+      "published": null,
+      "checked": "summary",
+      "note": "Keefer St kitchen $75/h day, $55/h evening, or $3,000-6,000 a month; another at $66/h. Listings undated.",
+      "local_copy": false
+    },
+    {
+      "id": "ubc-housing-2025",
+      "title": "UBC Vancouver residence fees 2025/26",
+      "publisher": "UBC Student Housing",
+      "url": "https://vancouver.housing.ubc.ca/applications/fees-payments/marine-drive/",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Studios about $1,230-1,490 a month (Green College, Marine Drive, Exchange, Iona House), utilities and internet included.",
+      "local_copy": false
+    },
+    {
+      "id": "courtenay-cemetery-2026",
+      "title": "Cemetery fees (bylaw 3205)",
+      "publisher": "City of Courtenay",
+      "url": "https://www.courtenay.ca/media/file/cemetery-fees-handout-bylaw-3205pdf",
+      "published": "2026",
+      "checked": "summary",
+      "note": "Columbarium niche $2,376 for residents, care fund included (municipal, Vancouver Island). Private Metro Vancouver cemeteries do not publish prices.",
+      "local_copy": false
+    },
+    {
+      "id": "coworking-vancouver-2025",
+      "title": "Coworking spaces in Vancouver: prices",
+      "publisher": "Hardbacon; LiquidSpace listings",
+      "url": "https://www.hardbacon.ca/en/business/coworking-spaces-vancouver/",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Hot desks about $295-495 a month; dedicated desks $350-660 (e.g. Makeshift from $426). Listings partly undated.",
+      "local_copy": false
     }
   ]
 }

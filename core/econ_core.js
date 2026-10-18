@@ -7,6 +7,8 @@ const SALE_ROWS = new Set(['R1', 'R2', 'R3']);
 const RESIDENTIAL_ROWS = new Set(['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'S2']);
 const HOTEL_ROWS = new Set(['H1', 'H2', 'H3', 'H4', 'H5']);
 const OFFICE_ROWS = new Set(['O1', 'O2', 'O3']);
+/** Value bases that are typical estimates (grade C) rather than the pack's sourced rows. */
+export const TYPICAL_BASES = new Set(['researched', 'analogy']);
 const NO_FSR_PROGRAMMES = new Set(['SB1', 'SB2', 'SB3', 'SB4', 'SB5', 'SB6', 'SB7', 'SB8', 'SB10', 'SB11', 'AM7', 'AM8', 'AM9']);
 
 export const FT2_PER_M2 = 10.764;
@@ -297,7 +299,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     const avg = fp.length ? fp.reduce((s, i) => s + i.hardRate * i.gfa, 0) / Math.max(1e-9, fp.reduce((s, i) => s + i.gfa, 0)) : projAvg;
     for (const i of fo.items) if (i.costEstimated) i.hardRate = avg;
   }
-  const typicalUsed = [...new Set(items.filter(i => i.valueBasis === 'typical' || i.costBasis === 'typical').map(i => i.programme_id))];
+  const typicalUsed = [...new Set(items.filter(i => TYPICAL_BASES.has(i.valueBasis) || i.costBasis === 'typical').map(i => i.programme_id))];
   if (typicalUsed.length) rules.push({ type: 'typical', level: null, severity: 'info', text: `Typical estimates in use (value or cost, grade C): ${typicalUsed.join(', ')}. Check them before relying on the result, or type your own in Floors.` });
   const estimated = new Map();
   for (const i of items) if (i.costEstimated) { const e = estimated.get(i.programme_id) || { name: i.name, gfa: 0, levels: [] }; e.gfa += i.gfa; e.levels.push(i.level); estimated.set(i.programme_id, e); }
