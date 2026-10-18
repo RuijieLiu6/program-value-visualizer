@@ -66,7 +66,7 @@ test('the money stack adds up exactly to the residual after CAC (with public upk
   assert.ok(moneySteps(runs[1]).steps.some(s => s.key === 'public'), 'public upkeep step shows when it is charged');
 });
 
-test('the kid example uses the tool’s own ratios and verdict rule', () => {
+test('the worked example uses the tool’s own ratios and verdict rule', () => {
   const t = toySteps({ worth: 100, build: 45, land: 10 });
   const soft = 45 * 0.25, fin = (45 + soft) * 0.195, cost = 45 + soft + fin + 5;
   assert.ok(Math.abs(t.left - (100 - cost - cost * 0.15)) < 1e-9);
@@ -90,6 +90,11 @@ test('13 chapters, in order, each with a title, short sentences and a way into t
     if (c.tool) assert.ok(['floors', 'verdict', 'city', 'sens', 'assume', 'about', 'map', 'ai'].includes(c.tool.tab), c.id);
   }
   assert.deepEqual(CHAPTERS.slice(0, 7).map(c => c.id), ['stack', 'earn', 'tree', 'height', 'costs', 'profit', 'land']);
+  // written for adults with no finance background: real terms, defined once, a design takeaway, no pretend money
+  const all = CHAPTERS.flatMap(c => [c.title, ...c.text, c.design || '', c.tool?.text || '']).join(' ').replace(/\{[a-z]+\}/g, '');
+  for (const term of ['cap rate', 'gross development value', 'residual land value', 'community amenity contribution', 'presales', 'Floor space ratio', 'Hard cost', 'Soft cost', 'Finance cost']) assert.ok(all.toLowerCase().includes(term.toLowerCase()), term);
+  assert.ok(!/\bcoins?\b|thank-you|pretend/i.test(all), 'childish wording left');
+  assert.ok(CHAPTERS.filter(c => c.design).length >= 11, 'design takeaways');
 });
 
 test('every chapter picture exists, is well formed, themed through tokens and safe to draw twice', async () => {

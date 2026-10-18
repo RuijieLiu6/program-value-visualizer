@@ -1,5 +1,5 @@
-// Program Value Visualizer — the Tower Money Book: how money works for a tall building, told simply,
-// with pictures and small things to try. The same module runs as a standalone guide page ("book" mode)
+// Program Value Visualizer — the Tower Money Book: how the money works in a tall building, in plain language
+// for designers with no finance background, with illustrations and small things to try. The same module runs as a standalone guide page ("book" mode)
 // and inside the tool's Help ("guide" mode, one chapter at a time, with "Show me" buttons).
 // The last chapters use the tool's real calculator, so the book and the tool always agree.
 import { evaluate } from '../../core/econ_core.js';
@@ -25,7 +25,8 @@ function h(tag, attrs = {}, ...kids) {
 /** Text with {symbol} tokens and **bold**: escaped, then symbols inlined. */
 const rich = text => esc(text).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\{([a-z]+)\}/g, (_, n) => { try { return `<span class="tmb-isym">${sym(n, 18)}</span>`; } catch (e) { return ''; } });
 const para = t => h('p', { html: rich(t) });
-const coins = x => `${Math.round(x)} coin${Math.round(x) === 1 ? '' : 's'}`;
+/** Example amounts in millions of Canadian dollars: 12 -> "C$12 M", 1.5 -> "C$1.5 M". */
+const cm = x => `${x < 0 ? '−' : ''}C$${Math.abs(x) < 10 && Math.abs(x) % 1 ? Math.abs(x).toFixed(1) : Math.round(Math.abs(x)).toLocaleString('en-CA')} M`;
 const M = x => `C$${(x / 1e6).toFixed(1)} M`;
 const VERDICT = { works: 'Works', marginal: 'Marginal', doesnt_work: 'Doesn’t work', needs_land: 'Land price needed', incomplete: 'Incomplete' };
 const slider = (id, label, min, max, step, value, unit, oninput) => {
@@ -78,73 +79,85 @@ export const PLAY_SETTINGS = { podiumTopFloor: 1, siteAreaM2: null, minNonresFsr
 // ---------- chapters ----------
 /** Each chapter: id, title, picture (scene name), paragraphs, an optional "try it" builder, and where it lives in the tool. */
 export const CHAPTERS = [
-  { id: 'stack', title: 'A tall building is a stack of boxes', scene: 'stack',
-    text: ['Picture a tower as boxes piled on top of each other. Each box is one floor.',
-      'Every floor can hold something different: shops at the street, offices, a hotel, homes, and a lookout at the top.',
-      'To know if the whole tower can pay for itself, we ask two things about every box: how many coins it brings in {coin}, and how many coins it costs to build {brick}.'],
-    tryIt: 'stack', tool: { s: 'coin', text: 'The Section on the left is your stack of boxes. Click a floor, then choose what it holds in the Floors tab.', tab: 'floors' } },
-  { id: 'earn', title: 'Five ways a floor can earn (or not)', scene: 'earn',
-    text: ['{sale} **For sale.** Homes sold once. The coins come in one go.',
-      '{rent} **For rent.** Offices, shops and apartments pay rent every month, for many years.',
-      '{operate} **Operated.** A hotel or a lookout sells nights or tickets every day, and pays staff to run it.',
-      '{public} **Public.** A library, a childcare or a free deck. Everyone gains, but the owner gets no coins, and someone must pay to run it.',
-      '{support} **Support.** Lifts, pipes and machines. Every tower needs them. They earn nothing.'],
-    tryIt: 'quiz', tool: { s: 'sale', text: 'Every programme in the picker carries one of these five tags, with the same symbol.', tab: 'floors' } },
-  { id: 'tree', title: 'Why is a rented floor worth a pile of coins today?', scene: 'tree',
-    text: ['Think of a tree that drops 5 coins every year.',
-      'How much would someone pay for the whole tree today? If buyers want 5 coins back each year for every 100 they pay, they pay 100 coins.',
-      'That “5 back for every 100” is the **cap rate**: 5%. So **coins per year ÷ cap rate = what the tree is worth today**.',
-      'A lower cap rate means buyers feel safe, so the tree is worth more.'],
-    tryIt: 'tree', tool: { s: 'tree', text: 'The tool values every rented or operated floor this way: yearly rent, less empty months and running costs, divided by the cap rate. Method & sources shows each cap rate and where it comes from.', tab: 'about' } },
-  { id: 'height', title: 'Higher is worth more, for some uses', scene: 'height',
-    text: ['People pay more for a home with a view. In this tool a condo gains about 0.7% for every floor above the podium.',
-      'Shops are the other way round: they earn only at street level, where people walk past. Higher up they earn almost nothing.',
-      'Offices gain only a little with height, and a mid-price hotel about nothing.'],
-    tryIt: 'height', tool: { s: 'coin', text: 'The bars beside the section show this: green floors earn more than they cost, red floors need help from the others.', tab: 'floors' } },
-  { id: 'costs', title: 'Building costs coins, in four piles', scene: 'costs',
-    text: ['{brick} **Building it.** Concrete, steel, glass and the people who build. The biggest pile.',
-      '{plans} **Design and permits.** Architects, engineers, permits, insurance and sales: about a quarter of the building pile.',
-      '{clock} **Interest.** The builder borrows while the tower goes up, about six years, and the bank charges for it.',
-      '{city} **City charges.** For every square metre, the City asks for coins for pipes, parks, transit and community spaces.',
-      'Very tall towers (over 250 m) cost about 15% more to build, floor for floor.'],
-    tryIt: 'floorCost', tool: { s: 'brick', text: 'The Verdict tab adds these piles up for your tower; the City ledger shows the City charges.', tab: 'verdict' } },
-  { id: 'profit', title: 'The builder’s thank-you', scene: 'profit',
-    text: ['Building a tower takes years and a lot of risk: prices can fall and costs can rise.',
-      'So the builder (the developer) needs a reward, or nobody would start. Here it is 15 coins for every 100 coins spent {piggy}. Banks want to see it before they lend.',
-      'It is the price of the risk. If the thank-you is too small, the tower is only “Marginal”.'],
+  { id: 'stack', title: 'A tower is a stack of floors, each with its own money', scene: 'stack',
+    text: ['For money purposes, think of a tower as a stack of floors. Each floor can hold a different use: shops at street level, offices, a hotel, apartments, a lookout at the top.',
+      'Every floor has two numbers: what it is worth once finished {coin}, and what it costs to build {brick}.',
+      'Add the floors up and you know whether the tower as a whole pays for itself. Some floors make money and carry others that lose it.'],
+    design: 'Your stacking diagram is already a financial model: changing what a floor holds changes the balance of the whole tower.',
+    tryIt: 'stack', tool: { s: 'coin', text: 'The Section on the left is your stack. Click a floor, then choose its use in the Floors tab.', tab: 'floors' } },
+  { id: 'earn', title: 'Five ways a floor earns its value', scene: 'earn',
+    text: ['{sale} **For sale.** Condominiums sold to individual buyers, usually before construction starts. The money arrives once.',
+      '{rent} **For rent.** Offices, shops and rental apartments. Tenants pay rent every month for decades, and the owner keeps the building.',
+      '{operate} **Operated.** A hotel or a ticketed lookout sells rooms or tickets every day and pays staff to run it. The income is higher but less certain.',
+      '{public} **Public.** A library, a childcare centre or a free public floor. The city gains, the owner earns nothing, and someone must fund its running costs every year.',
+      '{support} **Support.** Lifts, mechanical floors and plant rooms. Every tower needs them, and they earn nothing.'],
+    design: 'The same floor plate can be worth very different amounts depending on how it earns, not only on what it is.',
+    tryIt: 'quiz', tool: { s: 'sale', text: 'Every use in the programme picker carries one of these five tags, with the same symbol.', tab: 'floors' } },
+  { id: 'tree', title: 'How rent becomes value: the cap rate', scene: 'tree',
+    text: ['A rented floor is not sold once. It earns every year. So how much is it worth today?',
+      'Investors answer with a required return. If a floor earns C$1 million a year after running costs, and buyers want 5% a year back, they pay C$20 million for it.',
+      'That 5% is the **capitalisation rate, or cap rate**. The rule is simple: **annual net income ÷ cap rate = value**.',
+      'A lower cap rate means investors see less risk, so the same income is worth more. In this tool, Vancouver rental apartments use about 4.25% and Class A offices about 5.4%.'],
+    design: 'Anything that raises dependable rent (efficient plates, daylight, flexible floors) raises the building’s value directly.',
+    tryIt: 'tree', tool: { s: 'tree', text: 'The tool values every rented or operated floor this way: rent, less vacancy and running costs, divided by the cap rate. Method & sources lists each cap rate and its source.', tab: 'about' } },
+  { id: 'height', title: 'Height adds value to some uses and not others', scene: 'height',
+    text: ['Buyers pay more for views. In this tool a condominium gains about 0.7% in value for every floor above the podium.',
+      'Retail works the other way round. Shops depend on people walking past, so they earn at street level and almost nothing above the second floor.',
+      'Offices gain a little with height, and a mid-market hotel gains about nothing.'],
+    design: 'Put homes high and active retail at grade; offices and hotels work well in the lower and middle tower.',
+    tryIt: 'height', tool: { s: 'coin', text: 'The bars beside the section show the result per floor: green floors earn more than they cost, red floors need support from the others.', tab: 'floors' } },
+  { id: 'costs', title: 'Construction cost comes in four parts', scene: 'costs',
+    text: ['{brick} **Hard cost.** Structure, envelope, building services, interiors and labour. The largest part.',
+      '{plans} **Soft cost.** Design and engineering fees, permits, insurance, legal and marketing. About a quarter of the hard cost here.',
+      '{clock} **Finance cost.** Interest on the construction loan over roughly six years of design and building. Here about a fifth of hard plus soft cost.',
+      '{city} **City charges.** Development cost levies (DCL) and amenity cost charges (ACC), charged per square metre to fund pipes, parks, transit and community facilities.',
+      'Towers taller than 250 m cost about 15% more per floor, for structure, wind and vertical transport.'],
+    design: 'Height, structure and slenderness drive hard cost; each extra floor has to earn more than it costs to build.',
+    tryIt: 'floorCost', tool: { s: 'brick', text: 'The Verdict tab adds these costs up for your tower; the City ledger shows the City charges.', tab: 'verdict' } },
+  { id: 'profit', title: 'The developer’s profit', scene: 'profit',
+    text: ['A tower takes six years or more, and the risks are large: prices can fall, and costs and interest rates can rise.',
+      'A developer only takes that risk for a margin. This tool uses 15% of total cost {piggy}, the City of Vancouver’s own benchmark. Lenders look for it before they fund a project.',
+      'Profit is part of the cost of getting a building built, not an extra. If a scheme cannot pay it, the result is at best “Marginal”.'],
+    design: 'A scheme that only works if the developer earns less than this is unlikely to be built.',
     tool: { s: 'piggy', text: 'Assumptions → Developer profit on cost. The Verdict tab shows it in the money stack.', tab: 'assume' } },
-  { id: 'land', title: 'What is left pays for the land', scene: 'land',
-    text: ['Now put it together. Start with what the floors are worth {coin}. Take away every cost pile {brick} {plans} {clock} {city} and the builder’s thank-you {piggy}.',
-      'What is left is what the tower can pay for its land {land}. It is called the **residual land value**.',
-      'Then compare it with the price of the land. Enough: **Works**. Close, or homes that must be sold in a weak market: **Marginal**. Not enough: **Doesn’t work**.'],
-    tryIt: 'waterfall', tool: { s: 'land', text: 'The Verdict tab shows this same money stack and traffic light for your tower. If you have no land price, the tool estimates one: site area × the FSR the old rules allow × a land rate.', tab: 'verdict' } },
-  { id: 'city', title: 'The City’s share', scene: 'city',
-    text: ['The City helps a tall tower happen: it lets it be taller than the old rules allow. That makes the land worth more.',
-      'So the City asks for a big share of that extra value, here 75%. It is called the **CAC** (community amenity contribution) {city}, and it pays for parks, childcare and housing.',
-      'A tower of jobs only (no homes) pays no CAC under the 2026 rules.',
-      '{public} Free public floors cost coins every year to run. Someone must pay: the other floors, a fund from the CAC, deck tickets, or the City.'],
+  { id: 'land', title: 'What is left pays for the land: residual land value', scene: 'land',
+    text: ['Now put it together. Start with what the finished floors are worth, the **gross development value** {coin}. Subtract every cost {brick} {plans} {clock} {city} and the developer’s profit {piggy}.',
+      'What remains is the most anyone could pay for the land and still build this scheme. It is the **residual land value** {land}.',
+      'Compare it with the land price. Enough: **Works**. Within 10%, or relying on condo presales in a weak market: **Marginal**. Short: **Doesn’t work**.'],
+    design: 'To a developer, a design is worth the land value it creates. This is the number your scheme should improve.',
+    tryIt: 'waterfall', tool: { s: 'land', text: 'The Verdict tab shows this money stack and verdict for your tower. Without a land price, the tool estimates one: site area × the FSR current zoning allows × a land rate.', tab: 'verdict' } },
+  { id: 'city', title: 'What the City takes, and why', scene: 'city',
+    text: ['When the City allows a taller or denser building than current zoning permits (a rezoning), the land becomes worth more.',
+      'The City captures much of that increase through a **community amenity contribution (CAC)** {city}: in this tool, 75% of the increase above the land’s value under current zoning. It funds parks, childcare and affordable housing.',
+      'Under the 2026 policy, rezonings for employment uses only (no housing) pay no CAC.',
+      '{public} Public floors handed to the City cost money to run every year. A scheme must show who pays: the other floors, a fund from the CAC, deck revenue, or the City.'],
+    design: 'Public amenity is part of the deal: design it in from the start, and say how its running cost is covered.',
     tryIt: 'cac', tool: { s: 'city', text: 'The City ledger tab shows everything the City receives, and who pays for the public floors.', tab: 'city' } },
-  { id: 'presales', title: 'Selling homes before building them', scene: 'presales',
-    text: ['Before a bank lends the coins to build condos {bank}, it wants proof that people will buy: about 6 or 7 of every 10 homes sold first {house}. These are **presales**.',
-      'In 2026 few people are buying homes before they are built in Vancouver. So even when the sums add up, a condo tower is only “Marginal”.',
-      'Rental homes, offices and hotels need no presales, but in 2026 they earn less than they cost on most floors.'],
-    tryIt: 'presales', tool: { s: 'bank', text: 'Assumptions → Condo presale market: weak (2026) or normal. Market scenarios show what a stronger year would change.', tab: 'assume' } },
-  { id: 'fsr', title: 'The competition’s rule: nine layers of jobs', scene: 'fsr',
-    text: ['**FSR** (floor space ratio) counts how many times the site’s area you build. FSR 9 means nine site-sized layers of floor.',
-      'The Vancouver Tall Challenge asks for at least 9 FSR of space that is not homes: offices, hotel, shops, learning, health.',
-      'On 2026 numbers most offices cost more to build than they are worth. That is why this rule is the hardest part of making the tower pay.'],
+  { id: 'presales', title: 'Why condos must sell before construction', scene: 'presales',
+    text: ['Before a lender funds the construction of condominiums {bank}, it wants proof of demand: usually 60–70% of the units sold in advance {house}. These are **presales**.',
+      'In 2026 Vancouver’s presale market is weak, and few buyers commit years ahead. A condo scheme can add up on paper and still be only “Marginal”.',
+      'Rental, office and hotel space need no presales, but on 2026 numbers most of it earns less than it costs to build.'],
+    design: 'A mix that relies on condos depends on the presale market; rental or hotel floors spread that risk.',
+    tryIt: 'presales', tool: { s: 'bank', text: 'Assumptions → Condo presale market (weak in 2026, or normal). Market scenarios show what a stronger year changes.', tab: 'assume' } },
+  { id: 'fsr', title: 'The competition rule: 9 FSR of non-residential space', scene: 'fsr',
+    text: ['**Floor space ratio (FSR)** is total floor area divided by site area. FSR 9 means nine site-sized layers of floor.',
+      'The Vancouver Tall Challenge requires at least 9 FSR of non-residential, high-employment space: offices, hotel, retail, education, health.',
+      'On 2026 numbers most office space costs more to build than it is worth. That makes this rule the hardest part of making the scheme pay.'],
+    design: 'Look for non-residential uses that earn (hotel, medical, education), and check how the hotel is classified.',
     tryIt: 'fsr', tool: { s: 'check', text: 'The Verdict tab’s Brief check shows your non-residential FSR, counting the hotel both ways.', tab: 'verdict' } },
-  { id: 'leverage', title: 'Small change, big swing', scene: 'leverage',
-    text: ['The coins left for the land are a thin slice of a big cake.',
-      'If prices rise a little, the slice grows a lot. If they fall a little, the slice can vanish.',
-      'That is why the Sensitivity tab shows which numbers to check first.'],
-    tryIt: 'leverage', tool: { s: 'coins', text: 'The Sensitivity tab moves one number at a time and shows how far the land money swings.', tab: 'sens' } },
-  { id: 'play', title: 'Your turn: build a small tower', scene: null,
-    text: ['This one uses the tool’s real calculator and its 2026 Vancouver numbers. Here **1 coin = C$1 million**.',
-      'Choose what each part of a 40-floor tower holds. Watch the money stack and the traffic light. Then switch the presale market to see what a stronger year changes.'],
+  { id: 'leverage', title: 'Small changes, large swings', scene: 'leverage',
+    text: ['The money left for land is a thin margin between two large numbers: value and cost.',
+      'If value is C$100 million and costs plus profit are C$92 million, the land gets C$8 million. A 10% rise in prices makes that C$18 million; a 10% fall leaves nothing.',
+      'That is why the Sensitivity tab shows which inputs to check first.'],
+    design: 'Treat a scheme that works by a thin margin as fragile, and test it against the weaker cases.',
+    tryIt: 'leverage', tool: { s: 'coins', text: 'The Sensitivity tab changes one input at a time and shows how far the land value moves.', tab: 'sens' } },
+  { id: 'play', title: 'Try it: test a 40-storey tower', scene: null,
+    text: ['This uses the tool’s own calculator and its 2026 Vancouver numbers.',
+      'Choose the use of each zone of a 40-storey tower. Watch the money stack and the verdict, then switch the presale market to see what a stronger year changes.'],
+    design: 'Notice which zones carry the tower and which need its support.',
     tryIt: 'play', tool: { s: 'crane', text: 'Your own tower works the same way. Presets and Find a mix that works give you starting points.', tab: 'verdict' } },
-  { id: 'tool', title: 'Finding your way in the tool', scene: null,
-    text: ['Every symbol in this book appears in the tool, and means the same thing.'],
+  { id: 'tool', title: 'Finding your way around the tool', scene: null,
+    text: ['Every symbol in this guide appears in the tool with the same meaning.'],
     tryIt: 'map', tool: null },
 ];
 
@@ -152,14 +165,14 @@ export const CHAPTERS = [
 const TRY = {
   stack(ctx) {
     const uses = [['Shops', 'rent', '#e2a33b'], ['Offices', 'rent', '#3f6e9a'], ['Hotel', 'operate', '#8457c9'], ['Rental homes', 'rent', '#3f8f6a'], ['Condos', 'sale', '#3b74d1'], ['Community', 'public', '#e07b32'], ['Plant', 'support', '#8d98a3'], ['Lookout', 'operate', '#2a9fb2']];
-    const say = { rent: 'pays rent every month', sale: 'is sold once', operate: 'sells nights or tickets', public: 'is free: no coins, and it costs coins to run', support: 'keeps the tower running: no coins' };
+    const say = { rent: 'earns rent every month', sale: 'is sold once, usually before construction', operate: 'sells rooms or tickets every day', public: 'earns nothing and costs money to run every year', support: 'keeps the tower running and earns nothing' };
     const floors = [0, 1, 1, 2, 3, 4, 4, 7];
-    const note = h('p', { class: 'tmb-note', 'aria-live': 'polite' }, 'Click a floor to change what it holds.');
+    const note = h('p', { class: 'tmb-note', 'aria-live': 'polite' }, 'Click a floor to change its use.');
     const box = h('div', { class: 'tmb-stack', role: 'group', 'aria-label': 'A stack of eight floors' });
     const draw = () => {
       box.replaceChildren(...floors.map((u, k) => ({ u, k })).reverse().map(({ u, k }) => {
         const [name, how, col] = uses[u];
-        return h('button', { type: 'button', class: 'tmb-floor', style: `--fc:${col}`, 'aria-label': `Floor ${k + 1}: ${name}. Change it.`, onclick: () => { floors[k] = (floors[k] + 1) % uses.length; draw(); note.innerHTML = rich(`Floor ${k + 1} now holds **${uses[floors[k]][0].toLowerCase()}**: it ${say[uses[floors[k]][1]]} {${uses[floors[k]][1]}}.`); } },
+        return h('button', { type: 'button', class: 'tmb-floor', style: `--fc:${col}`, 'aria-label': `Level ${k + 1}: ${name}. Change its use.`, onclick: () => { floors[k] = (floors[k] + 1) % uses.length; draw(); note.innerHTML = rich(`Level ${k + 1} is now **${uses[floors[k]][0].toLowerCase()}**: it ${say[uses[floors[k]][1]]} {${uses[floors[k]][1]}}.`); } },
           h('span', { class: 'tmb-fl-n' }, `${k + 1}`), h('span', { html: sym(how, 18) }), name);
       }));
     };
@@ -177,21 +190,21 @@ const TRY = {
       s.addEventListener('change', () => { mark.innerHTML = s.value ? sym(s.value === ans ? 'check' : 'cross', 18, s.value === ans ? 'right' : 'try again') : ''; });
       return { el: h('div', { class: 'tmb-quiz-row' }, h('label', { for: id }, name), s, mark), s, ans };
     });
-    const check = h('button', { type: 'button', onclick: () => { const ok = rows.filter(r => r.s.value === r.ans).length; res.textContent = ok === rows.length ? 'All five right.' : `${ok} of 5 right. Look at the five symbols above and try again.`; } }, 'Check');
+    const check = h('button', { type: 'button', onclick: () => { const ok = rows.filter(r => r.s.value === r.ans).length; res.textContent = ok === rows.length ? 'All five correct.' : `${ok} of 5 correct. Compare with the five descriptions above and try again.`; } }, 'Check');
     return h('div', { class: 'tmb-quiz' }, rows.map(r => r.el), h('div', { class: 'tmb-row' }, check, res));
   },
   tree() {
-    let perYear = 5, rate = 0.05;
+    let perYear = 1, rate = 0.05;
     const out = h('div', { class: 'tmb-big', 'aria-live': 'polite' }), pile = h('div', { class: 'tmb-pile', 'aria-hidden': 'true' });
     const draw = () => {
       const worth = perYear / rate;
-      out.innerHTML = rich(`{tree} ${perYear} coins a year ÷ ${(rate * 100).toFixed(1)}% = **${coins(worth)}** today`);
-      pile.innerHTML = Array.from({ length: Math.min(60, Math.round(worth / 10)) }, () => sym('coin', 16)).join('');
+      out.innerHTML = rich(`{tree} ${cm(perYear)} a year ÷ ${(rate * 100).toFixed(2)}% = **${cm(worth)}** value today`);
+      pile.innerHTML = Array.from({ length: Math.min(60, Math.round(worth)) }, () => sym('coin', 16)).join('');
     };
-    const a = slider(uid('tree-y'), 'Coins the tree drops each year:', 1, 20, 1, perYear, v => `${v}`, v => { perYear = v; draw(); });
+    const a = slider(uid('tree-y'), 'Net income per year (after vacancy and running costs):', 0.2, 3, 0.1, perYear, cm, v => { perYear = v; draw(); });
     const b = slider(uid('tree-r'), 'Cap rate:', 0.03, 0.09, 0.0025, rate, v => `${(v * 100).toFixed(2)}%`, v => { rate = v; draw(); });
     a.sync(); b.sync();
-    return h('div', {}, a.el, b.el, out, pile, h('p', { class: 'tmb-note' }, 'Each small coin above stands for 10 coins.'));
+    return h('div', {}, a.el, b.el, out, pile, h('p', { class: 'tmb-note' }, 'Each coin icon above stands for C$1 million of value. Lower the cap rate and watch the value rise.'));
   },
   height(ctx) {
     if (!ctx.data) return null;
@@ -213,47 +226,47 @@ const TRY = {
       const r = evaluate(plainTower(60, uses[key][1]), ctx.data, { podiumTopFloor: 4, siteAreaM2: null, minNonresFsr: null });
       const it = r.items.find(i => i.level === 30);
       const ms = { steps: [
-        { key: 'value', sym: 'coin', label: 'What this floor is worth', amount: it.value },
-        { key: 'hard', sym: 'brick', label: 'Building it', amount: -it.hard },
-        { key: 'soft', sym: 'plans', label: 'Design and permits', amount: -it.soft },
-        { key: 'finance', sym: 'clock', label: 'Interest', amount: -it.finance },
+        { key: 'value', sym: 'coin', label: 'Value of this floor', amount: it.value },
+        { key: 'hard', sym: 'brick', label: 'Hard cost', amount: -it.hard },
+        { key: 'soft', sym: 'plans', label: 'Soft cost', amount: -it.soft },
+        { key: 'finance', sym: 'clock', label: 'Finance cost', amount: -it.finance },
         { key: 'charges', sym: 'city', label: 'City charges', amount: -it.chargeTotal },
-        { key: 'profit', sym: 'piggy', label: 'Builder’s thank-you', amount: -it.profit }], left: it.net_contribution, land: null, verdict: it.net_contribution >= 0 ? 'works' : 'doesnt_work' };
-      out.innerHTML = moneyStackHTML(ms, { fmt: x => M(x), sym: n => sym(n, 22), leftLabel: 'Left over from this floor' });
+        { key: 'profit', sym: 'piggy', label: 'Developer’s profit', amount: -it.profit }], left: it.net_contribution, land: null, verdict: it.net_contribution >= 0 ? 'works' : 'doesnt_work' };
+      out.innerHTML = moneyStackHTML(ms, { fmt: x => M(x), sym: n => sym(n, 22), leftLabel: 'What this floor contributes to land value' });
     };
     const id = uid('fc');
     const sel = h('select', { id }, Object.entries(uses).map(([k, [n]]) => h('option', { value: k }, n)));
     sel.addEventListener('change', () => draw(sel.value)); draw('condo');
-    return h('div', {}, h('div', { class: 'tmb-row' }, h('label', { for: id }, 'One floor (1,500 m², floor 30 of 60) of'), sel), out, h('p', { class: 'tmb-note' }, 'Real 2026 numbers from the tool. Offices end up in the red: they cost more to build than they are worth.'));
+    return h('div', {}, h('div', { class: 'tmb-row' }, h('label', { for: id }, 'One floor (1,500 m², floor 30 of 60) of'), sel), out, h('p', { class: 'tmb-note' }, 'Real 2026 numbers from the tool. The office floor comes out negative: it costs more to build than it is worth.'));
   },
   waterfall() {
     const st = { worth: 100, build: 45, land: 10 };
     const out = h('div', { 'aria-live': 'polite' }), light = h('div', { class: 'tmb-verdict' });
     const draw = () => {
       const t = toySteps(st);
-      out.innerHTML = moneyStackHTML(t, { fmt: x => coins(x), sym: n => sym(n, 22) });
-      light.innerHTML = `${trafficLight(t.verdict, 40)}<div><b>${VERDICT[t.verdict]}</b><br>${esc(t.left >= st.land ? `${coins(t.left)} left, and the land costs ${coins(st.land)}: enough.` : t.left > 0 ? `${coins(t.left)} left, but the land costs ${coins(st.land)}.` : 'Nothing is left for the land.')}</div>`;
+      out.innerHTML = moneyStackHTML(t, { fmt: x => cm(x), sym: n => sym(n, 22) });
+      light.innerHTML = `${trafficLight(t.verdict, 40)}<div><b>${VERDICT[t.verdict]}</b><br>${esc(t.left >= st.land ? `Residual land value ${cm(t.left)}; the land costs ${cm(st.land)}: the scheme can pay for it.` : t.left > 0 ? `Residual land value ${cm(t.left)}, but the land costs ${cm(st.land)}.` : 'The residual is negative: the scheme cannot pay anything for the land.')}</div>`;
     };
-    const a = slider(uid('wf-w'), 'What the floors are worth:', 60, 160, 1, st.worth, coins, v => { st.worth = v; draw(); });
-    const b = slider(uid('wf-b'), 'Building it (bricks):', 20, 80, 1, st.build, coins, v => { st.build = v; draw(); });
-    const c = slider(uid('wf-l'), 'Price of the land:', 0, 40, 1, st.land, coins, v => { st.land = v; draw(); });
+    const a = slider(uid('wf-w'), 'Gross development value:', 60, 160, 1, st.worth, cm, v => { st.worth = v; draw(); });
+    const b = slider(uid('wf-b'), 'Hard cost:', 20, 80, 1, st.build, cm, v => { st.build = v; draw(); });
+    const c = slider(uid('wf-l'), 'Land price:', 0, 40, 1, st.land, cm, v => { st.land = v; draw(); });
     a.sync(); b.sync(); c.sync();
-    return h('div', {}, h('div', { class: 'tmb-sliders' }, a.el, b.el, c.el), out, light, h('p', { class: 'tmb-note' }, 'Design and permits are a quarter of the bricks; interest is about a fifth of both; the thank-you is 15% of all costs. These are the tool’s own ratios.'));
+    return h('div', {}, h('div', { class: 'tmb-sliders' }, a.el, b.el, c.el), out, light, h('p', { class: 'tmb-note' }, 'Soft cost is a quarter of hard cost, finance is about a fifth of both, City charges are fixed at C$5 M here, and profit is 15% of all costs. These are the tool’s own ratios.'));
   },
   cac() {
     const out = h('div', { class: 'tmb-split', 'aria-live': 'polite' });
-    const s = slider(uid('cac'), 'Extra land value from the taller rules:', 0, 100, 1, 40, coins, v => {
+    const s = slider(uid('cac'), 'Increase in land value from the rezoning:', 0, 100, 1, 40, cm, v => {
       const city = v * 0.75, kept = v - city;
-      out.innerHTML = `<span class="tmb-split-city" style="flex:${city || 0.0001}">${sym('city', 18)} City ${esc(coins(city))}</span><span class="tmb-split-kept" style="flex:${kept || 0.0001}">${sym('land', 18)} ${esc(coins(kept))}</span>`;
+      out.innerHTML = `<span class="tmb-split-city" style="flex:${city || 0.0001}">${sym('city', 18)} CAC ${esc(cm(city))}</span><span class="tmb-split-kept" style="flex:${kept || 0.0001}">${sym('land', 18)} Land ${esc(cm(kept))}</span>`;
     }); s.sync();
-    return h('div', {}, s.el, out, h('p', { class: 'tmb-note' }, 'The City takes 75% of the extra value; the rest stays with the land.'));
+    return h('div', {}, s.el, out, h('p', { class: 'tmb-note' }, 'The City takes 75% of the increase as a CAC; the remaining 25% stays with the land.'));
   },
   presales() {
     const row = h('div', { class: 'tmb-houses', 'aria-hidden': 'true' }), say = h('div', { class: 'tmb-verdict', 'aria-live': 'polite' });
-    const s = slider(uid('ps'), 'Homes sold before building:', 0, 10, 1, 4, v => `${v} of 10`, v => {
+    const s = slider(uid('ps'), 'Share of units presold:', 0, 10, 1, 4, v => `${v * 10}%`, v => {
       row.innerHTML = Array.from({ length: 10 }, (_, k) => `<span class="tmb-house${k < v ? ' sold' : ''}">${sym('house', 26)}</span>`).join('');
       const verdict = v >= 7 ? 'works' : v >= 6 ? 'marginal' : 'doesnt_work';
-      say.innerHTML = `${trafficLight(verdict, 36)}<div><b>${v >= 7 ? 'The bank lends' : v >= 6 ? 'Some banks lend' : 'The bank waits'}</b><br>${esc(v >= 6 ? 'Enough buyers have signed up to start building.' : 'Too few buyers yet: no loan, no crane.')}</div>`;
+      say.innerHTML = `${trafficLight(verdict, 36)}<div><b>${v >= 7 ? 'Lenders will fund construction' : v >= 6 ? 'Some lenders will fund it' : 'No construction loan yet'}</b><br>${esc(v >= 6 ? 'Enough buyers have committed for construction to start.' : 'Too few units are sold: without the loan, construction cannot start.')}</div>`;
     }); s.sync();
     return h('div', {}, s.el, row, say);
   },
@@ -264,10 +277,10 @@ const TRY = {
       st.homes = Math.min(st.homes, st.total);
       const jobs = st.total - st.homes;
       pic.innerHTML = Array.from({ length: st.total }, (_, k) => `<span class="tmb-layer ${k < jobs ? 'jobs' : 'homes'}"></span>`).reverse().join('') + '<span class="tmb-layer site"></span>';
-      say.innerHTML = rich(`${jobs} layers of jobs space and ${st.homes} of homes. The rule needs 9 layers of jobs: ${jobs >= 9 ? '{check} met.' : '{cross} not met.'}`);
+      say.innerHTML = rich(`Non-residential FSR ${jobs}, residential FSR ${st.homes}. The brief requires 9 non-residential: ${jobs >= 9 ? '{check} met.' : '{cross} not met.'}`);
     };
-    const a = slider(uid('fsr-t'), 'Layers in the whole tower (FSR):', 5, 16, 1, st.total, v => `${v}`, v => { st.total = v; b.input.max = v; draw(); });
-    const b = slider(uid('fsr-h'), 'Layers of homes:', 0, 16, 1, st.homes, v => `${v}`, v => { st.homes = v; draw(); });
+    const a = slider(uid('fsr-t'), 'Total FSR of the tower:', 5, 16, 1, st.total, v => `${v}`, v => { st.total = v; b.input.max = v; draw(); });
+    const b = slider(uid('fsr-h'), 'Residential FSR:', 0, 16, 1, st.homes, v => `${v}`, v => { st.homes = v; draw(); });
     a.sync(); b.sync();
     return h('div', { class: 'tmb-fsr' }, h('div', {}, a.el, b.el, say), pic);
   },
@@ -275,9 +288,9 @@ const TRY = {
     const out = h('div', { class: 'tmb-big', 'aria-live': 'polite' });
     const s = slider(uid('lev'), 'Change in prices:', -20, 20, 1, 0, v => `${v > 0 ? '+' : ''}${v}%`, v => {
       const worth = 100 * (1 + v / 100), left = worth - 92;
-      out.innerHTML = rich(`{coin} Worth ${coins(worth)} − costs and thank-you 92 = **${left < 0 ? 'nothing (' + coins(left) + ')' : coins(left)}** left for the land ${v ? `(${left > 8 ? '+' : ''}${Math.round((left - 8) / 8 * 100)}% from 8 coins)` : ''}`);
+      out.innerHTML = rich(`{coin} Value ${cm(worth)} − costs and profit C$92 M = **${left < 0 ? 'nothing (' + cm(left) + ')' : cm(left)}** for the land ${v ? `(${left > 8 ? '+' : ''}${Math.round((left - 8) / 8 * 100)}% from C$8 M)` : ''}`);
     }); s.sync();
-    return h('div', {}, s.el, out, h('p', { class: 'tmb-note' }, 'A 10% price change moves the money left for the land by more than 100%.'));
+    return h('div', {}, s.el, out, h('p', { class: 'tmb-note' }, 'A 10% change in prices moves the residual land value by more than 100%.'));
   },
   play(ctx) {
     if (!ctx.data) return h('p', { class: 'tmb-note' }, 'The calculator data could not load, so the playground is off.');
@@ -288,7 +301,7 @@ const TRY = {
       const fl = playTower(pick), r = evaluate(fl, ctx.data, { ...PLAY_SETTINGS, presaleMarket: market });
       const maxNet = Math.max(1, ...r.floors.map(f => Math.abs(f.net)));
       sec.innerHTML = [...r.floors].reverse().map(f => `<span class="tmb-pf"><span class="tmb-pf-box ${PLAY_USES[pick[PLAY_ZONES.find(z => f.level >= z.from && f.level <= z.to).id]].s}"></span><span class="tmb-pf-bar ${f.net >= 0 ? 'pos' : 'neg'}" style="width:${(Math.abs(f.net) / maxNet * 48).toFixed(1)}%"></span></span>`).join('');
-      stack.innerHTML = moneyStackHTML(moneySteps(r), { fmt: x => `${Math.round(x / 1e6).toLocaleString('en-CA')} coins`, sym: n => sym(n, 22) });
+      stack.innerHTML = moneyStackHTML(moneySteps(r), { fmt: x => cm(x / 1e6), sym: n => sym(n, 22) });
       say.innerHTML = `${trafficLight(r.verdict, 40)}<div><b>${VERDICT[r.verdict]}</b><br>${esc(r.reasons.slice(0, 2).join(' '))}</div>`;
     };
     const zones = PLAY_ZONES.map(z => {
@@ -298,24 +311,24 @@ const TRY = {
       return h('div', { class: 'tmb-zone' }, h('label', { for: id }, z.name), s);
     });
     const mid = uid('pm');
-    const mk = h('select', { id: mid }, h('option', { value: 'weak' }, 'Weak, like 2026'), h('option', { value: 'normal' }, 'Normal, like a strong year'));
+    const mk = h('select', { id: mid }, h('option', { value: 'weak' }, 'Weak (2026)'), h('option', { value: 'normal' }, 'Normal (a stronger year)'));
     mk.addEventListener('change', () => { market = mk.value; draw(); });
     draw();
     return h('div', { class: 'tmb-play' },
       h('div', { class: 'tmb-play-ctl' }, [...zones].reverse(), h('div', { class: 'tmb-zone' }, h('label', { for: mid }, 'Presale market'), mk)),
       h('div', { class: 'tmb-play-out' }, h('div', { class: 'tmb-play-top' }, sec, say), stack,
-        h('p', { class: 'tmb-note' }, 'The land price is the tool’s estimate for this footprint (C$57 M). The bars beside the boxes show what each floor earns (green) or loses (red) after its costs and the thank-you.')));
+        h('p', { class: 'tmb-note' }, 'The land price is the tool’s estimate for this footprint (C$57 M). The bars beside the section show what each floor earns (green) or loses (red) after its costs and profit.')));
   },
   map(ctx) {
     const parts = [
-      ['coin', 'Top bar', 'The verdict pill (the traffic light in a word), Presets, Find a mix that works, Help.', 'verdict'],
-      ['crane', 'Section', 'Your stack of boxes, drawn to scale; bars show which floors make or lose money.', 'floors'],
-      ['sale', 'Floors', 'Pick what each floor holds. Every use carries its tag: for sale, for rent, operated, public, support.', 'floors'],
-      ['land', 'Verdict', 'The money stack, the land price and the traffic light; the Brief check for the 9.0 FSR rule.', 'verdict'],
+      ['coin', 'Top bar', 'The verdict, Presets, Find a mix that works, and Help.', 'verdict'],
+      ['crane', 'Section', 'Your tower drawn to scale; the bars show which floors make or lose money.', 'floors'],
+      ['sale', 'Floors', 'Set the use of each floor. Every use carries its tag: for sale, for rent, operated, public, support.', 'floors'],
+      ['land', 'Verdict', 'The money stack, the land price and the verdict; the Brief check for the 9.0 FSR rule.', 'verdict'],
       ['city', 'City ledger', 'Everything the City receives, and who pays for public floors.', 'city'],
-      ['coins', 'Sensitivity', 'Which numbers swing the land money most.', 'sens'],
-      ['plans', 'Assumptions', 'Every number the tool uses, with its source; market scenarios.', 'assume'],
-      ['tree', 'Method & sources', 'How each value is made (rent ÷ cap rate, sale price × area) and where each number comes from.', 'about'],
+      ['coins', 'Sensitivity', 'Which inputs move the residual land value most.', 'sens'],
+      ['plans', 'Assumptions', 'Every input the tool uses, with its source, and the market scenarios.', 'assume'],
+      ['tree', 'Method & sources', 'How each value is calculated (income ÷ cap rate, sale price × area) and where each number comes from.', 'about'],
     ];
     return h('div', { class: 'tmb-map' }, parts.map(([s, name, text, tab]) => h('div', { class: 'tmb-map-item' }, h('span', { html: sym(s, 28) }), h('div', {}, h('b', {}, name), h('div', { class: 'tmb-note' }, text)),
       ctx.onGoto ? h('button', { type: 'button', class: 'tmb-show', onclick: () => ctx.onGoto(tab) }, 'Show me') : null)));
@@ -334,16 +347,17 @@ function chapterEl(c, n, ctx, SCENES) {
       h('p', { class: 'tmb-kicker' }, `Chapter ${n}`),
       h('h2', { id: `tmb-${c.id}-h` }, c.title),
       c.text.map(para),
+      c.design ? h('p', { class: 'tmb-design' }, h('b', {}, 'For your design. '), c.design) : null,
       tryBox ? h('div', { class: 'tmb-try' }, h('p', { class: 'tmb-try-h' }, 'Try it'), tryBox) : null,
       tool));
 }
 
 /** The symbol key: every symbol once, with what it means. Shown at the start of the book. */
 export const SYMBOL_KEY = [
-  ['coin', 'Coins in: what floors are worth'], ['brick', 'Building it'], ['plans', 'Design and permits'], ['clock', 'Interest while building'],
-  ['city', 'The City: charges and its share'], ['piggy', 'Builder’s thank-you (profit)'], ['land', 'The land'],
-  ['sale', 'For sale'], ['rent', 'For rent'], ['operate', 'Operated'], ['public', 'Public (free)'], ['support', 'Support (machines)'],
-];
+  ['coin', 'Value of the finished floors'], ['brick', 'Hard cost (construction)'], ['plans', 'Soft cost (design, permits)'], ['clock', 'Finance cost (interest)'],
+  ['city', 'City charges and contributions'], ['piggy', 'Developer profit'], ['land', 'Land'],
+  ['sale', 'For sale'], ['rent', 'For rent'], ['operate', 'Operated'], ['public', 'Public'], ['support', 'Support'],
+]
 const keyEl = () => h('div', { class: 'tmb-key', role: 'list', 'aria-label': 'Symbol key' }, SYMBOL_KEY.map(([s, t]) => h('span', { role: 'listitem', class: 'tmb-key-i' }, h('span', { html: sym(s, 22) }), t)));
 
 /**
@@ -368,7 +382,7 @@ export async function renderMoneyStory(root, { data = null, mode = 'book', onGot
   const show = k => { at = k; sel.value = String(k); prev.disabled = k === 0; next.disabled = k === CHAPTERS.length - 1; holder.replaceChildren(chapterEl(CHAPTERS[k], k + 1, ctx, SCENES)); holder.scrollIntoView?.({ block: 'nearest' }); };
   prev.addEventListener('click', () => show(at - 1)); next.addEventListener('click', () => show(at + 1)); sel.addEventListener('change', () => show(Number(sel.value)));
   root.replaceChildren(
-    h('p', { class: 'tmb-intro' }, 'How the money works, told simply, in 13 short chapters with pictures. The same symbols appear in the tool.', bookUrl ? [' ', h('a', { href: bookUrl, target: '_blank', rel: 'noopener' }, 'Open the full book')] : null),
+    h('p', { class: 'tmb-intro' }, 'How the money works in a tall building, in 13 short illustrated chapters. No finance background needed; the same symbols appear in the tool.', bookUrl ? [' ', h('a', { href: bookUrl, target: '_blank', rel: 'noopener' }, 'Open the full guide')] : null),
     keyEl(), h('div', { class: 'tmb-nav' }, prev, sel, next), holder);
   show(at);
 }
@@ -390,6 +404,7 @@ const STORY_CSS = `
 .tmb-isym{display:inline-block;vertical-align:-4px;margin-right:2px;line-height:0}
 .tmb-try{border:1px solid var(--line,#d5dad7);border-radius:var(--radius,6px);padding:12px 14px;display:flex;flex-direction:column;gap:10px;background:var(--sheet,#fff)}
 .tmb-try-h{font:600 11px/1 var(--mono,monospace)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--accent,#1f5f8b)}
+.tmb-design{font-size:14px;padding-left:12px;border-left:3px solid var(--sym-coin,#f0c13b)}
 .tmb-tool{display:flex;gap:10px;align-items:center;font-size:13.5px;padding:10px 12px;border-left:3px solid var(--accent,#1f5f8b);background:var(--accent-soft,#e2edf5);border-radius:4px}
 .tmb-tool > span{line-height:0;flex:none}
 .tmb-show{margin-left:auto;flex:none}

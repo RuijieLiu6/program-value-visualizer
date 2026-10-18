@@ -8,28 +8,28 @@
 export function moneySteps(result) {
   const t = result.totals;
   const steps = [
-    { key: 'value', sym: 'coin', label: 'What the finished floors are worth', amount: t.gdv },
-    t.publicDeduction ? { key: 'public', sym: 'public', label: 'Running the free public floors', amount: -t.publicDeduction } : null,
-    { key: 'hard', sym: 'brick', label: 'Building it', amount: -t.hard },
-    { key: 'soft', sym: 'plans', label: 'Design, permits, insurance', amount: -t.soft },
-    { key: 'finance', sym: 'clock', label: 'Interest while it is built', amount: -t.finance },
-    { key: 'charges', sym: 'city', label: 'City charges', amount: -t.charges },
-    { key: 'profit', sym: 'piggy', label: 'Builder’s profit', amount: -t.profit },
-    t.cac ? { key: 'cac', sym: 'city', label: 'City’s share of the land lift (CAC)', amount: -t.cac } : null,
+    { key: 'value', sym: 'coin', label: 'Gross development value (what the finished floors are worth)', amount: t.gdv },
+    t.publicDeduction ? { key: 'public', sym: 'public', label: 'Running cost of public floors (capitalised)', amount: -t.publicDeduction } : null,
+    { key: 'hard', sym: 'brick', label: 'Hard cost (construction)', amount: -t.hard },
+    { key: 'soft', sym: 'plans', label: 'Soft cost (design, permits, insurance)', amount: -t.soft },
+    { key: 'finance', sym: 'clock', label: 'Finance cost (construction interest)', amount: -t.finance },
+    { key: 'charges', sym: 'city', label: 'City charges (DCL, ACC)', amount: -t.charges },
+    { key: 'profit', sym: 'piggy', label: 'Developer’s profit', amount: -t.profit },
+    t.cac ? { key: 'cac', sym: 'city', label: 'Community amenity contribution (CAC)', amount: -t.cac } : null,
   ].filter(Boolean);
   return { steps, left: t.rlvAfterCac, land: t.landPrice ?? null, landEstimated: !!t.landEstimated, verdict: result.verdict };
 }
 
-/** Kid-sized steps from pretend coins (the book's own example), using the tool's ratios. */
+/** The guide's worked example in round numbers (C$ millions), using the tool's own ratios. */
 export function toySteps({ worth = 100, build = 50, softShare = 0.25, financeShare = 0.195, city = 5, profitShare = 0.15, land = 10 } = {}) {
   const soft = build * softShare, finance = (build + soft) * financeShare, cost = build + soft + finance + city, profit = cost * profitShare;
   const steps = [
-    { key: 'value', sym: 'coin', label: 'What the floors are worth', amount: worth },
-    { key: 'hard', sym: 'brick', label: 'Building it', amount: -build },
-    { key: 'soft', sym: 'plans', label: 'Design and permits', amount: -soft },
-    { key: 'finance', sym: 'clock', label: 'Interest while building', amount: -finance },
+    { key: 'value', sym: 'coin', label: 'Gross development value', amount: worth },
+    { key: 'hard', sym: 'brick', label: 'Hard cost', amount: -build },
+    { key: 'soft', sym: 'plans', label: 'Soft cost', amount: -soft },
+    { key: 'finance', sym: 'clock', label: 'Finance cost', amount: -finance },
     { key: 'charges', sym: 'city', label: 'City charges', amount: -city },
-    { key: 'profit', sym: 'piggy', label: 'Builder’s thank-you', amount: -profit },
+    { key: 'profit', sym: 'piggy', label: 'Developer’s profit', amount: -profit },
   ];
   const left = steps.reduce((a, s) => a + s.amount, 0);
   const verdict = left >= land ? 'works' : land > 0 && (land - left) / land <= 0.1 ? 'marginal' : 'doesnt_work';
@@ -42,7 +42,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
  * The money stack as HTML rows: symbol, label, a floating bar on one shared scale, amount.
  * opts: fmt (number -> text), sym (name -> svg string), landLabel.
  */
-export function moneyStackHTML(ms, { fmt = x => `${Math.round(x)}`, sym = () => '', landLabel = 'Price of the land', leftLabel = 'Left to pay for the land' } = {}) {
+export function moneyStackHTML(ms, { fmt = x => `${Math.round(x)}`, sym = () => '', landLabel = 'Price of the land', leftLabel = 'Residual land value (left for the land)' } = {}) {
   let run = 0;
   const bars = ms.steps.map(s => { const from = run; run += s.amount; return { ...s, from, to: run }; });
   const pts = [0, ...bars.flatMap(b => [b.from, b.to]), ms.left, ms.land ?? 0];
