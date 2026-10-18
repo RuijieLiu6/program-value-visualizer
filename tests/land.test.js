@@ -94,7 +94,10 @@ test('page: land fields show the estimate with a chip, the 2014 hint is gone, an
   const app = fs.readFileSync(path.join(ROOT, 'app/app.js'), 'utf8');
   assert.match(app, /function landBlock\(/);
   assert.ok(!app.includes('For scale only: prime downtown land'), 'old 2014 hint still shown');
-  assert.match(app, /'Use estimate'/);
+  assert.match(app, /'Enter estimated value'/);
+  assert.match(app, /'Estimated ✓'/);
+  assert.match(app, /'Your value'/);
+  assert.match(app, /type: 'text', inputmode: 'decimal'/);   // shows the number formatted, never as placeholder text
   for (const k of ['landFsr', 'landRatePerM2', 'landPremium']) {
     assert.match(app, new RegExp(`${k}: \\[0, \\d+\\]`), `${k} has no range check`);
     assert.ok(app.includes(`'${k}'`), `${k} not settable by Ask AI`);

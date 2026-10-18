@@ -101,9 +101,13 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 16px; }
 .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 14px; }
 .land { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line-2); border-radius: var(--radius); }
-.land-field { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
-.land-field .field { width: 100%; }
-.use-est { font-size: 11.5px; padding: 2px 8px; }
+.land-field input.money { width: 100%; box-sizing: border-box; }
+.land-field .land-arith { margin: 0; }
+.use-est { font-size: 11.5px; padding: 2px 8px; margin-left: auto; }
+.use-est:disabled { cursor: default; color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, var(--line)); background: var(--good-soft); }
+input.money { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.est.yours { background: var(--warn-soft); color: var(--warn); }
+.land-field label { align-items: center; }
 .land-arith { font-family: var(--mono); font-size: 11.5px; max-width: none; }
 .est { font: 600 10px/1 var(--mono); padding: 2px 5px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); text-transform: uppercase; letter-spacing: .03em; cursor: help; }
 .field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }

@@ -197,30 +197,51 @@ function setSetting(k, v) { let c; try { c = checkSetting(k, v); } catch (e) { t
 function landBlock(r, S, A) {
   const L = r.land, E = A.land.estimate || {};
   const round = x => (x == null ? null : Math.round(x / 1e5) * 1e5);
-  const chip = on => (on ? h('span', { class: 'est', tabindex: '0', 'data-tip': 'Estimated by the tool from the site area, the current-zoning FSR and a land rate (below). Type your own number to override it.' }, 'Estimated') : null);
+  const money = x => (x == null ? '' : Math.round(x).toLocaleString('en-CA'));
+  // "407,500,000", "$407.5M", "407.5 m" or "2.1b" -> dollars; '' -> null (back to the estimate)
+  const parseMoney = txt => {
+    const t = String(txt).trim().toLowerCase().replace(/[$,\s]|c\$/g, '');
+    if (!t) return null;
+    const m = t.match(/^(\d+(?:\.\d+)?)(k|m|b)?$/);
+    if (!m) throw new Error('Land values: enter a number such as 407,500,000 or 407.5M');
+    return Number(m[1]) * ({ k: 1e3, m: 1e6, b: 1e9 }[m[2]] || 1);
+  };
   const canEstimate = L.siteAreaM2 > 0 && S.landFsr > 0 && S.landRatePerM2 > 0;
-  const useEst = key => (S[key] != null && canEstimate ? h('button', { class: 'use-est', onclick: () => setSetting(key, null) }, 'Use estimate') : null);
-  const field = (id, key, label, value, est, src) => h('div', { class: 'land-field' },
-    numField(id, label, value, { step: 100000, min: 0, unit: 'C$', placeholder: 'enter a site area to estimate', src, badge: chip(est), onchange: v => setSetting(key, v) }), useEst(key));
-  const czShown = S.landValueCurrentZoning ?? round(L.currentZoningEstimate), priceShown = S.landPrice ?? round(L.price);
-  const site = L.siteAreaM2 > 0 ? `${L.footprintProxy ? 'Largest ground-floor plate' : 'Site'} ${N(L.siteAreaM2)} m²` : null;
-  const arith = !canEstimate
-    ? h('p', { class: 'note' }, L.siteAreaM2 > 0 ? 'Set a current-zoning FSR and a land rate to get an estimate.' : 'No site area: enter one in Assumptions (or add a level-1 floor) to get a land estimate.')
-    : h('p', { class: 'note land-arith' }, `Estimate: ${site} × current-zoning FSR ${S.landFsr} = ${N(L.buildableM2)} buildable m² × C$${N(S.landRatePerM2)}/m² = ${M(L.currentZoningEstimate)} under current zoning`,
-      `${S.landPremium ? `; land price × (1 + ${Math.round(S.landPremium * 100)}% premium)` : '; land price = that value (no premium)'}.`,
-      L.footprintProxy ? h('b', {}, ' No site area is set, so the largest ground-floor plate stands in for it: enter the site area in Assumptions.') : null);
+  const czEst = canEstimate ? L.currentZoningEstimate : null;
+  const priceEst = L.currentZoningValue != null ? L.currentZoningValue * (1 + num0(S.landPremium)) : null;
+  const siteTxt = L.siteAreaM2 > 0 ? `${L.footprintProxy ? 'largest ground-floor plate' : 'site'} ${N(L.siteAreaM2)} m²` : '';
+  const field = (id, key, label, est, src, how) => {
+    const typed = S[key] != null;
+    const inp = h('input', { id, type: 'text', inputmode: 'decimal', autocomplete: 'off', class: 'money', value: money(typed ? S[key] : round(est)), placeholder: canEstimate ? '' : 'enter a site area to estimate' });
+    inp.addEventListener('change', () => {
+      let v; try { v = parseMoney(inp.value); } catch (e) { toast(e.message); inp.value = money(typed ? S[key] : round(est)); return; }
+      if (v != null && est != null && !typed && Math.abs(v - round(est)) < 1) return;   // unchanged estimate: keep it an estimate
+      setSetting(key, v);
+    });
+    const chip = typed ? h('span', { class: 'est yours', tabindex: '0', 'data-tip': 'You typed this value. “Enter estimated value” brings the estimate back.' }, 'Your value')
+      : est != null ? h('span', { class: 'est', tabindex: '0', 'data-tip': 'Estimated by the tool. Type your own number to override it.' }, 'Estimated') : null;
+    const btn = est == null ? null : typed
+      ? h('button', { class: 'use-est', onclick: () => setSetting(key, null) }, 'Enter estimated value')
+      : h('button', { class: 'use-est', disabled: true, 'aria-label': 'The estimated value is in use' }, 'Estimated ✓');
+    return h('div', { class: 'field land-field' },
+      h('label', { for: id }, label, h('span', {}, '(C$)'), src ? gradeTag(src.grade) : null, src ? srcTag(src) : null, chip, btn),
+      inp,
+      h('p', { class: 'note land-arith' }, est == null ? 'No estimate: enter a site area in Assumptions (or add a level-1 floor).'
+        : `${typed ? 'Estimate would be' : 'Estimate'}: ${how} = ${M(est)}`));
+  };
   return h('div', { class: 'land' },
     h('h4', { style: 'margin:0' }, 'Land'),
     h('div', { class: 'grid2' },
-      field('landPrice', 'landPrice', 'Land price', priceShown, L.priceEstimated, A.land.price),
-      field('landZoning', 'landValueCurrentZoning', 'Land value under current zoning (for CAC)', czShown, L.currentZoningEstimated, A.land.value_under_current_zoning)),
-    arith,
+      field('landPrice', 'landPrice', 'Land price', priceEst, A.land.price, `current-zoning value × (1 + ${Math.round(num0(S.landPremium) * 100)}% premium)`),
+      field('landZoning', 'landValueCurrentZoning', 'Land value under current zoning (for CAC)', czEst, A.land.value_under_current_zoning, `${siteTxt} × FSR ${S.landFsr} × C$${N(S.landRatePerM2)}/m²`)),
+    L.footprintProxy ? h('p', { class: 'note' }, h('b', {}, 'No site area is set, so the largest ground-floor plate stands in for it: enter the site area in Assumptions.')) : null,
     h('div', { class: 'grid3' },
       numField('landFsr', 'Current-zoning FSR', S.landFsr, { step: 0.1, min: 0, max: 30, src: E.current_zoning_fsr, onchange: v => setSetting('landFsr', v) }),
       numField('landRate', 'Land rate per buildable m²', S.landRatePerM2, { step: 50, min: 0, unit: 'C$/m²', src: E.rate_per_buildable_m2, onchange: v => setSetting('landRatePerM2', v) }),
       numField('landPrem', 'Purchase premium', S.landPremium, { step: 0.01, min: 0, max: 1, unit: 'share', src: E.purchase_premium, onchange: v => setSetting('landPremium', v) })),
     h('p', { class: 'note' }, 'Order of magnitude only: an appraiser would value the actual site. Hover “source” for where each default comes from.'));
 }
+const num0 = x => (typeof x === 'number' && Number.isFinite(x) ? x : 0);
 
 // ---------- Verdict tab ----------
 function renderVerdict() {
