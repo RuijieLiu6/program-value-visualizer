@@ -20,6 +20,13 @@ const METHODS = new Set(['sale', 'income', 'per_key', 'visitors', 'per_stall_sal
 const STATUS = new Set(['linked', 'zero', 'new', 'excluded']);
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 export const RECOMPUTE_TOLERANCE = 0.05;
+// Inputs that do not set a row's grade: they move the value by little, or cancel out in the engine.
+export const MINOR_INPUTS = new Set(['efficiency', 'selling_cost', 'leakage', 'deck_area_m2']);
+/** A value row's grade is its weakest key input (A best, C weakest). Returns that grade, or null with no key inputs. */
+export function weakestKeyGrade(row) {
+  const gs = Object.entries(row.inputs || {}).filter(([k, x]) => !MINOR_INPUTS.has(k) && x && x.grade).map(([, x]) => x.grade);
+  return gs.length ? gs.sort().at(-1) : null;
+}
 
 const readJSON = (root, rel, errors) => {
   const file = path.join(root, rel);
@@ -97,6 +104,7 @@ export function validate(root) {
     if (p.value_hint && !valueRows.has(p.value_hint)) errors.push({ code: 'unknown_value_ref', where: w, msg: `hint ${p.value_hint}` });
     if (['new', 'excluded'].includes(p.value_status) && p.needs_user_value !== true) errors.push({ code: 'null_without_flag', where: w, msg: 'new/excluded must set needs_user_value' });
     if (!GRADES.has(p.grade)) errors.push({ code: 'bad_grade', where: w, msg: p.grade });
+    if (p.city_charge_class && !(p.city_charge_class in charges.classes)) errors.push({ code: 'unknown_charge_class', where: w, msg: p.city_charge_class });
   }
   const expected = programmes.meta?.programme_count;
   if (expected !== programmes.programmes.length) errors.push({ code: 'count_mismatch', where: 'programmes', msg: `${programmes.programmes.length} rows, meta says ${expected}` });
@@ -109,6 +117,8 @@ export function validate(root) {
     if (!METHODS.has(r.method)) errors.push({ code: 'bad_method', where: w, msg: r.method });
     if (!chargeClasses.has(r.city_charge_class)) errors.push({ code: 'unknown_charge_class', where: w, msg: r.city_charge_class });
     if (!r.value_per_m2_gfa) { errors.push({ code: 'missing_field', where: w, msg: 'value_per_m2_gfa' }); continue; }
+    const weakest = weakestKeyGrade(r);
+    if (weakest && r.value_per_m2_gfa.grade < weakest) errors.push({ code: 'grade_above_inputs', where: w, msg: `value graded ${r.value_per_m2_gfa.grade}, but a key input is ${weakest}` });
     if (r.method === 'user' && r.value_per_m2_gfa.value !== null) errors.push({ code: 'user_with_value', where: w, msg: 'method user must have a null value' });
     const re = recomputeValue(r);
     const stated = r.value_per_m2_gfa.value;

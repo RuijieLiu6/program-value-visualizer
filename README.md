@@ -8,7 +8,7 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 **Every number is an indicative early-design estimate.** It is not a feasibility study, an appraisal or a compliance check, and the tool says so on every screen and export.
 
-Status: **working prototype (G3).** Engine, Vancouver 2026 data pack and web page are built and tested (34 tests). See [Roadmap](#roadmap).
+Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (52 tests). See [Roadmap](#roadmap).
 
 Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai.
 
@@ -31,7 +31,7 @@ No account and no install: it runs as a static web page (静态网页) in a brow
 
    You can overwrite any value. Hover over a value to see where it comes from.
 2. **Neutral.** The tool has no preferred design. Defaults are a plain sample tower and published market data. Your floors and settings stay in your browser. The page loads its fonts from Google Fonts; Ask AI sends the current scheme summary to Claude only when you ask a question.
-3. **Transparent method.** The calculation is a set of pure functions (纯函数) with tests, documented in `docs/method.md` with a hand-worked check, and reviewed (`docs/critique_r1.md`).
+3. **Transparent method.** The calculation is a set of pure functions (纯函数) with tests, documented in `docs/method.md` with a hand-worked check, and reviewed (`docs/critique_r1.md`, `docs/critique_r2.md`).
 4. **Honest about gaps.** Values nobody has sourced yet are shown as "user to supply", never guessed.
 
 ## How the calculation works (summary)
@@ -47,18 +47,23 @@ For each floor and each programme on it:
 5. **Profit.** Developer profit as a share of cost.
 6. **Residual land value** (剩余地价) = value − cost − profit. Compared with the land price you enter.
 
-Results: the verdict (Works / Marginal / Doesn't work, or Land price needed / Incomplete), a bar per floor (value minus cost), a City payback ledger (development charges, amenity charges, in-kind space), and a sensitivity chart (敏感性分析) for rents, cap rates, sale prices, costs and height premium.
+Results:
+- the verdict: Works / Marginal / Doesn't work, or Land price needed / Incomplete;
+- a bar per floor (value minus cost);
+- a City payback ledger: development charges, amenity charges, in-kind space;
+- a sensitivity chart (敏感性分析) for rents, cap rates, sale prices, costs and height premium;
+- a map of downtown: buildings by height, with an estimate of the neighbouring roofs around a point you click. It can feed the condo "above neighbours" bonus.
 
 ## Structure
 
 | Folder | Contents |
 | --- | --- |
-| `core/` | Calculation engine (no page code), data schema, data validator |
+| `core/` | Calculation engine and base-map reader (no page code), data schema, data validator |
 | `catalogue/` | Activity-based programme catalogue: families and programmes, no prices |
 | `packs/vancouver-2026/` | Vancouver market values, construction costs, City charges, assumptions, sources |
 | `briefs/` | Optional rule sets. `vtc-2026/` holds the public Vancouver Tall Challenge brief (site area, minimum non-residential floor area, height range); `none/` means no brief. |
 | `app/` | The web page |
-| `basemap/` | Vancouver context model for the map view, with attribution |
+| `basemap/` | Downtown Vancouver base map for the Map tab (about 1 MB), with attribution; built by `scripts/build_basemap.py` |
 | `templates/` | Floor-list templates (CSV and JSON) |
 | `tests/` | Automated tests (`node --test`) |
 | `docs/` | Method, data change log, limitations, decisions |
@@ -78,7 +83,7 @@ The tool reads a plain floor list. You can make one with the built-in generator,
 
 ## Data sources and attribution
 
-The full list with pages and dates is in `packs/vancouver-2026/sources.json`; the page-by-page cross-check is in `docs/data_changes.md`. Main sources:
+The full list with pages and dates is in `packs/vancouver-2026/sources.json`; the page-by-page cross-check is in `docs/data_changes.md`. Every tooltip shows the source's own publication date and the date the figure was collected ("as of"). Main sources:
 - construction costs: Altus Group, *Canadian Cost Guide 2026*;
 - office market: CBRE, *Canada Office Figures Q3 2026*;
 - hotel market: Cushman & Wakefield, *Canada Hospitality Innsights Q2 2026*;
@@ -86,7 +91,7 @@ The full list with pages and dates is in `packs/vancouver-2026/sources.json`; th
 
 Only cited figures are included, never the reports themselves.
 
-Map context: © OpenStreetMap contributors (ODbL); terrain from NASA SRTM.
+Map context: © OpenStreetMap contributors (ODbL); terrain from NASA SRTM (public domain). See `basemap/README.md`.
 
 ## Limitations
 
@@ -103,7 +108,7 @@ Map context: © OpenStreetMap contributors (ODbL); terrain from NASA SRTM.
 | G1 | Data: catalogue, Vancouver pack, brief, validator, cross-check against sources (done) |
 | G2 | Engine and tests (done) |
 | G3 | Web page: floor input, mix editor, verdict, ledger, sensitivity, exports, Ask AI (done; review round 1 fixed) |
-| G4 | Map view from the Vancouver context model |
+| G4 | Map view of downtown with neighbouring-roof estimate (done; review round 2 items closed or deferred in `docs/critique_r2.md`) |
 | G5 | Independent review of numbers and sources |
 | G6 | Release: neutrality and licence check, documentation |
 

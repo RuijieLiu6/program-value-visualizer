@@ -53,7 +53,8 @@
         "unit": "CAD/m2",
         "source": "raincity-2026",
         "grade": "B",
-        "as_of": "2026-10-17"
+        "as_of": "2026-10-17",
+        "note": "Grade B = weakest key input (sale price, broker source). Selling cost is minor and the derivation efficiency cancels out in the engine."
       }
     },
     {
@@ -163,8 +164,9 @@
         "value": 6900,
         "unit": "CAD/m2",
         "source": "livrent-2026-10",
-        "grade": "B",
-        "as_of": "2026-10-17"
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Grade C = weakest key input: the rent is assumed above the observed city-wide asking rent, and the operating-cost ratio is assumed."
       }
     },
     {
@@ -430,8 +432,9 @@
         "value": 8000,
         "unit": "CAD/m2",
         "source": "costar-hotels-2025",
-        "grade": "B",
-        "as_of": "2026-10-17"
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Grade C = weakest key input: NOI per key and area per key are assumptions."
       }
     },
     {
@@ -503,15 +506,15 @@
           "value": 50,
           "unit": "CAD/ft2/yr",
           "source": "cbre-office-q3-2026",
-          "grade": "B",
+          "grade": "C",
           "as_of": "2026-10-17",
-          "note": "New trophy floor assumed at $50; CBRE downtown Class A average net rent $43.26 in Q3 2026 (p.13)."
+          "note": "New trophy floor assumed at $50 (an assumption above the published figure); CBRE downtown Class A average net rent $43.26 in Q3 2026 (p.13)."
         },
         "vacancy": {
           "value": 0.1,
           "unit": "ratio",
           "source": "cbre-office-q3-2026",
-          "grade": "C",
+          "grade": "B",
           "as_of": "2026-10-17",
           "note": "Trophy vacancy 10.5%, Class A 9.8%, overall 13.1% (p.13)."
         },
@@ -543,13 +546,13 @@
         "value": 6600,
         "unit": "CAD/m2",
         "source": "cbre-office-q3-2026",
-        "grade": "B",
+        "grade": "C",
         "as_of": "2026-10-17",
         "range": [
           5700,
           6600
         ],
-        "note": "5,700 at the Class A average rent."
+        "note": "5,700 at the Class A average rent. Grade C = weakest key input: the $50 rent is assumed above the published average."
       }
     },
     {

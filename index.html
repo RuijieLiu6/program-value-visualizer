@@ -12,15 +12,25 @@
   --body: "Public Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --radius: 6px;
+  /* map: land rises from light to darker in 10 m bands; buildings from pale to deep by height */
+  --map-sea: #c9dbe6; --map-shore: #8fb1c4; --map-park: #cfe0c3; --map-road: #ffffff; --map-outline: rgba(29,39,48,.35); --map-halo: rgba(255,255,255,.85);
+  --map-land-0: #eeece6; --map-land-1: #e9e6de; --map-land-2: #e4e0d6; --map-land-3: #dfdace; --map-land-4: #dad4c6; --map-land-5: #d5cebe;
+  --map-b0: #e7d9c3; --map-b1: #dcbf98; --map-b2: #cf9f6d; --map-b3: #bd7a4a; --map-b4: #a2552f; --map-b5: #7b3520;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --paper: #11161b; --sheet: #182027; --ink: #e5eaee; --muted: #9aa7b1; --line: #2c3842; --line-2: #222c35;
   --accent: #7cb5dc; --accent-soft: #1d3446;
-  --good: #6cc492; --good-soft: #193326; --warn: #e2ad57; --warn-soft: #3a2c14; --bad: #ef8a83; --bad-soft: #3b1f1f; color-scheme: dark } }
+  --good: #6cc492; --good-soft: #193326; --warn: #e2ad57; --warn-soft: #3a2c14; --bad: #ef8a83; --bad-soft: #3b1f1f;
+  --map-sea: #1b2a35; --map-shore: #35505f; --map-park: #1f3024; --map-road: #2f3a43; --map-outline: rgba(0,0,0,.45); --map-halo: rgba(17,22,27,.85);
+  --map-land-0: #20262b; --map-land-1: #232a2f; --map-land-2: #262d33; --map-land-3: #293137; --map-land-4: #2c343b; --map-land-5: #2f383f;
+  --map-b0: #4a4238; --map-b1: #6b5a44; --map-b2: #8f714f; --map-b3: #b58a5a; --map-b4: #d4a56d; --map-b5: #f0c98f; color-scheme: dark } }
 :root[data-theme="dark"] {
   --paper: #11161b; --sheet: #182027; --ink: #e5eaee; --muted: #9aa7b1; --line: #2c3842; --line-2: #222c35;
   --accent: #7cb5dc; --accent-soft: #1d3446;
-  --good: #6cc492; --good-soft: #193326; --warn: #e2ad57; --warn-soft: #3a2c14; --bad: #ef8a83; --bad-soft: #3b1f1f; color-scheme: dark }
+  --good: #6cc492; --good-soft: #193326; --warn: #e2ad57; --warn-soft: #3a2c14; --bad: #ef8a83; --bad-soft: #3b1f1f;
+  --map-sea: #1b2a35; --map-shore: #35505f; --map-park: #1f3024; --map-road: #2f3a43; --map-outline: rgba(0,0,0,.45); --map-halo: rgba(17,22,27,.85);
+  --map-land-0: #20262b; --map-land-1: #232a2f; --map-land-2: #262d33; --map-land-3: #293137; --map-land-4: #2c343b; --map-land-5: #2f383f;
+  --map-b0: #4a4238; --map-b1: #6b5a44; --map-b2: #8f714f; --map-b3: #b58a5a; --map-b4: #d4a56d; --map-b5: #f0c98f; color-scheme: dark }
 html, body { height: 100%; }
 body { background: var(--paper); color: var(--ink); font: 14px/1.5 var(--body); }
 .wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 28px; max-width: 1480px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
@@ -117,6 +127,12 @@ details summary { cursor: pointer; color: var(--muted); }
 .drop { border: 1px dashed var(--line); border-radius: var(--radius); padding: 10px; color: var(--muted); font-size: 13px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 #tip { position: fixed; z-index: 30; max-width: 320px; background: var(--ink); color: var(--paper); padding: 8px 10px; border-radius: var(--radius); font-size: 12px; line-height: 1.45; pointer-events: none; }
+.mapwrap { position: relative; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 300px; cursor: crosshair; touch-action: none; }
+.map-tools { justify-content: space-between; align-items: end; }
+.map-tools .field { flex-direction: row; align-items: center; gap: 6px; }
+.map-tools .field input { width: 80px; }
+.credits a { color: inherit; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -168,6 +184,7 @@ details summary { cursor: pointer; color: var(--muted); }
         <button role="tab" data-tab="verdict" aria-selected="true">Verdict</button>
         <button role="tab" data-tab="floors" aria-selected="false">Floors</button>
         <button role="tab" data-tab="city" aria-selected="false">City ledger</button>
+        <button role="tab" data-tab="map" aria-selected="false">Map</button>
         <button role="tab" data-tab="sens" aria-selected="false">Sensitivity</button>
         <button role="tab" data-tab="assume" aria-selected="false">Assumptions</button>
         <button role="tab" data-tab="ai" aria-selected="false">Ask AI</button>
@@ -176,6 +193,7 @@ details summary { cursor: pointer; color: var(--muted); }
       <div id="tab-verdict" class="tabpanel"></div>
       <div id="tab-floors" class="tabpanel" hidden></div>
       <div id="tab-city" class="tabpanel" hidden></div>
+      <div id="tab-map" class="tabpanel" hidden></div>
       <div id="tab-sens" class="tabpanel" hidden></div>
       <div id="tab-assume" class="tabpanel" hidden></div>
       <div id="tab-ai" class="tabpanel" hidden></div>

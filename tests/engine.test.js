@@ -169,8 +169,9 @@ test('no land price gives "needs land" with the land budget, or "doesn\'t work" 
 });
 
 test('items without a cost line are flagged as estimated', () => {
-  const r = evaluate([fl(1, [{ programme_id: 'CH1', share: 0.5 }, { programme_id: 'WK1', share: 0.5 }])], data, {});
-  assert.ok(r.rules.some(x => x.type === 'cost_estimated' && x.text.startsWith('CH1')));
+  // MP1 (fitness club) has no Altus line and no turnkey figure
+  const r = evaluate([fl(1, [{ programme_id: 'MP1', share: 0.5 }, { programme_id: 'WK1', share: 0.5 }])], data, {});
+  assert.ok(r.rules.some(x => x.type === 'cost_estimated' && x.text.startsWith('MP1')));
 });
 
 test('deck value is one total, spread over the deck area drawn', () => {

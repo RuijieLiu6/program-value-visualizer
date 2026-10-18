@@ -1,0 +1,197 @@
+{
+ "name": "Downtown Vancouver base map",
+ "file": "vancouver_downtown.bin",
+ "byte_length": 1037340,
+ "generator": "scripts/build_basemap.py",
+ "source_model": {
+  "generated_at": "2026-09-24T15:17:32-07:00",
+  "generator": "tools/build_unified_context.py",
+  "note": "Unified Vancouver context model of a local view-study project (OpenStreetMap-derived buildings, SRTM terrain)."
+ },
+ "units": "metres; x east, y north; model (0, 0) at the anchor below",
+ "anchor": {
+  "latitude": 49.2827,
+  "longitude": -123.1207,
+  "m_per_deg_lat": 110574.0,
+  "m_per_deg_lon": 72617.07355201729,
+  "north": "+y"
+ },
+ "extent_m": [
+  -2600.0,
+  -1700.0,
+  1800.0,
+  1600.0
+ ],
+ "centre_m": [
+  -400.0,
+  -50.0
+ ],
+ "quantum_m": 0.25,
+ "coding": {
+  "plan": "int16 x, y: model = centre + value * quantum",
+  "terrain": "int16 x, y, z per vertex, three vertices per triangle; z in decimetres (EGM96 heights)",
+  "water, parks": "int16 x, y per vertex, three vertices per triangle",
+  "roads, shoreline": "int16 x0, y0, x1, y1 per segment",
+  "buildings": "building i has rings b_ring_start[i] .. b_ring_start[i+1]; ring j has points r_point_start[j] .. r_point_start[j+1]; heights and ground in decimetres"
+ },
+ "height_source_codes": {
+  "0": "measured (OSM height tag)",
+  "1": "from floor count",
+  "2": "estimated by building type",
+  "3": "unknown"
+ },
+ "layers": {
+  "b_height_dm": {
+   "dtype": "uint16",
+   "byte_offset": 0,
+   "count": 5247
+  },
+  "b_ground_dm": {
+   "dtype": "int16",
+   "byte_offset": 10496,
+   "count": 5247
+  },
+  "b_height_source": {
+   "dtype": "uint8",
+   "byte_offset": 20992,
+   "count": 5247
+  },
+  "b_osm_way": {
+   "dtype": "uint32",
+   "byte_offset": 26240,
+   "count": 5247
+  },
+  "b_ring_start": {
+   "dtype": "uint32",
+   "byte_offset": 47228,
+   "count": 5248
+  },
+  "r_point_start": {
+   "dtype": "uint32",
+   "byte_offset": 68220,
+   "count": 5248
+  },
+  "points": {
+   "dtype": "int16",
+   "byte_offset": 89212,
+   "count": 85934
+  },
+  "terrain": {
+   "dtype": "int16",
+   "byte_offset": 261080,
+   "count": 79200
+  },
+  "water": {
+   "dtype": "int16",
+   "byte_offset": 419480,
+   "count": 15996
+  },
+  "parks": {
+   "dtype": "int16",
+   "byte_offset": 451472,
+   "count": 261270
+  },
+  "roads": {
+   "dtype": "int16",
+   "byte_offset": 974012,
+   "count": 25976
+  },
+  "shoreline": {
+   "dtype": "int16",
+   "byte_offset": 1025964,
+   "count": 5688
+  }
+ },
+ "counts": {
+  "buildings": 5247,
+  "rings": 5247,
+  "points": 42967,
+  "terrain_triangles": 8800,
+  "water_triangles": 2666,
+  "park_triangles": 43545,
+  "road_segments": 6494,
+  "shoreline_segments": 1422
+ },
+ "labels": [
+  {
+   "text": "Coal Harbour",
+   "x": -203.3,
+   "y": 862.5
+  },
+  {
+   "text": "Burrard Inlet",
+   "x": 1140.1,
+   "y": 1470.6
+  },
+  {
+   "text": "English Bay",
+   "x": -2563.4,
+   "y": 364.9
+  },
+  {
+   "text": "False Creek",
+   "x": 50.8,
+   "y": -1293.7
+  },
+  {
+   "text": "West End",
+   "x": -1038.4,
+   "y": 254.3
+  },
+  {
+   "text": "Downtown",
+   "x": 123.4,
+   "y": -77.4
+  },
+  {
+   "text": "Yaletown",
+   "x": -94.4,
+   "y": -851.4
+  },
+  {
+   "text": "Gastown",
+   "x": 922.2,
+   "y": 143.7
+  },
+  {
+   "text": "Canada Place",
+   "x": 697.1,
+   "y": 674.5
+  },
+  {
+   "text": "Granville Island",
+   "x": -965.8,
+   "y": -1271.6
+  },
+  {
+   "text": "Lost Lagoon",
+   "x": -1437.8,
+   "y": 1304.8
+  },
+  {
+   "text": "Kitsilano",
+   "x": -2490.8,
+   "y": -1625.4
+  }
+ ],
+ "attribution": [
+  {
+   "text": "© OpenStreetMap contributors",
+   "licence": "ODbL",
+   "url": "https://www.openstreetmap.org/copyright",
+   "covers": "building footprints and heights, water, parks, roads, coastline, place names"
+  },
+  {
+   "text": "Terrain: NASA SRTM 1 arc-second (via Open Topo Data)",
+   "licence": "public domain",
+   "url": "https://www.earthdata.nasa.gov/data/instruments/srtm",
+   "covers": "ground levels and terrain"
+  }
+ ],
+ "caveats": [
+  "Visual context only: not a survey, parcel map or zoning record.",
+  "Building heights are partly estimated: each building says whether its height was measured, taken from its floor count, or estimated from its type.",
+  "Ground levels use SRTM (EGM96, sampled about every 60 m); the vertical datum of the source model is unverified.",
+  "Footprints are roof outlines of simple extrusions; podiums and setbacks may be simplified."
+ ]
+}

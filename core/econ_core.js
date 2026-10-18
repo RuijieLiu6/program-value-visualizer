@@ -65,6 +65,7 @@ export function defaultSettings(data) {
     officeLeasingCost: val(data.costs.other.office_leasing_cost),
     officeTenantAllowance: val(data.costs.other.office_tenant_allowance),
     hotelFfePerKey: val(data.costs.other.hotel_ffe_per_key),
+    childcareM2PerSpace: val(data.costs.other.childcare_m2_per_space),   // turns the per-space turnkey cost into a cost per m2
     profitOnCost: val(a.profit_on_cost),
     permitDate: data.charges.default_permit_date,
     applyEscalation: true,             // City charges rise 3%/yr to 2029 (pack)
@@ -130,7 +131,8 @@ function chargeRates(data, cls, permitDate, escalate = false) {
 }
 function baseHardCost(data, programmeId, rowId) {
   const m = data.costs.cost_map;
-  const refs = (programmeId in m.by_programme ? m.by_programme[programmeId] : m.by_value_row[rowId]) || null;
+  const byProgramme = programmeId in m.by_programme;
+  const refs = (byProgramme ? m.by_programme[programmeId] : m.by_value_row[rowId]) || null;
   if (!refs) return null;
   let base = 0, found = false;
   for (const ref of refs) {
@@ -138,7 +140,26 @@ function baseHardCost(data, programmeId, rowId) {
     if (!l || l.add_on) continue;     // add-ons have no default; user can add them through hardCostPerM2
     base += val(l.default_m2); found = true;
   }
-  return found ? { base, lines: refs } : null;
+  return found ? { base, lines: refs, byProgramme } : null;
+}
+
+/** Rows a cost add-on applies to: the pack's applies_to_rows, else the office rows. */
+function appliesTo(def, rowId) { return (def?.applies_to_rows ? new Set(def.applies_to_rows) : OFFICE_ROWS).has(rowId); }
+
+/** Childcare hard cost per m2 from the per-space turnkey figure (all-in, so soft cost is taken back out). Grade C. */
+export function childcareHardRate(data, settings) {
+  const t = data.costs.other.childcare_turnkey_per_space, perSpace = val(t), m2 = settings.childcareM2PerSpace;
+  if (perSpace == null || !(m2 > 0)) return null;
+  return perSpace / m2 / (1 + num(settings.softCost));
+}
+
+/** Source dates for a sourced number: the source's own publication date and the date the figure was collected. */
+export function sourceDates(o, sources) {
+  if (!o) return null;
+  const s = sources?.get ? sources.get(o.source) : null;
+  const published = s && s.id !== 'assumption' ? (s.published ?? null) : null;
+  return { published, asOf: o.as_of ?? null, isAssumption: !s || s.id === 'assumption',
+    text: `${s && s.id !== 'assumption' ? `published ${published ?? 'date not stated'} · ` : ''}as of ${o.as_of ?? '—'}` };
 }
 
 /** Floor position bands: B below grade, G podium, L low (<= 60 m), M mid, H high, T top, S seam (tagged). */
@@ -176,7 +197,7 @@ function resolveItem(data, settings, item, floor) {
   const premiumPerFloor = o.premiumPerFloor ?? (pg ? pg.perFloor * (pg.name === 'condo' ? settings.premiumScale : 1) : 0);
   const rf = rowId ? retailFactor(data, rowId, floor.level) : null;
   const hc = baseHardCost(data, item.programme_id, rowId);
-  const chargeClass = row?.city_charge_class ?? (earnsBy === 'support' ? 'unknown' : (p.value_status === 'zero' ? 'unknown' : 'commercial'));
+  const chargeClass = row?.city_charge_class ?? p.city_charge_class ?? (earnsBy === 'support' ? 'unknown' : (p.value_status === 'zero' ? 'unknown' : 'commercial'));
   return { p, row, rowId, valuePerNetM2, efficiency, earnsBy, premiumPerFloor, retailFactor: rf, hc, o, flags, chargeClass,
     scale: settings.valueScale[rowId] ?? 1 };
 }
@@ -219,13 +240,20 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
       const floorFactor = r.retailFactor ?? 1;
       if (r.retailFactor === 0) rules.push({ type: 'retail_height', level: f.level, severity: 'warning', text: `L${f.level}: ${r.p.name} above level 2 earns nothing (retail floor rule).` });
       let gross = net * r.valuePerNetM2 * premium * bonus * floorFactor * r.scale;
-      const leasing = OFFICE_ROWS.has(r.rowId) ? gross * settings.officeLeasingCost : 0;
+      const leasing = appliesTo(data.costs.other.office_leasing_cost, r.rowId) ? gross * settings.officeLeasingCost : 0;
       const value = gross - leasing;
       // cost
-      let hardRate = r.o.hardCostPerM2 ?? null, costEstimated = false;
+      let hardRate = r.o.hardCostPerM2 ?? null, costEstimated = false, costBasis = hardRate === null ? null : 'user';
+      // the tall-building premium is for the tower structure: never on floors below grade
+      const tallFactor = supertall && f.level >= 1 ? 1 + settings.supertallPremium : 1;
       if (hardRate === null && r.hc) {
-        hardRate = r.hc.base * (supertall ? 1 + settings.supertallPremium : 1);
-        if (OFFICE_ROWS.has(r.rowId)) hardRate += settings.officeTenantAllowance;
+        hardRate = r.hc.base * tallFactor; costBasis = 'altus';
+        // tenant allowance tops up an office shell line; a programme with its own complete line (e.g. university teaching) does not get it
+        if (!r.hc.byProgramme && appliesTo(data.costs.other.office_tenant_allowance, r.rowId)) hardRate += settings.officeTenantAllowance;
+      }
+      if (hardRate === null && data.costs.other.childcare_turnkey_per_space?.applies_to_rows?.includes(r.rowId)) {
+        const cc = childcareHardRate(data, settings);
+        if (cc != null) { hardRate = cc * tallFactor; costBasis = 'childcare_turnkey'; }
       }
       if (hardRate === null) costEstimated = true;   // filled in below from the floor or project average
       const keys = r.rowId === 'H1' ? net / val(r.row.inputs.m2_per_key) : 0;
@@ -234,7 +262,7 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
       if (rates.flat) flatPermitFee = true;
       const chargeRate = r.o.chargePerM2 ?? (rates.dcl + rates.util + rates.acc);
       const it = { level: f.level, programme_id: m.programme_id, name: r.p.name, family_id: r.p.family_id, rowId: r.rowId, earnsBy: r.earnsBy,
-        share: m.share, gfa, net, efficiency: r.efficiency, premium, value, grossValue: gross, leasing, hardRate, costEstimated, ffe,
+        share: m.share, gfa, net, efficiency: r.efficiency, premium, value, grossValue: gross, leasing, hardRate, costEstimated, costBasis, ffe,
         chargeRate, charges: { dcl: gfa * (r.o.chargePerM2 != null ? 0 : rates.dcl), util: gfa * (r.o.chargePerM2 != null ? 0 : rates.util), acc: gfa * (r.o.chargePerM2 != null ? 0 : rates.acc), override: r.o.chargePerM2 != null ? gfa * r.o.chargePerM2 : 0 },
         chargeClass: r.chargeClass, flags: r.flags, fits: r.p.fits, bands: [...bands], occupancy: r.p.occupancy_group || [] };
       items.push(it); fo.items.push(it);
@@ -366,8 +394,14 @@ export function evaluate(floorsIn, data, settingsIn = {}) {
     if (i.occupancy.some(g => g === 'B2' || g === 'B3') && i.level > 3)
       rules.push({ type: 'high_building', level: i.level, severity: 'info', text: `L${i.level}: ${i.name} (B2/B3) above the 3rd storey triggers the strictest smoke-control and evacuation rules.` });
   }
-  for (const i of items) if (i.programme_id === 'CH1')
-    rules.push({ type: 'childcare', level: i.level, severity: 'info', text: `L${i.level}: childcare needs about ${data.codeRules.rules.find(r => r.id === 'childcare_outdoor')?.m2_per_child ?? 14} m² of sunny outdoor play per child, contiguous with the room.` });
+  const outdoorPerChild = data.codeRules.rules.find(r => r.id === 'childcare_outdoor')?.m2_per_child ?? 14;
+  for (const i of items) if (i.programme_id === 'CH1') {
+    const spaces = settings.childcareM2PerSpace > 0 ? Math.floor(i.gfa / settings.childcareM2PerSpace) : null;
+    i.childcareSpaces = spaces;
+    rules.push({ type: 'childcare', level: i.level, severity: 'info', text: spaces != null
+      ? `L${i.level}: ${Math.round(i.gfa)} m² of childcare is about ${spaces} spaces at ${settings.childcareM2PerSpace} m² each (grade C). It needs about ${Math.round(spaces * outdoorPerChild)} m² of sunny outdoor play (${outdoorPerChild} m² per child), contiguous with the room. Cost: turnkey C$${Math.round(val(data.costs.other.childcare_turnkey_per_space) / 1000)}k per space (2023), grade C once converted.`
+      : `L${i.level}: childcare needs about ${outdoorPerChild} m² of sunny outdoor play per child, contiguous with the room.` });
+  }
   if (settings.heightRange && height > 0 && (height < settings.heightRange[0] || height > settings.heightRange[1]))
     rules.push({ type: 'height', level: null, severity: 'warning', text: `Tower height ${height.toFixed(1)} m is outside the brief's ${settings.heightRange[0]}–${settings.heightRange[1]} m range.` });
 

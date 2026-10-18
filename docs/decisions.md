@@ -9,3 +9,7 @@
 | 17 Oct 2026 | Neutrality | No defaults taken from any one design team; the sample tower is generic. Release includes a neutrality check (G6). |
 | 17 Oct 2026 | Source documents | Licensed reports are never committed (`*.pdf` in `.gitignore`); only cited figures with publisher, page and date. |
 | 17 Oct 2026 | Hosting and licence | Open; decided before release. |
+| 18 Oct 2026 | Mechanical floors and City charges | Whole floors of plant, refuge or structure pay no DCL or ACC, matching the FSR check (grade C reading). Core, parking and storage keep the cautious commercial rate. |
+| 18 Oct 2026 | Childcare cost | Turnkey cost per space ÷ an editable m² per space (16 m², grade C), treated as all-in hard + soft cost. |
+| 18 Oct 2026 | Row grades | A value row's grade is its weakest key input; the validator enforces it. |
+| 18 Oct 2026 | Map (G4) | Lightweight 2D plan of downtown (about 1 MB) instead of embedding a 3D viewer. No site marked; OpenStreetMap and NASA SRTM credited under the map. |

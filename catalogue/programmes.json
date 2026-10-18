@@ -3263,7 +3263,8 @@
       "needs_user_value": false,
       "earns_by": "support",
       "grade": "C",
-      "as_of": "2026-10-17"
+      "as_of": "2026-10-17",
+      "city_charge_class": "excluded_mechanical"
     },
     {
       "id": "SB3",
@@ -3290,7 +3291,8 @@
       "needs_user_value": false,
       "earns_by": "support",
       "grade": "C",
-      "as_of": "2026-10-17"
+      "as_of": "2026-10-17",
+      "city_charge_class": "excluded_mechanical"
     },
     {
       "id": "SB4",
@@ -3317,7 +3319,8 @@
       "needs_user_value": false,
       "earns_by": "support",
       "grade": "C",
-      "as_of": "2026-10-17"
+      "as_of": "2026-10-17",
+      "city_charge_class": "excluded_mechanical"
     },
     {
       "id": "SB5",
@@ -3344,7 +3347,8 @@
       "needs_user_value": false,
       "earns_by": "support",
       "grade": "C",
-      "as_of": "2026-10-17"
+      "as_of": "2026-10-17",
+      "city_charge_class": "excluded_mechanical"
     },
     {
       "id": "SB6",
@@ -3371,7 +3375,8 @@
       "needs_user_value": false,
       "earns_by": "support",
       "grade": "C",
-      "as_of": "2026-10-17"
+      "as_of": "2026-10-17",
+      "city_charge_class": "excluded_mechanical"
     },
     {
       "id": "SB7",
@@ -3398,7 +3403,8 @@
       "needs_user_value": false,
       "earns_by": "support",
       "grade": "C",
-      "as_of": "2026-10-17"
+      "as_of": "2026-10-17",
+      "city_charge_class": "excluded_mechanical"
     },
     {
       "id": "SB8",
@@ -3425,7 +3431,8 @@
       "needs_user_value": false,
       "earns_by": "support",
       "grade": "C",
-      "as_of": "2026-10-17"
+      "as_of": "2026-10-17",
+      "city_charge_class": "excluded_mechanical"
     },
     {
       "id": "SB9",

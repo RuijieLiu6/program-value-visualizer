@@ -45,6 +45,13 @@
       "utilities_dcl": "commercial",
       "acc": "commercial",
       "note": "Treatment not confirmed; commercial rates used as a cautious default. User should check."
+    },
+    "excluded_mechanical": {
+      "name": "Mechanical, plant and structural floors",
+      "dcl": false,
+      "utilities_dcl": "none",
+      "acc": "exempt",
+      "note": "Designer's reading (grade C): DCL and ACC are levied on floor area as the zoning by-law counts it, and whole floors of plant, refuge or structure are normally excluded from that floor area, matching the FSR check. Confirm with the City; enter a charge per m2 on the programme if your scheme counts them."
     }
   },
   "components": {

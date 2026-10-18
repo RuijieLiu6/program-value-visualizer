@@ -12,16 +12,17 @@ Program Value Visualizer turns a floor-by-floor programme mix into an indicative
    - Net area × value per net m² × height premium × retail floor factor.
    - Value per net m² is the pack's value per m² GFA divided by the row's derivation efficiency.
    - The height premium is linear per floor above the podium top. Condos can add a bonus above neighbouring roofs.
-   - Office value is net of leasing costs (15%).
+   - Office-type value (O1, O2, O3, O6) is net of leasing costs (15%).
    - A ticketed deck is one total (visitors × ticket × (1 + F&B) × margin ÷ cap rate), spread over the deck area you draw.
 3. **Cost.**
    - Hard cost:
-     - the Altus 2026 Vancouver rate, + the tall-building premium (above 250 m, on the Altus base rate only);
-     - + the office tenant allowance;
+     - the Altus 2026 Vancouver rate, + the tall-building premium (above 250 m, on the Altus base rate only, floors at level 1 and above);
+     - + the tenant allowance on office-type shells (O1, O2, O3, and O6 when it is costed on the office shell line);
+     - childcare (C1) has no Altus line: turnkey cost per space ÷ m² per space ÷ (1 + soft cost), grade C;
      - + luxury hotel FF&E per key.
    - Uses with no published line are costed at the floor average, then the project average, and flagged.
    - Soft cost = share of hard cost. Finance = rate × years × share borrowed × (hard + soft).
-   - City charges = (DCL + Utilities DCL + ACC) × GFA by charge class, at the permit date, rising 3% a year to 2029.
+   - City charges = (DCL + Utilities DCL + ACC) × GFA by charge class, at the permit date, rising 3% a year to 2029. Whole floors of plant, refuge or structure (SB2–SB8) pay none, because they are normally excluded from counted floor area (grade C). Core, parking and storage stay on the cautious commercial rate.
 4. **Public running cost.** Yearly cost of public floors ÷ 5%. It is subtracted from value unless the City or a partner pays. With a CAC endowment, the CAC covers it first.
 5. **Profit** = 15% of total cost (the City's own benchmark).
 6. **Residual land value before CAC** = value − public deduction − cost − profit.
@@ -55,3 +56,14 @@ Each line rounds its own result; the next line uses the unrounded figure.
 - Profit C$3.21 M. **Left for land and CAC ≈ −C$11.73 M.**
 
 The test pins efficiency at 0.76. The engine's own curve gives 0.80 for floors 1–20, so the live tool shows slightly higher office value at that height.
+
+## Grades
+
+Each value row is graded by its weakest *key* input (A best, C weakest). Selling cost, leakage, deck area and the derivation efficiency are minor inputs and do not set the grade; the efficiency cancels out in the engine. `node core/validate_data.js` fails a row graded better than that.
+
+## Neighbouring roofs (Map tab)
+
+- Neighbours are the buildings whose footprint centroid is within the radius of the study point; a building on the point is left out.
+- The value offered for the condo bonus is the tallest neighbour's roof level above the ground at the point: neighbour ground + neighbour height − ground here.
+- Sources: OpenStreetMap heights (measured, from floor count, or estimated by type) and SRTM ground.
+- Grade C. Details are in `basemap/README.md`.

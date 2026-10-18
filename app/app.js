@@ -1,5 +1,6 @@
 // Program Value Visualizer — page script. All maths lives in core/econ_core.js.
-import { indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, LABEL } from '../core/econ_core.js';
+import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
+import { indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
 
 const STORE_KEY = 'pvv-project-v1';
 const PACK = 'packs/vancouver-2026/';
@@ -23,12 +24,12 @@ const pct = (x, d = 1) => (x == null ? '—' : `${(x * 100).toFixed(d)}%`);
 const VERDICT = { works: 'Works', marginal: 'Marginal', doesnt_work: "Doesn't work", needs_land: 'Land price needed', incomplete: 'Incomplete' };
 
 let raw = null, data = null, result = null, sens = null;
-let state = { floors: [], settings: {}, brief: 'vtc-2026', sel: null };
+let state = { floors: [], settings: {}, brief: 'vtc-2026', sel: null, mapSite: null };
 const history = [];
 let activeTab = 'verdict', pickFamily = null, pickProgramme = null, editMix = null;
 
 // ---------- storage (per-viewer convenience only) ----------
-const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief })); } catch (e) { /* storage unavailable */ } };
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief, mapSite: state.mapSite })); } catch (e) { /* storage unavailable */ } };
 const load = () => { try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (s && Array.isArray(s.floors) && s.floors.length) return s; } catch (e) { /* ignore */ } return null; };
 function pushHistory() { history.push(JSON.stringify({ floors: state.floors, settings: state.settings, brief: state.brief })); if (history.length > 40) history.shift(); $('#undoBtn').disabled = false; }
 function undo() { const s = history.pop(); if (!s) return; const o = JSON.parse(s); state.floors = o.floors; state.settings = o.settings; if (o.brief && o.brief !== state.brief) { state.brief = o.brief; buildData(); $('#briefSel').value = o.brief; } editMix = null; $('#undoBtn').disabled = !history.length; refresh(); }
@@ -66,7 +67,7 @@ function normaliseFloors(list) {
 // Ranges for settings typed by people or the assistant: [min, max]
 const RANGES = { landPrice: [0, 5e9], landValueCurrentZoning: [0, 5e9], podiumTopFloor: [0, 40], neighbourRoofM: [0, 400], siteAreaM2: [100, 200000], minNonresFsr: [0, 40],
   profitOnCost: [0, 0.4], softCost: [0, 0.6], financeRate: [0, 0.2], buildYears: [1, 12], drawFactor: [0, 1], supertallPremium: [0, 0.6], supertallThresholdM: [0, 600], cacShare: [0, 1],
-  publicRunningCostPerM2: [0, 2000], officeTenantAllowance: [0, 5000], officeLeasingCost: [0, 0.5], hotelFfePerKey: [0, 500000] };
+  publicRunningCostPerM2: [0, 2000], childcareM2PerSpace: [5, 60], officeTenantAllowance: [0, 5000], officeLeasingCost: [0, 0.5], hotelFfePerKey: [0, 500000] };
 const ENUMS = { publicPayer: ['cross_subsidy', 'cac_endowment', 'ticketed_deck', 'city_or_partner'], presaleMarket: ['weak', 'normal'], employmentOnly: ['auto', true, false], hotelAsNonResidential: [true, false], applyEscalation: [true, false] };
 function checkSetting(k, v) {
   if (v === null || v === undefined || v === '') return null;
@@ -95,9 +96,9 @@ const prog = id => data.programmes.get(id);
 function srcText(o) {
   if (!o) return '';
   const s = data.sources.get(o.source);
-  const who = s ? (s.id === 'assumption' ? 'Author assumption / arithmetic' : `${s.title}${s.publisher ? ', ' + s.publisher : ''}${s.published ? ' (' + s.published + ')' : ''}`) : o.source;
+  const who = s ? (s.id === 'assumption' ? 'Author assumption / arithmetic' : `${s.title}${s.publisher ? ', ' + s.publisher : ''}`) : o.source;
   const checked = s && s.checked !== 'n/a' ? ` · checked: ${s.checked}` : '';
-  return `${who}${checked} · grade ${o.grade} · as of ${o.as_of}${o.note ? '\n' + o.note : ''}${s?.note && s.id !== 'assumption' ? '\nSource note: ' + s.note : ''}`;
+  return `${who}${checked} · grade ${o.grade} · ${sourceDates(o, data.sources).text}${o.note ? '\n' + o.note : ''}${s?.note && s.id !== 'assumption' ? '\nSource note: ' + s.note : ''}`;
 }
 const srcTag = o => o ? h('span', { class: 'src', tabindex: '0', 'data-tip': srcText(o) }, 'source') : null;
 const gradeTag = g => g ? h('span', { class: `grade ${g}`, 'data-tip': { A: 'A: primary or professional 2025–26 source', B: 'B: secondary or older source', C: 'C: our arithmetic or an assumption' }[g] }, g) : null;
@@ -171,7 +172,7 @@ function showTab(t) {
   renderTab();
 }
 function renderTab() {
-  ({ verdict: renderVerdict, floors: renderFloors, city: renderCity, sens: renderSens, assume: renderAssume, ai: renderAI, about: renderAbout })[activeTab]();
+  ({ verdict: renderVerdict, floors: renderFloors, city: renderCity, map: renderMap, sens: renderSens, assume: renderAssume, ai: renderAI, about: renderAbout })[activeTab]();
 }
 
 function kpi(k, v, cls = '', tip = null, big = false) { return h('div', { class: `kpi${big ? ' big' : ''}`, 'data-tip': tip }, h('span', { class: 'k' }, k), h('span', { class: `v ${cls}` }, v)); }
@@ -296,7 +297,10 @@ function programmeCard(id) {
   if (!p) return null;
   const fam = data.families.get(p.family_id);
   const setO = (k, v) => { try { v = k === 'efficiency' ? (v == null ? null : Math.min(1, Math.max(0.3, finite(v, 'efficiency')))) : checkMoney(v, k); } catch (e) { toast(e.message); return; } pushHistory(); state.settings.programme = { ...(state.settings.programme || {}) }; const cur = { ...(state.settings.programme[id] || {}) }; if (v == null) delete cur[k]; else cur[k] = v; if (Object.keys(cur).length) state.settings.programme[id] = cur; else delete state.settings.programme[id]; refresh(); };
-  const baseCost = lines.filter(l => !l.add_on).reduce((s, l) => s + l.default_m2.value, 0);
+  const turnkey = data.costs.other.childcare_turnkey_per_space;
+  const childcare = !lines.length && row && turnkey?.applies_to_rows?.includes(row.id) ? childcareHardRate(data, settingsFull()) : null;
+  const baseCost = childcare ?? lines.filter(l => !l.add_on).reduce((s, l) => s + l.default_m2.value, 0);
+  const costSrc = childcare != null ? { ...turnkey, grade: 'C', note: `C$${N(turnkey.value)} per space ÷ ${settingsFull().childcareM2PerSpace} m² per space ÷ (1 + soft cost). ${turnkey.note}` } : lines[0]?.default_m2;
   const drift = row ? recomputeValue(row) : null;
   const driftNote = drift != null && row?.value_per_m2_gfa?.value && Math.abs(drift / row.value_per_m2_gfa.value - 1) > 0.05 ? h('p', { class: 'note neg' }, `This default (${N(row.value_per_m2_gfa.value)}) does not follow from its own inputs (${N(drift)}); see Method & sources.`) : null;
   return h('div', { class: 'panel' }, h('div', { class: 'ph' }, h('i', { class: 'sw', style: `background:${famColour(p.family_id)}` }), h('h2', {}, `${p.id} · ${p.name}`), p.unconventional ? h('span', { class: 'grade' }, '★ unconventional') : null),
@@ -305,7 +309,7 @@ function programmeCard(id) {
       row ? h('div', { class: 'note' }, `Value row ${row.id}: ${row.name} · earns by ${row.earns_by} · method ${row.method}`) : h('div', { class: 'note' }, p.value_status === 'zero' ? 'Earns nothing: cost only.' : 'No sourced value yet: enter your own below.'),
       h('div', { class: 'grid2' },
         numField(`pv-${id}`, 'Value per m² GFA (before height premium; office before leasing costs)', o.valuePerM2Gfa ?? (row ? row.value_per_m2_gfa.value : (p.value_status === 'zero' ? 0 : null)), { step: 100, unit: 'C$/m²', placeholder: 'user to supply', src: row?.value_per_m2_gfa, onchange: v => setO('valuePerM2Gfa', v) }),
-        numField(`pc-${id}`, 'Hard cost per m² (before tall premium)', o.hardCostPerM2 ?? (baseCost || null), { step: 50, unit: 'C$/m²', placeholder: 'floor average', src: lines[0]?.default_m2, onchange: v => setO('hardCostPerM2', v) }),
+        numField(`pc-${id}`, 'Hard cost per m² (before tall premium)', o.hardCostPerM2 ?? (baseCost || null), { step: 50, unit: 'C$/m²', placeholder: 'floor average', src: costSrc, onchange: v => setO('hardCostPerM2', v) }),
         numField(`pe-${id}`, 'Efficiency (net ÷ gross)', o.efficiency ?? null, { step: 0.01, min: 0.3, max: 1, placeholder: 'from pack', onchange: v => setO('efficiency', v) })),
       driftNote,
       o && Object.keys(o).length ? h('button', { onclick: () => { pushHistory(); delete state.settings.programme[id]; refresh(); } }, 'Use pack defaults') : null,
@@ -348,6 +352,184 @@ function renderCity() {
     h('p', { class: 'note' }, 'Not included yet: Metro Vancouver and TransLink regional charges. DCL treatment of social housing, civic and parking floor area is not confirmed (cautious rates used). Rental ACC waivers apply only to 100%-rental projects.'));
 }
 const el = s => document.querySelector(s);
+
+// ---------- Map tab (G4: downtown context, neighbouring roofs) ----------
+const BASEMAP = 'basemap/vancouver_downtown.json';
+const HEIGHT_BINS = [20, 40, 80, 120, 160];              // m; six colour steps, low to high
+const mapView = { map: null, loading: null, error: null, paths: null, k: null, cx: 0, cy: 0, hover: null, radius: 150 };
+async function loadBasemap() {
+  if (mapView.map || mapView.loading) return mapView.loading;
+  mapView.loading = (async () => {
+    const manifest = await fetch(BASEMAP).then(r => { if (!r.ok) throw new Error(`${BASEMAP}: ${r.status}`); return r.json(); });
+    const buf = await fetch('basemap/' + manifest.file).then(r => { if (!r.ok) throw new Error(`${manifest.file}: ${r.status}`); return r.arrayBuffer(); });
+    mapView.map = parseBasemap(manifest, buf);
+    mapView.paths = buildMapPaths(mapView.map);
+    const [x0, y0, x1, y1] = manifest.extent_m; mapView.cx = (x0 + x1) / 2; mapView.cy = (y0 + y1) / 2;
+  })().catch(e => { mapView.error = e.message; mapView.loading = null; });
+  return mapView.loading;
+}
+/** Path2D objects in model metres, built once; the canvas transform does pan and zoom. */
+function buildMapPaths(map) {
+  const { layers: L, X, Y } = map;
+  const tri = arr => { const p = new Path2D(); for (let k = 0; k + 5 < arr.length; k += 6) { p.moveTo(X(arr[k]), Y(arr[k + 1])); p.lineTo(X(arr[k + 2]), Y(arr[k + 3])); p.lineTo(X(arr[k + 4]), Y(arr[k + 5])); p.closePath(); } return p; };
+  const seg = arr => { const p = new Path2D(); for (let k = 0; k + 3 < arr.length; k += 4) { p.moveTo(X(arr[k]), Y(arr[k + 1])); p.lineTo(X(arr[k + 2]), Y(arr[k + 3])); } return p; };
+  // terrain tinted in 10 m bands so the slope of the peninsula reads
+  const t = L.terrain, terrain = new Map();
+  for (let k = 0; k + 8 < t.length; k += 9) {
+    const z = (t[k + 2] + t[k + 5] + t[k + 8]) / 30, band = Math.min(5, Math.max(0, Math.floor(z / 10)));
+    if (!terrain.has(band)) terrain.set(band, new Path2D());
+    const p = terrain.get(band); p.moveTo(X(t[k]), Y(t[k + 1])); p.lineTo(X(t[k + 3]), Y(t[k + 4])); p.lineTo(X(t[k + 6]), Y(t[k + 7])); p.closePath();
+  }
+  const bins = HEIGHT_BINS.map(() => new Path2D()); bins.push(new Path2D());
+  for (const b of map.buildings) {
+    const bin = HEIGHT_BINS.findIndex(v => b.height < v), p = bins[bin < 0 ? HEIGHT_BINS.length : bin];
+    for (const ring of b.rings) { ring.forEach(([x, y], k) => (k ? p.lineTo(x, y) : p.moveTo(x, y))); p.closePath(); }
+  }
+  return { terrain, water: tri(L.water), parks: tri(L.parks), roads: seg(L.roads), shore: seg(L.shoreline), bins };
+}
+function buildingPath(b) { const p = new Path2D(); for (const ring of b.rings) { ring.forEach(([x, y], k) => (k ? p.lineTo(x, y) : p.moveTo(x, y))); p.closePath(); } return p; }
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function drawMap(canvas) {
+  const map = mapView.map; if (!map || !canvas.isConnected) return;
+  const dpr = window.devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
+  if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
+  const [x0, y0, x1, y1] = map.manifest.extent_m;
+  if (!mapView.k) mapView.k = Math.min(W / (x1 - x0), H / (y1 - y0));
+  const k = mapView.k, ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = cssVar('--map-sea'); ctx.fillRect(0, 0, W, H);
+  // model -> screen: x right, y up
+  ctx.setTransform(dpr * k, 0, 0, -dpr * k, dpr * (W / 2 - mapView.cx * k), dpr * (H / 2 + mapView.cy * k));
+  const P = mapView.paths, px = 1 / k;
+  for (const [band, p] of [...P.terrain].sort((a, b) => a[0] - b[0])) { ctx.fillStyle = cssVar(`--map-land-${band}`); ctx.fill(p); }
+  ctx.fillStyle = cssVar('--map-park'); ctx.fill(P.parks);
+  ctx.fillStyle = cssVar('--map-sea'); ctx.fill(P.water);
+  ctx.strokeStyle = cssVar('--map-road'); ctx.lineWidth = 0.8 * px; ctx.stroke(P.roads);
+  ctx.strokeStyle = cssVar('--map-shore'); ctx.lineWidth = 1 * px; ctx.stroke(P.shore);
+  P.bins.forEach((p, i) => { ctx.fillStyle = cssVar(`--map-b${i}`); ctx.fill(p, 'evenodd'); });
+  ctx.strokeStyle = cssVar('--map-outline'); ctx.lineWidth = 0.4 * px; P.bins.forEach(p => ctx.stroke(p));
+  const site = state.mapSite, nb = mapView.nb;
+  if (site && nb) {
+    ctx.strokeStyle = cssVar('--accent'); ctx.lineWidth = 1.6 * px;
+    for (const i of nb.neighbours) ctx.stroke(buildingPath(map.buildings[i]));
+    ctx.setLineDash([6 * px, 4 * px]); ctx.beginPath(); ctx.arc(site.x, site.y, nb.radius, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    if (nb.tallest) { ctx.lineWidth = 3 * px; ctx.strokeStyle = cssVar('--warn'); ctx.stroke(buildingPath(map.buildings[nb.tallest.i])); }
+    ctx.fillStyle = cssVar('--accent'); ctx.beginPath(); ctx.arc(site.x, site.y, 5 * px, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = cssVar('--sheet'); ctx.lineWidth = 1.5 * px; ctx.stroke();
+  }
+  if (mapView.hover != null) { ctx.strokeStyle = cssVar('--ink'); ctx.lineWidth = 1.4 * px; ctx.stroke(buildingPath(map.buildings[mapView.hover])); }
+  // labels in screen space
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.font = `500 11px ${cssVar('--body') || 'sans-serif'}`; ctx.textAlign = 'center';
+  for (const l of map.manifest.labels) {
+    const sx = W / 2 + (l.x - mapView.cx) * k, sy = H / 2 - (l.y - mapView.cy) * k;
+    if (sx < 0 || sx > W || sy < 0 || sy > H) continue;
+    ctx.lineWidth = 3; ctx.strokeStyle = cssVar('--map-halo'); ctx.strokeText(l.text, sx, sy); ctx.fillStyle = cssVar('--ink'); ctx.fillText(l.text, sx, sy);
+  }
+  // scale bar
+  const target = 120 / k, step = [50, 100, 200, 250, 500, 1000, 2000].find(s => s >= target * 0.6) || 2000, len = step * k;
+  ctx.fillStyle = cssVar('--ink'); ctx.fillRect(12, H - 16, len, 3); ctx.textAlign = 'left'; ctx.fillText(`${step} m`, 12, H - 22);
+  ctx.textAlign = 'right'; ctx.fillText('N ↑', W - 10, 18);
+}
+function mapModelAt(canvas, ev) {
+  const r = canvas.getBoundingClientRect(), k = mapView.k;
+  return { x: mapView.cx + (ev.clientX - r.left - r.width / 2) / k, y: mapView.cy - (ev.clientY - r.top - r.height / 2) / k };
+}
+function buildingAt(x, y) { const m = mapView.map; if (!m) return null; for (const b of m.buildings) if (insideBuilding(b, x, y)) return b; return null; }
+function wireMap(canvas, redrawInfo) {
+  let drag = null, raf = 0;
+  const redraw = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => drawMap(canvas)); };
+  canvas.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, cx: mapView.cx, cy: mapView.cy, moved: false }; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove', e => {
+    if (drag) {
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 4) drag.moved = true;
+      if (drag.moved) { mapView.cx = drag.cx - dx / mapView.k; mapView.cy = drag.cy + dy / mapView.k; redraw(); }
+      return;
+    }
+    const { x, y } = mapModelAt(canvas, e), b = buildingAt(x, y), hv = b ? b.i : null;
+    if (hv !== mapView.hover) { mapView.hover = hv; redraw(); }
+    const tip = $('#tip');
+    if (b) { tip.textContent = `Building · ${b.height.toFixed(0)} m tall (${['measured', 'from floor count', 'estimated by type', 'unknown'][b.source]})\nGround ≈ ${b.ground.toFixed(0)} m (SRTM) · OpenStreetMap way ${b.osmWay}`; tip.hidden = false; tip.style.left = Math.min(window.innerWidth - 336, e.clientX + 12) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; }
+    else tip.hidden = true;
+  });
+  canvas.addEventListener('pointerleave', () => { mapView.hover = null; $('#tip').hidden = true; redraw(); });
+  canvas.addEventListener('pointerup', e => {
+    const d = drag; drag = null;
+    if (d && !d.moved) { const { x, y } = mapModelAt(canvas, e); setMapSite(x, y); redrawInfo(); redraw(); }
+  });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const before = mapModelAt(canvas, e), f = Math.exp(-e.deltaY * 0.0015);
+    mapView.k = Math.min(20, Math.max(0.05, mapView.k * f));
+    const after = mapModelAt(canvas, e);
+    mapView.cx += before.x - after.x; mapView.cy += before.y - after.y; redraw();
+  }, { passive: false });
+  new ResizeObserver(redraw).observe(canvas);
+  return redraw;
+}
+function setMapSite(x, y) {
+  state.mapSite = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+  mapView.nb = neighbourRoofs(mapView.map, state.mapSite.x, state.mapSite.y, mapView.radius);
+  save();
+}
+function renderMap() {
+  const box = $('#tab-map');
+  if (!mapView.map) {
+    box.replaceChildren(h('p', { class: 'note' }, mapView.error ? `Could not load the base map: ${mapView.error}` : 'Loading the downtown base map (about 1 MB)…'));
+    if (!mapView.error) loadBasemap().then(() => { if (activeTab === 'map') renderMap(); });
+    return;
+  }
+  const map = mapView.map, man = map.manifest, S = settingsFull();
+  if (state.mapSite && !mapView.nb) mapView.nb = neighbourRoofs(map, state.mapSite.x, state.mapSite.y, mapView.radius);
+  const canvas = h('canvas', { class: 'map', role: 'img', 'aria-label': 'Plan of downtown Vancouver: buildings coloured by height. Click to place a study point.' });
+  const info = h('div', { class: 'mapinfo' });
+  const zoom = f => { mapView.k = Math.min(20, Math.max(0.05, mapView.k * f)); redraw(); };
+  const legend = h('div', { class: 'legend' }, ['< 20', '20–40', '40–80', '80–120', '120–160', '≥ 160'].map((t, i) => h('span', {}, h('i', { style: `background:var(--map-b${i})` }), `${t} m`)));
+  const radius = numField('mapRadius', 'Neighbour radius', mapView.radius, { step: 10, min: 50, max: 600, unit: 'm', onchange: v => {
+    const r = Math.min(600, Math.max(50, Number(v) || 150)); mapView.radius = r;
+    if (state.mapSite) mapView.nb = neighbourRoofs(map, state.mapSite.x, state.mapSite.y, r);
+    fillInfo(); redraw(); } });
+  const tools = h('div', { class: 'toolbar' },
+    h('button', { onclick: () => zoom(1.4), 'aria-label': 'Zoom in' }, '+'), h('button', { onclick: () => zoom(1 / 1.4), 'aria-label': 'Zoom out' }, '−'),
+    h('button', { onclick: () => { mapView.k = null; const [x0, y0, x1, y1] = man.extent_m; mapView.cx = (x0 + x1) / 2; mapView.cy = (y0 + y1) / 2; redraw(); } }, 'Fit downtown'),
+    state.mapSite ? h('button', { onclick: () => { state.mapSite = null; mapView.nb = null; save(); renderMap(); } }, 'Clear point') : null);
+  const credits = h('p', { class: 'note credits' }, man.attribution.flatMap((a, i) => [i ? ' · ' : '', h('a', { href: a.url, target: '_blank', rel: 'noopener' }, a.text), ` (${a.licence})`]));
+  function fillInfo() {
+    const nb = mapView.nb;
+    if (!state.mapSite || !nb) {
+      info.replaceChildren(h('p', { class: 'note' }, 'Click the map to place a study point. The tool lists the buildings around it and estimates how high their roofs are, which can feed the condo “above neighbouring roofs” bonus. No site is marked: the brief’s site is hypothetical.'));
+      return;
+    }
+    const ll = toLatLon(man, nb.x, nb.y), tower = result.height;
+    const useVal = nb.aboveSiteGround.max ?? nb.height.max;
+    const f0 = x => (x == null ? '—' : `${x.toFixed(0)} m`);
+    info.replaceChildren(
+      h('div', { class: 'kpis' },
+        kpi('Buildings within ' + nb.radius + ' m', String(nb.count), '', `Measured ${nb.bySource.measured} · from floor count ${nb.bySource.levels} · estimated by type ${nb.bySource.estimated}`),
+        kpi('Tallest neighbour', f0(nb.height.max), '', 'Its own height above its ground (OpenStreetMap)'),
+        kpi('Tallest roof above this point’s ground', f0(nb.aboveSiteGround.max), '', 'Neighbour ground + height − ground here (SRTM). Use this one for the condo bonus: floor elevations in the tool are above your grade.'),
+        kpi('90th percentile / median', `${f0(nb.height.p90)} / ${f0(nb.height.median)}`)),
+      h('p', { class: 'note' }, `Point ${ll.lat.toFixed(5)}, ${ll.lon.toFixed(5)} · ground ≈ ${nb.siteGround == null ? '—' : nb.siteGround.toFixed(0) + ' m (SRTM)'}${nb.onSite.length ? ` · ${nb.onSite.length} building on the point left out (it would be replaced)` : ''}. ` +
+        (tower > 0 && useVal != null ? `Your tower (${tower.toFixed(0)} m) ${tower > useVal ? `rises ${(tower - useVal).toFixed(0)} m above` : `stays ${(useVal - tower).toFixed(0)} m below`} the tallest neighbouring roof.` : '')),
+      h('div', { class: 'toolbar' },
+        useVal != null ? h('button', { class: 'primary', onclick: () => setSetting('neighbourRoofM', Math.round(useVal)) }, `Use ${Math.round(useVal)} m for the condo bonus`) : null,
+        nb.aboveSiteGround.p90 != null ? h('button', { onclick: () => setSetting('neighbourRoofM', Math.round(nb.aboveSiteGround.p90)) }, `Use the 90th percentile (${Math.round(nb.aboveSiteGround.p90)} m)`) : null,
+        h('span', { class: 'note' }, `Now: ${S.neighbourRoofM == null ? 'off' : S.neighbourRoofM + ' m'}`), gradeTag('C')),
+      h('p', { class: 'note' }, 'Grade C: heights come from OpenStreetMap and are partly estimated; ground levels from SRTM. Floors at or above this height get the condo “above neighbours” bonus (Assumptions tab).'));
+  }
+  fillInfo();
+  box.replaceChildren(
+    h('p', { class: 'note' }, 'Downtown Vancouver in plan, buildings coloured by height. Drag to pan, scroll or use +/− to zoom, hover for a building, click to place a study point.'),
+    h('div', { class: 'toolbar map-tools' }, tools, radius), legend,
+    h('div', { class: 'mapwrap' }, canvas), credits, info,
+    h('details', {}, h('summary', {}, 'About this map'), h('ul', { class: 'note' }, man.caveats.map(c => h('li', {}, c)),
+      h('li', {}, `${N(man.counts.buildings)} buildings; ${man.file} is ${(man.byte_length / 1e6).toFixed(1)} MB. Built by scripts/build_basemap.py.`))));
+  const redraw = wireMap(canvas, fillInfo);
+  redraw();
+}
+const themeQuery = matchMedia('(prefers-color-scheme: dark)');
+themeQuery.addEventListener?.('change', () => { if (activeTab === 'map') renderMap(); });
 
 // ---------- Sensitivity tab ----------
 function renderSens() {
@@ -397,7 +579,8 @@ function renderAssume() {
       f('aSoft', 'Soft costs (share of hard)', 'softCost', Co.soft_cost, { step: 0.01, min: 0, max: 1 }),
       f('aTA', 'Office tenant allowance', 'officeTenantAllowance', Co.office_tenant_allowance, { step: 10, unit: 'C$/m²' }),
       f('aLease', 'Office leasing costs (share of value)', 'officeLeasingCost', Co.office_leasing_cost, { step: 0.01, min: 0, max: 1 }),
-      f('aFfe', 'Luxury hotel FF&E per key', 'hotelFfePerKey', Co.hotel_ffe_per_key, { step: 5000, unit: 'C$' })),
+      f('aFfe', 'Luxury hotel FF&E per key', 'hotelFfePerKey', Co.hotel_ffe_per_key, { step: 5000, unit: 'C$' }),
+      f('aChild', 'Childcare floor area per space (turns the turnkey cost per space into C$/m²)', 'childcareM2PerSpace', Co.childcare_m2_per_space, { step: 1, min: 5, unit: 'm²' })),
     h('h4', { style: 'margin:0' }, 'Finance, profit and the City'),
     h('div', { class: 'grid2' },
       f('aRate', 'Construction loan rate', 'financeRate', A.finance.rate, { step: 0.0025, min: 0, max: 0.3 }),
@@ -425,7 +608,8 @@ function renderAbout() {
     h('ol', { class: 'note', style: 'margin:0;padding-left:20px' },
       h('li', {}, 'Area: GFA = plate × share. Net = GFA × efficiency (office and residential use the height-band curve).'),
       h('li', {}, 'Value: net area × value per net m² × height premium (linear per floor above the podium). Retail keeps value only at grade. Office value is shown after 15% leasing costs.'),
-      h('li', {}, 'Cost: Altus 2026 Vancouver hard cost (+ tall-building premium above 250 m, + office tenant allowance, + luxury hotel FF&E) + soft cost + finance + City charges.'),
+      h('li', {}, 'Cost: Altus 2026 Vancouver hard cost (+ tall-building premium above 250 m on floors above grade, + tenant allowance on office-type shells, + luxury hotel FF&E) + soft cost + finance + City charges. Childcare has no Altus line: its cost comes from a turnkey cost per space ÷ floor area per space (grade C).'),
+      h('li', {}, 'City charges: whole floors of plant, refuge or structure pay no DCL or ACC (normally excluded from counted floor area, like the FSR check; grade C). Core, parking and storage stay on the cautious commercial rate.'),
       h('li', {}, 'Public running cost ÷ 5% is taken off value unless the City or a partner pays.'),
       h('li', {}, 'Profit = 15% of total cost. Residual land value = value − cost − profit; CAC = share × (residual − land value under current zoning), zero for 100% employment rezonings.'),
       h('li', {}, 'Verdict compares the residual after CAC with your land price.')),
@@ -433,7 +617,7 @@ function renderAbout() {
     h('p', { class: 'note' }, `Vancouver 2026 pack · ${data.programmes.size} programmes in ${data.families.size} activity families · ${data.rows.size} value rows · ${data.lines.size} Altus cost lines · ${srcs.length} sources. Every default carries source, date and grade (A primary 2025–26, B secondary or older, C arithmetic or assumption).`),
     drift.length ? h('div', { class: 'rules' }, h('strong', {}, 'Defaults that do not follow from their own inputs (kept as published, flagged):'), drift.map(x => h('div', { class: 'rule warning' }, h('b', {}, x.r.id), h('span', {}, `${x.r.name}: default ${N(x.r.value_per_m2_gfa.value)}, inputs give ${N(x.re)} C$/m² GFA`)))) : null,
     h('h4', { style: 'margin:0' }, 'Sources'),
-    h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Source'), h('th', {}, 'Date'), h('th', {}, 'How checked'))),
+    h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Source'), h('th', {}, 'Published'), h('th', {}, 'How checked'))),
       h('tbody', {}, srcs.map(s => h('tr', { 'data-tip': s.note || '' }, h('td', {}, s.url ? h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.title) : s.title, s.publisher ? h('span', { class: 'note' }, ` · ${s.publisher}`) : null), h('td', {}, s.published || '—'), h('td', {}, s.checked)))))),
     h('h4', { style: 'margin:0' }, 'Open data gaps (user to supply)'),
     h('p', { class: 'note' }, 'Luxury hotel ADR; deck visitor numbers; supertall cost premium; Metro Vancouver and TransLink charges; efficiency curve vs CTBUH data; land price; values for branded residences, seniors housing, co-living, labs, galleries, conference and spa; downtown parking rates; public floor running cost.'));
@@ -536,8 +720,8 @@ const AI_TOOLS = [
     const fl = state.floors.filter(f => f.level >= lo && f.level <= hi); if (!fl.length) throw new Error('no floors in that range');
     pushHistory(); fl.forEach(f => { f.mix = m.map(x => ({ ...x, share: x.share / s })); }); state.sel = [lo, hi]; editMix = null; refresh();
     return { changed_floors: fl.length, ...summaryForAI() }; } },
-  { name: 'set_assumption', description: 'Change one project assumption. name is one of: landPrice, landValueCurrentZoning, podiumTopFloor, neighbourRoofM, siteAreaM2, profitOnCost, softCost, financeRate, buildYears, supertallPremium, cacShare, publicRunningCostPerM2, publicPayer (cross_subsidy|cac_endowment|ticketed_deck|city_or_partner), presaleMarket (weak|normal), hotelAsNonResidential (true|false). value null resets it.', inputSchema: { type: 'object', properties: { name: { type: 'string' }, value: {} }, required: ['name'] }, execute: ({ name, value }) => {
-    const ok = ['landPrice', 'landValueCurrentZoning', 'podiumTopFloor', 'neighbourRoofM', 'siteAreaM2', 'profitOnCost', 'softCost', 'financeRate', 'buildYears', 'supertallPremium', 'cacShare', 'publicRunningCostPerM2', 'publicPayer', 'presaleMarket', 'hotelAsNonResidential'];
+  { name: 'set_assumption', description: 'Change one project assumption. name is one of: landPrice, landValueCurrentZoning, podiumTopFloor, neighbourRoofM, siteAreaM2, profitOnCost, softCost, financeRate, buildYears, supertallPremium, cacShare, publicRunningCostPerM2, childcareM2PerSpace, publicPayer (cross_subsidy|cac_endowment|ticketed_deck|city_or_partner), presaleMarket (weak|normal), hotelAsNonResidential (true|false). value null resets it.', inputSchema: { type: 'object', properties: { name: { type: 'string' }, value: {} }, required: ['name'] }, execute: ({ name, value }) => {
+    const ok = ['landPrice', 'landValueCurrentZoning', 'podiumTopFloor', 'neighbourRoofM', 'siteAreaM2', 'profitOnCost', 'softCost', 'financeRate', 'buildYears', 'supertallPremium', 'cacShare', 'publicRunningCostPerM2', 'childcareM2PerSpace', 'publicPayer', 'presaleMarket', 'hotelAsNonResidential'];
     if (!ok.includes(name)) throw new Error('not an assumption you can change here');
     checkSetting(name, value);   // throws a readable error for bad values
     setSetting(name, value); return summaryForAI(); } },
@@ -598,14 +782,14 @@ async function boot() {
   wireTips();
   try { await loadData(); } catch (e) { $('#tab-verdict').replaceChildren(h('p', { class: 'neg' }, 'Could not load the data pack: ' + e.message)); return; }
   const saved = load();
-  if (saved) { state.brief = raw.briefs[saved.brief] ? saved.brief : 'vtc-2026'; }
+  if (saved) { state.brief = raw.briefs[saved.brief] ? saved.brief : 'vtc-2026'; const ms = saved.mapSite; if (ms && Number.isFinite(ms.x) && Number.isFinite(ms.y) && Math.abs(ms.x) < 1e5 && Math.abs(ms.y) < 1e5) state.mapSite = { x: ms.x, y: ms.y }; }
   buildData();
   if (saved) { try { state.floors = normaliseFloors(saved.floors); state.settings = saved.settings && typeof saved.settings === 'object' ? saved.settings : {}; evaluate(state.floors, data, state.settings); } catch (e) { state.floors = []; state.settings = {}; } }
   if (!state.floors.length) state.floors = sampleTower();
   $('#briefSel').value = state.brief;
   $('#briefSel').addEventListener('change', e => { pushHistory(); state.brief = e.target.value; buildData(); refresh(); });
   $('#undoBtn').addEventListener('click', undo);
-  $('#themeBtn').addEventListener('click', () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; });
+  $('#themeBtn').addEventListener('click', () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; if (activeTab === 'map') renderMap(); });
   $('#section').addEventListener('click', onSectionClick);
   for (const b of document.querySelectorAll('#tabs button')) b.addEventListener('click', () => showTab(b.dataset.tab));
   $('#genBtn').addEventListener('click', () => { pushHistory(); state.floors = sampleTower({ height: +$('#gHeight').value, podiumFloors: +$('#gPodium').value, podiumPlate: +$('#gPodiumPlate').value, towerPlate: +$('#gTowerPlate').value, topPlate: +$('#gTopPlate').value, belowGrade: +$('#gBelow').value }); state.sel = null; editMix = null; refresh(); });

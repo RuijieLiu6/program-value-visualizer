@@ -757,7 +757,13 @@
       "source": "assumption",
       "grade": "C",
       "as_of": "2026-10-17",
-      "note": "Tenant allowance added to office shell cost in the hand-worked check (test T1); alternative to the Altus fit-out add-on."
+      "note": "Tenant allowance added to office shell cost in the hand-worked check (test T1); alternative to the Altus fit-out add-on. Applied to every leased office-type row, including O6.",
+      "applies_to_rows": [
+        "O1",
+        "O2",
+        "O3",
+        "O6"
+      ]
     },
     "office_leasing_cost": {
       "value": 0.15,
@@ -769,7 +775,13 @@
         0.1,
         0.2
       ],
-      "note": "Incentives, free rent and commissions, as a share of office value."
+      "note": "Incentives, free rent and commissions, as a share of value. Applied to every leased office-type row, including O6 education / institute floors (same shell line, same leasing treatment).",
+      "applies_to_rows": [
+        "O1",
+        "O2",
+        "O3",
+        "O6"
+      ]
     },
     "hotel_ffe_per_key": {
       "value": 100000,
@@ -789,7 +801,22 @@
       "source": "morehousing-130wb",
       "grade": "B",
       "as_of": "2023-01-01",
-      "note": "C$6.49 M for one turnkey 37-space centre delivered in-kind (6,490,000 / 37, rounded). No Altus line for childcare."
+      "note": "C$6.49 M for one turnkey 37-space centre delivered in-kind (6,490,000 / 37, rounded). No Altus line for childcare. Treated as all-in (hard + soft) and not escalated from 2023. The engine turns it into a hard cost per m2 with childcare_m2_per_space (grade C result).",
+      "applies_to_rows": [
+        "C1"
+      ]
+    },
+    "childcare_m2_per_space": {
+      "value": 16,
+      "unit": "m2",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "range": [
+        12,
+        22
+      ],
+      "note": "Indoor gross floor area per licensed space (playrooms, support rooms, circulation). Assumption: check against the City's Childcare Design Guidelines and the operator's room plan. Outdoor play (about 14 m2 per child) is not included."
     }
   },
   "cost_map": {

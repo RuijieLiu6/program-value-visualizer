@@ -77,3 +77,15 @@ The validator recomputes each value row from the market inputs stored with it. T
 ## 5. Open data gaps (shown in the tool as "user to supply")
 
 Luxury hotel ADR; deck visitor numbers; supertall cost premium; Metro Vancouver and TransLink charges; DCL treatment of social, civic and parking area; efficiency curve vs CTBUH data; land price; values for branded residences, seniors housing, co-living, labs, galleries, conference space and hotel spa; downtown monthly parking rates; public floor running cost per m².
+
+## 6. Round 2 changes (18 October 2026)
+
+| File | Change |
+| --- | --- |
+| `costs.json` | `childcare_m2_per_space` added: 16 m², grade C, range 12–22. `childcare_turnkey_per_space` now applies to row C1. `office_leasing_cost` and `office_tenant_allowance` list the rows they apply to (O1, O2, O3, O6). |
+| `charges.json` | New class `excluded_mechanical`: no DCL, Utilities DCL or ACC (grade C reading). |
+| `programmes.json` | SB2–SB8 (mechanical, refuge, belt, transfer, damper, break tank, roof plant) use `excluded_mechanical`. |
+| `values.json` | R4, O1 and H2 value grades B → C (weakest key input). O1 rent input B → C, O1 vacancy input C → B. Grade notes added to R1, R4, O1 and H2. |
+| `basemap/` | New: downtown Vancouver base map (OpenStreetMap, NASA SRTM). See `basemap/README.md`. |
+
+Values themselves did not change. The modelled results change only through the engine rules listed in `docs/critique_r2.md`.

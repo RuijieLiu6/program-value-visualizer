@@ -76,3 +76,20 @@ test('recompute matches hand arithmetic for key rows', () => {
   // H2: 33,600 / 0.07 / 60 = 8,000
   assert.ok(Math.abs(get('H2') - 8000) < 1e-6);
 });
+
+// ---------- review round 2 ----------
+test('a value row graded better than its weakest key input is an error', () => {
+  const codes = broken('packs/vancouver-2026/values.json', d => { d.rows.find(r => r.id === 'R4').value_per_m2_gfa.grade = 'B'; });
+  assert.ok(codes.includes('grade_above_inputs'));
+});
+
+test('R1, R4, O1 and H2 carry the grade of their weakest key input', () => {
+  const v = JSON.parse(fs.readFileSync(path.join(ROOT, 'packs/vancouver-2026/values.json'), 'utf8'));
+  const g = id => v.rows.find(r => r.id === id).value_per_m2_gfa.grade;
+  assert.deepEqual([g('R1'), g('R4'), g('O1'), g('H2')], ['B', 'C', 'C', 'C']);
+});
+
+test('a programme naming an unknown charge class is an error', () => {
+  const codes = broken('catalogue/programmes.json', d => { d.programmes.find(p => p.id === 'SB2').city_charge_class = 'nowhere'; });
+  assert.ok(codes.includes('unknown_charge_class'));
+});
