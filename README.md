@@ -8,7 +8,7 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 **Every number is an indicative early-design estimate.** It is not a feasibility study, an appraisal or a compliance check, and the tool says so on every screen and export.
 
-Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (73 tests). See [Roadmap](#roadmap).
+Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (81 tests). See [Roadmap](#roadmap).
 
 Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
 

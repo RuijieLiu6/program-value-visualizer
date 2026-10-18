@@ -96,3 +96,34 @@ A value the user types replaces it (`valueBasis: "user"`).
 | Purchase premium | 0% | 0–25% | C | Assumption: the CAC is meant to capture rezoning lift. |
 
 5. **Sensitivity.** "Land rate ±20%" is reported below the tornado as headroom over land, because it moves the land price and the CAC base, not only the residual.
+
+## Starting stack from a concept (Ask AI tab)
+
+"Start from your concept" asks for:
+- a concept sentence;
+- height (150–330 m);
+- up to three priorities;
+- must-have programmes;
+- whether to meet the 9.0 FSR non-residential rule;
+- whether hotel counts as non-residential;
+- plate size (compact, medium or large).
+
+**With AI** (`modelTier: "default"`):
+1. The assistant reads `get_planning_guide`. This is the tool's own rules and catalogue: fits, intensity, code flags, values and their basis.
+2. It calls `apply_stack` once with the whole tower. One Undo reverses it.
+3. It calls `apply_stack` again only if the FSR rule fails or a blocking rule appears.
+4. It explains the stack in a fixed plain format: intent; bands from base to crown, each with its reason; FSR with hotel counted both ways; money and verdict; two or three moves to try; a reminder that this is a starting point, not a recommendation.
+
+**Without AI**, or when the call is refused or rate-limited, `starterStack()` in `core/planner.js` builds the stack from fixed rules:
+- parking below grade;
+- retail and lobby at level 1;
+- public or civic uses with childcare at level 2;
+- podium offices or institute floors;
+- in the tower: offices low, then hotel, then rental, then condos high, with zone sizes set by the priorities;
+- a plant floor about every 20 floors;
+- a resident-amenity buffer below the crown;
+- a deck and sky restaurant at the crown;
+- must-haves added where their fits say;
+- B2/B3 care uses kept at or below the podium.
+
+If the FSR rule is asked for, it moves homes to offices (or to hotel when visitors are a priority) in 3% steps until the rule passes. If it can't pass, it says so. The same template explains the result, labelled "rule-based starter (no AI)". "Explain my current stack" explains the floors on screen in the same format.

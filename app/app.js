@@ -1,5 +1,6 @@
 // Program Value Visualizer — page script. All maths lives in core/econ_core.js.
 import { drawIcon, SPECS } from './icons/icon_specs.js';
+import { PRIORITIES, PLATES, planningGuide, stackToFloors, starterStack, explainStack } from '../core/planner.js';
 import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
 import { TYPICAL_BASES, indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
 
@@ -305,7 +306,8 @@ function programmeDefaults(id) {
 function renderFloors() {
   const el = $('#tab-floors'), fl = selectedFloors();
   if (!fl.length) {
-    put(el, h('p', { class: 'note' }, 'Select one floor or a range in the section (shift-click), then set which programmes share the plate.'), floorTable());
+    put(el, h('p', { class: 'note' }, 'Select one floor or a range in the section (shift-click), then set which programmes share the plate.'),
+      h('p', { class: 'note' }, 'Not sure where to start? ', h('button', { class: 'linkish', onclick: () => { showTab('ai'); document.getElementById('concept')?.scrollIntoView({ block: 'start' }); } }, 'Start from your concept'), ' (Ask AI tab) arranges a starting stack and explains it.'), floorTable());
     return;
   }
   if (!editMix) editMix = fl[0].mix.map(m => ({ ...m }));
@@ -888,6 +890,130 @@ const AI_TOOLS = [
     if (hv !== undefined) { if (hv === null) delete cur.hardCostPerM2; else cur.hardCostPerM2 = hv; }
     state.settings.programme[pid] = cur; refresh(); return summaryForAI(); } },
 ];
+// ---------- Start from your concept: AI planner and rule-based starter ----------
+const EXPLAIN_FORMAT = `Write the explanation short and plain, in this order:
+1. One line: the intent.
+2. Band by band from the basement to the crown, one line each: levels, uses, and the reason (where it fits on the section, intensity buffer, a code flag, or a value pattern such as the height premium for homes, retail value only at grade, offices low near transit, heavy and public uses low or on seams).
+3. FSR: the non-residential result with hotel counted both ways, against the 9.0 rule if the brief applies.
+4. Money: which bands create value and which need support from the rest, and the verdict against the land price (say if the land price is estimated).
+5. Two or three alternative moves the user could try.
+6. Close with: an indicative early-design estimate and a starting point to edit, not a recommendation of one design.
+Stay neutral: offer options, never impose a style. No markdown headings; plain lines and "• " bullets.`;
+const PLANNER_RULES = `You are planning a starting programme stack for a tall building in Vancouver, inside Program Value Visualizer.
+Steps (you have only a few tool rounds):
+1. Call get_planning_guide once and reason from its rules and programme list (fits, intensity, code flags, values), not from memory.
+2. Propose a stack that answers the user's concept and priorities, then call apply_stack ONCE with the whole tower and all bands (below grade to the crown, plant floors about every 20 floors, a buffer floor where the intensity jumps by 3 or more).
+3. Read the summary apply_stack returns. Call apply_stack one more time ONLY if the 9.0 FSR non-residential rule is asked for and fails, or a blocking rule appears. Otherwise do not call more tools.
+4. Then write the explanation.
+${EXPLAIN_FORMAT}`;
+let conceptAnswers = null;
+function stackSummary(extra = {}) {
+  const fam = {}; for (const i of result.items) { const k = data.families.get(i.family_id)?.name; fam[k] = (fam[k] || 0) + i.net_contribution / 1e6; }
+  const f = result.fsr;
+  return { ...extra, verdict: VERDICT[result.verdict], reasons: result.reasons, height_m: +result.height.toFixed(1), floors: state.floors.length,
+    totals_cad_millions: Object.fromEntries(['gdv', 'cost', 'rlvAfterCac', 'landPrice'].map(k => [k, t1(result.totals[k])])), land_estimated: result.totals.landEstimated,
+    fsr: { nonres_fsr_hotel_as_nonres: f.nonresFsrWithHotel != null ? +f.nonresFsrWithHotel.toFixed(2) : null, nonres_fsr_hotel_as_res: f.nonresFsrWithoutHotel != null ? +f.nonresFsrWithoutHotel.toFixed(2) : null, required: f.minNonresFsr ?? null, pass: f.pass ?? null, counting_hotel_as_nonres: f.usingHotelAsNonResidential },
+    top_rules: result.rules.filter(r => r.severity !== 'info').slice(0, 8).map(r => `${r.severity}: ${r.text}`),
+    net_by_family_cad_millions: Object.fromEntries(Object.entries(fam).map(([k, v]) => [k, +v.toFixed(1)])) };
+}
+const t1 = x => (x == null ? null : +(x / 1e6).toFixed(1));
+/** Replace the floors with a stack in one step: one Undo reverses it. Throws on bad input before anything changes. */
+function applyStackToPage(stack, { hotelNonres } = {}) {
+  const built = stackToFloors(stack, data);
+  pushHistory();
+  state.floors = built.floors; state.sel = null; editMix = null;
+  if (hotelNonres != null) state.settings.hotelAsNonResidential = !!hotelNonres;
+  refresh();
+  return built;
+}
+const PLAN_TOOLS = [
+  { name: 'get_planning_guide', description: 'The tool’s own planning rules and the full programme catalogue: id, name, family, fits (B G L M H T S), intensity, code group, how it earns, value per m2 GFA and its basis (sourced / researched / analogy / no income). Read this before proposing a stack.', execute: () => planningGuide(data) },
+  { name: 'apply_stack', description: 'Replace the whole building in one step (one Undo reverses it). tower: {height_m 40-500, podium_floors 0-12, podium_plate_m2, tower_plate_m2, top_plate_m2, below_grade 0-8}. bands: [{from_level, to_level, mix: [{programme_id, share}]}] from below grade (negative levels) to the crown; shares add up to 1; a later band wins where bands overlap. The generator puts a plant floor (SB2) about every 20 floors: it stays unless a one-level band names that level. Floors no band covers copy the nearest band. Returns verdict, totals, FSR both ways, top rules and net value by family.', inputSchema: { type: 'object', properties: { tower: { type: 'object', properties: { height_m: { type: 'number' }, podium_floors: { type: 'number' }, podium_plate_m2: { type: 'number' }, tower_plate_m2: { type: 'number' }, top_plate_m2: { type: 'number' }, below_grade: { type: 'number' } } }, bands: { type: 'array', items: { type: 'object', properties: { from_level: { type: 'number' }, to_level: { type: 'number' }, mix: { type: 'array', items: { type: 'object', properties: { programme_id: { type: 'string' }, share: { type: 'number' } }, required: ['programme_id', 'share'] } } }, required: ['from_level', 'to_level', 'mix'] } } }, required: ['tower', 'bands'] },
+    execute: input => { const b = applyStackToPage(input, { hotelNonres: conceptAnswers?.hotel_nonres }); return stackSummary({ floors_filled_from_nearest_band: b.filled.length, plant_floors_kept: b.keptMech, bands_outside_the_tower: b.outside }); } },
+];
+const FAIL_COPY = { not_granted: 'Ask AI is turned off for this page.', sampling_disabled: 'Claude is not available for this account.', rate_limited: 'Too many questions just now. Try again in a minute.', refused: 'Claude declined that request.', tools_unavailable: 'This view cannot let the assistant change the scheme.', session_expired: 'Please sign in again.', cancelled: 'Stopped.' };
+/** Run one assistant call with progress lines; resolves the final text or null (with the reason shown). */
+async function runAssistant(prompt, tools, ui, { label }) {
+  const { msgs, status, stop } = ui;
+  const bubble = h('div', { class: 'msg ai' }, 'Thinking…'); msgs.append(bubble); msgs.scrollTop = msgs.scrollHeight;
+  const wrapped = tools.map(t => ({ ...t, execute: (input, ctx) => { msgs.insertBefore(h('div', { class: 'msg tool' }, `→ ${t.name}${t.name === 'apply_stack' ? ' (one Undo reverses it)' : ''}`), bubble); return t.execute(input || {}, ctx); } }));
+  aiState = 'busy'; stop.hidden = false; status.textContent = `${label} Each run uses your own Claude usage; it can take a minute.`;
+  chatCtl = new AbortController();
+  try {
+    const { text, truncated } = await sample([{ role: 'user', content: prompt }], { signal: chatCtl.signal, tools: wrapped, modelTier: 'default', cache: false, onText: ({ text }) => { bubble.textContent = text; msgs.scrollTop = msgs.scrollHeight; } });
+    bubble.textContent = text; status.textContent = truncated ? 'The answer was cut short.' : '';
+    return text;
+  } catch (e) {
+    bubble.textContent = e.text || ''; if (!bubble.textContent) bubble.remove();
+    status.textContent = FAIL_COPY[e.code] ?? 'Something went wrong.';
+    return { failed: e.code || 'error' };
+  } finally { aiState = 'idle'; stop.hidden = true; }
+}
+function showStarter(answers, ui, why) {
+  const st = starterStack(answers, data, state.settings);
+  applyStackToPage(st, { hotelNonres: st.hotelNonres });
+  const text = explainStack(result, data, { stack: st, floors: state.floors, concept: answers.concept, label: `Rule-based starter (no AI)${why ? ` — ${why}` : ''}. One Undo reverses it.` });
+  ui.msgs.append(h('div', { class: 'msg ai starter' }, text)); ui.msgs.scrollTop = ui.msgs.scrollHeight;
+}
+async function planFromConcept(answers, ui, { useAI }) {
+  conceptAnswers = answers;
+  ui.msgs.append(h('div', { class: 'msg user' }, `Plan a starting stack: ${answers.concept || '(no concept text)'} · ${answers.height_m} m · ${answers.priorities.map(k => PRIORITIES[k]).join(', ') || 'no priorities'}${answers.must_have.length ? ' · must have ' + answers.must_have.join(', ') : ''} · 9.0 FSR ${answers.meet_fsr ? 'yes' : 'no'} · hotel ${answers.hotel_nonres ? 'non-residential' : 'residential'} · ${answers.plates} plates`));
+  if (!useAI || !sample) { showStarter(answers, ui, sample ? '' : 'Ask AI is not available here'); return; }
+  const prompt = `${RULES}\n\n${PLANNER_RULES}\n\nUser's answers (JSON):\n${JSON.stringify({ ...answers, plate_sizes_m2: PLATES[answers.plates], brief: state.brief === 'vtc-2026' ? 'Vancouver Tall Challenge 2026' : 'none' })}\n\nCurrent building summary before planning (JSON):\n${JSON.stringify(summaryForAI())}`;
+  const out = await runAssistant(prompt, [...PLAN_TOOLS, ...AI_TOOLS.filter(t => ['get_results', 'get_floors'].includes(t.name))], ui, { label: 'Planning a starting stack…' });
+  if (out && out.failed && out.failed !== 'cancelled') showStarter(answers, ui, 'the assistant could not run');
+}
+async function explainCurrent(ui) {
+  ui.msgs.append(h('div', { class: 'msg user' }, 'Explain my current stack'));
+  if (!sample) { ui.msgs.append(h('div', { class: 'msg ai starter' }, explainStack(result, data, { floors: state.floors, label: 'Rule-based explanation (no AI).' }))); return; }
+  const prompt = `${RULES}\n\nExplain the arrangement that is on screen now, using get_results and get_floors (one or two rounds), then write:\n${EXPLAIN_FORMAT}\n\nCurrent summary (JSON):\n${JSON.stringify(summaryForAI())}`;
+  const out = await runAssistant(prompt, AI_TOOLS.filter(t => ['get_results', 'get_floors', 'get_programme'].includes(t.name)), ui, { label: 'Reading the current stack…' });
+  if (out && out.failed && out.failed !== 'cancelled') ui.msgs.append(h('div', { class: 'msg ai starter' }, explainStack(result, data, { floors: state.floors, label: 'Rule-based explanation (no AI).' })));
+}
+function conceptCard(ui) {
+  const brief = data.brief, hr = brief?.height_m;
+  const a = conceptAnswers || { concept: '', height_m: 280, priorities: [], must_have: [], meet_fsr: !!brief?.rules?.length, hotel_nonres: true, plates: 'medium' };
+  const concept = h('textarea', { id: 'cConcept', rows: 2, placeholder: 'e.g. A vertical neighbourhood: homes above a public podium, with a free view for the city.', style: 'width:100%' }); concept.value = a.concept;
+  const hOut = h('output', { for: 'cHeight', class: 'mono' }, `${a.height_m} m`);
+  const height = h('input', { id: 'cHeight', type: 'range', min: 150, max: 330, step: 1, value: a.height_m, style: 'width:100%' });
+  height.addEventListener('input', () => { hOut.textContent = `${height.value} m`; });
+  const prio = new Set(a.priorities);
+  const prioBox = h('div', { class: 'chips', role: 'group', 'aria-label': 'Priorities, up to 3' }, Object.entries(PRIORITIES).map(([k, label]) => {
+    const b = h('button', { type: 'button', 'aria-pressed': String(prio.has(k)), class: 'prio' }, label);
+    b.addEventListener('click', () => { if (prio.has(k)) prio.delete(k); else if (prio.size < 3) prio.add(k); else { toast('Pick up to 3 priorities.'); return; } b.setAttribute('aria-pressed', String(prio.has(k))); });
+    return b;
+  }));
+  const must = [...a.must_have];
+  const mustChips = h('div', { class: 'chips must' });
+  const drawMust = () => put(mustChips, must.map(id => h('span', { class: 'mchip' }, iconEl(id, 20), `${prog(id)?.name} (${id})`, h('button', { type: 'button', 'aria-label': `Remove ${prog(id)?.name}`, onclick: () => { must.splice(must.indexOf(id), 1); drawMust(); } }, '×'))));
+  drawMust();
+  const mustSel = h('select', { id: 'cMust', 'aria-label': 'Add a must-have programme' }, h('option', { value: '' }, 'Add a must-have programme (optional)…'),
+    [...data.families.values()].map(f => h('optgroup', { label: f.name }, [...data.programmes.values()].filter(p => p.family_id === f.family_id).map(p => h('option', { value: p.id }, p.name)))));
+  mustSel.addEventListener('change', () => { const id = mustSel.value; mustSel.value = ''; if (id && !must.includes(id)) { if (must.length >= 6) { toast('Up to 6 must-haves.'); return; } must.push(id); drawMust(); } });
+  const yn = (id, label, on) => { const s = h('select', { id }, h('option', { value: 'yes', selected: on }, 'yes'), h('option', { value: 'no', selected: !on }, 'no')); return [h('label', { for: id }, label), s]; };
+  const [fsrL, fsrS] = yn('cFsr', 'Meet the 9.0 FSR non-residential rule?', a.meet_fsr);
+  const [hotL, hotS] = yn('cHotel', 'Count hotel as non-residential?', a.hotel_nonres);
+  const plates = h('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'Floor plates' }, Object.entries({ compact: 'Compact (tower ~1,500 m²)', medium: 'Medium (~2,000 m²)', large: 'Large (~2,600 m²)' }).map(([k, label]) => {
+    const r = h('input', { type: 'radio', name: 'cPlates', value: k, id: `cPl-${k}`, checked: a.plates === k, class: 'sr' });
+    return h('label', { for: `cPl-${k}`, class: 'radio-chip' }, r, label);
+  }));
+  const answers = () => ({ concept: concept.value.trim().slice(0, 500), height_m: Number(height.value), priorities: [...prio], must_have: [...must], meet_fsr: fsrS.value === 'yes', hotel_nonres: hotS.value === 'yes', plates: plates.querySelector('input:checked')?.value || 'medium' });
+  const busy = () => aiState === 'busy';
+  const go = useAI => { if (busy()) return; planFromConcept(answers(), ui, { useAI }); };
+  const aiBtn = h('button', { class: 'primary', id: 'cPlanAI', onclick: () => go(true) }, 'Plan it with AI');
+  const ruleBtn = h('button', { id: 'cPlanRule', onclick: () => go(false) }, 'Rule-based starter (no AI)');
+  return h('details', { class: 'concept', id: 'concept', open: true },
+    h('summary', {}, h('strong', {}, 'Start from your concept')),
+    h('p', { class: 'note' }, 'Answer a few questions. The assistant arranges a starting stack, puts it on the section and explains why. One Undo reverses it. Without AI, a rule-based starter does the same from fixed rules.'),
+    h('div', { class: 'field' }, h('label', { for: 'cConcept' }, 'Your concept in one or two sentences'), concept),
+    h('div', { class: 'field' }, h('label', { for: 'cHeight' }, 'Height ', hOut, hr ? h('span', { class: 'note' }, ` · brief: ${hr.min}–${hr.max} m`) : null), height),
+    h('div', { class: 'field' }, h('span', { class: 'flabel' }, 'Priorities (up to 3)'), prioBox),
+    h('div', { class: 'field' }, h('label', { for: 'cMust' }, 'Must-have programmes'), mustSel, mustChips),
+    h('div', { class: 'grid2' }, h('div', { class: 'field' }, fsrL, fsrS), h('div', { class: 'field' }, hotL, hotS)),
+    h('div', { class: 'field' }, h('span', { class: 'flabel' }, 'Floor plates'), plates),
+    h('div', { class: 'toolbar' }, aiBtn, ruleBtn));
+}
+
 function renderAI() {
   const box = $('#tab-ai');
   if (box.dataset.ready) { return; }
@@ -897,7 +1023,9 @@ function renderAI() {
   const send = h('button', { class: 'primary', id: 'aiSend' }, 'Ask');
   const stop = h('button', { id: 'aiStop', hidden: true }, 'Stop');
   const status = h('div', { class: 'note', id: 'aiStatus' });
-  const chips = h('div', { class: 'chips' }, ['Explain the verdict in plain words', 'Which floors lose the most money, and why?', 'How could this scheme meet the 9.0 FSR non-residential rule?', 'What are the weakest numbers in the data?'].map(q => h('button', { onclick: () => { ta.value = q; ask(); } }, q)));
+  const ui = { msgs, status, stop };
+  const explainBtn = h('button', { class: 'explain', onclick: () => { if (aiState !== 'busy') explainCurrent(ui); } }, 'Explain my current stack');
+  const chips = h('div', { class: 'chips' }, explainBtn, ['Explain the verdict in plain words', 'Which floors lose the most money, and why?', 'How could this scheme meet the 9.0 FSR non-residential rule?', 'What are the weakest numbers in the data?'].map(q => h('button', { onclick: () => { ta.value = q; ask(); } }, q)));
   const ask = async () => {
     const q = ta.value.trim(); if (!q || aiState === 'busy') return;
     if (!sample) { status.textContent = 'Ask AI works when this tool is opened on claude.ai.'; return; }
@@ -908,7 +1036,7 @@ function renderAI() {
     if (turns[1]?.role === 'assistant') turns.splice(1, 1);
     aiState = 'busy'; send.disabled = true; stop.hidden = false; status.textContent = 'Each question uses your own Claude usage. The first one asks your permission.';
     chatCtl = new AbortController();
-    const tools = AI_TOOLS.map(t => ({ ...t, execute: (input, ctx) => { msgs.insertBefore(h('div', { class: 'msg tool' }, `→ ${t.name}`), bubble); return t.execute(input || {}, ctx); } }));
+    const tools = [...AI_TOOLS, ...PLAN_TOOLS].map(t => ({ ...t, execute: (input, ctx) => { msgs.insertBefore(h('div', { class: 'msg tool' }, `→ ${t.name}`), bubble); return t.execute(input || {}, ctx); } }));
     try {
       const { text, truncated } = await sample(turns, { signal: chatCtl.signal, tools, onText: ({ text }) => { bubble.textContent = text; msgs.scrollTop = msgs.scrollHeight; } });
       bubble.textContent = text; chatTurns.push({ role: 'assistant', content: text });
@@ -925,6 +1053,7 @@ function renderAI() {
   stop.addEventListener('click', () => chatCtl?.abort());
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) ask(); });
   put(box, 
+    conceptCard(ui),
     h('p', { class: 'note' }, 'Ask questions about the current scheme or ask for changes. The assistant reads the same numbers you see and can edit the floor mix and assumptions (Undo reverses any change). It uses your own Claude account.'),
     chips, h('div', { class: 'chat' }, msgs, ta, h('div', { class: 'toolbar' }, send, stop, h('span', { class: 'note' }, '⌘/Ctrl + Enter to send')), status));
   if (window.claude) window.claude.use('sample').then(s => { sample = s; if (!s) status.textContent = 'Ask AI is not available in this view.'; }).catch(() => { status.textContent = 'Ask AI is not available in this view.'; });
@@ -943,7 +1072,7 @@ function openHelp() {
     h('p', { class: 'note' }, 'You do not need to know any prices. Every use (programme) already has a number. You can change any of them.'),
     h('h3', {}, 'Five steps'),
     h('ol', { class: 'help-steps' },
-      step(1, 'Start with a tower.', 'A sample tower opens by default. To change it, open “Start from a new sample tower or your own floors” under the section. You can set the height and plate sizes, or import your floors from a CSV or JSON file.'),
+      step(1, 'Start with a tower.', 'A sample tower opens by default. Or answer a few questions in “Start from your concept” (Ask AI tab): it arranges a starting stack and explains why, with AI or with fixed rules. You can also set the height and plate sizes under the section, or import your floors from a CSV or JSON file.'),
       step(2, 'Select floors.', 'Click a floor in the section (the tower drawing). Shift-click a second floor to select a range.'),
       step(3, 'Set the mix.', 'In the Floors tab, press “Add a programme…” and pick from the picture list (filter by family or search; arrow keys and Enter work too). It joins the mix. Set each share (they must add to 100%), then press Apply. The programme card shows its value and cost per m². Type your own number there if you know better.'),
       step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land.'),
