@@ -1,7 +1,7 @@
 <title>Program Value Visualizer</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Oswald:wght@500;700&display=swap">
 <style>
 /* Layout: a drawing board. Left, the tower section drawn to scale with value-minus-cost bars; right, a tabbed ledger of numbers, each traceable to its source. */
 :root {
@@ -204,6 +204,24 @@ canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 
 .tour-card { position: fixed; z-index: 41; width: min(340px, calc(100vw - 24px)); background: var(--sheet); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, .25); display: flex; flex-direction: column; gap: 6px; }
 .tour-card p { margin: 0; font-size: 13.5px; }
 @media (max-width: 599px) { .tour-card { width: auto; } }
+.diagram-card { display: flex; flex-direction: column; gap: 8px; }
+.up-btn { cursor: pointer; }
+.review { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line-2); padding-top: 8px; }
+.review-tbl td { vertical-align: top; }
+.review-tbl tr.low td { background: var(--warn-soft); }
+.review-tbl .elev { display: flex; gap: 4px; align-items: center; margin: 4px 0; }
+.review-tbl .num-in { width: 70px; }
+.review-tbl .prog-cell { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; min-width: 180px; }
+.review-tbl .prog-cell select { max-width: 240px; }
+.conf { font: 600 11px/1 var(--mono); }
+.conf.low { color: var(--warn); }
+.ph-btn { margin-left: auto; font-size: 12px; padding: 3px 10px; }
+#diagram { width: min(860px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet); color: var(--ink); }
+#diagram::backdrop { background: rgba(10, 14, 18, .45); }
+.dg-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px 14px; }
+.dg-tools .flabel { font-size: 12px; color: var(--muted); }
+.dg-preview { border: 1px solid var(--line); border-radius: var(--radius); overflow: auto; max-height: 62vh; background: #f6f3ec; }
+.dg-preview svg { display: block; width: 100%; height: auto; }
 .typ-note { border-left: 3px dashed var(--warn); padding-left: 8px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
@@ -244,7 +262,7 @@ canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 
 
   <div class="board">
     <section class="panel" aria-label="Tower section">
-      <div class="ph"><h2>Section</h2><span class="note" id="sectionNote">Click a floor; shift-click to select a range.</span></div>
+      <div class="ph"><h2>Section</h2><span class="note" id="sectionNote">Click a floor; shift-click to select a range.</span><button id="diagramBtn" class="ph-btn" title="Programme word-stack diagram: preview and download" aria-haspopup="dialog">Diagram</button></div>
       <div class="pb">
         <div class="section-wrap"><svg id="section" role="img" aria-label="Tower section with value minus cost per floor"></svg></div>
         <div class="legend" id="legend"></div>
@@ -292,5 +310,6 @@ canvas.map { display: block; width: 100%; height: min(560px, 62vh); min-height: 
   <footer class="label">Program Value Visualizer · Vancouver 2026 data pack · indicative early-design estimate · check every number before you rely on it</footer>
 </div>
 <dialog id="help" aria-labelledby="helpTitle"></dialog>
+<dialog id="diagram" class="dg-dialog" aria-labelledby="diagramTitle"></dialog>
 <div id="tip" hidden></div>
 <script type="module" src="app/app.js"></script>

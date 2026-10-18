@@ -1,5 +1,7 @@
 // Program Value Visualizer — page script. All maths lives in core/econ_core.js.
 import { drawIcon, SPECS } from './icons/icon_specs.js';
+import { wordStackLayout, wordStackSVG, inkOf, FONT_STACK } from '../core/wordstack.js';
+import { readPrompt, normaliseDiagramRead, floorsFromBands } from '../core/diagram_read.js';
 import { PRIORITIES, PLATES, planningGuide, stackToFloors, starterStack, explainStack } from '../core/planner.js';
 import { parseBasemap, neighbourRoofs, insideBuilding, toLatLon } from '../core/basemap.js';
 import { TYPICAL_BASES, indexData, evaluate, sensitivity, sampleTower, defaultSettings, recomputeValue, sourceDates, childcareHardRate, LABEL } from '../core/econ_core.js';
@@ -780,9 +782,10 @@ function renderAbout() {
 // ---------- import / export ----------
 async function offerFile(filename, text, type) {
   const dl = window.claude ? await window.claude.use('downloads').catch(() => null) : null;
-  const blob = new Blob([text], { type });
+  const blob = text instanceof Blob ? text : new Blob([text], { type });
   if (dl) { try { await dl.save({ filename, data: blob }); } catch (e) { /* declined */ } return; }
   if (!window.claude) { const a = h('a', { href: URL.createObjectURL(blob), download: filename }); document.body.append(a); a.click(); a.remove(); return; }
+  if (text instanceof Blob) { toast('Saving files is not available in this view. Try the SVG: it can be copied to the clipboard.'); return; }
   try { await navigator.clipboard.writeText(text); toast('Saving files is not available here; copied to the clipboard instead.'); } catch (e) { toast('Saving files is not available in this view.'); }
 }
 function toast(msg) { const t = $('#tip'); t.textContent = msg; t.hidden = false; t.style.left = '16px'; t.style.top = '16px'; setTimeout(() => { t.hidden = true; }, 4000); }
@@ -1014,6 +1017,97 @@ function conceptCard(ui) {
     h('div', { class: 'toolbar' }, aiBtn, ruleBtn));
 }
 
+// ---------- Concept diagram: read (AI) or type bands, review, apply ----------
+let imageLimits = null;
+const PROG_OPTIONS = () => [...data.families.values()].map(f => h('optgroup', { label: f.name }, [...data.programmes.values()].filter(p => p.family_id === f.family_id).map(p => h('option', { value: p.id }, `${p.name} (${p.id})`))));
+/** Replace the floors with ones built from diagram bands: one Undo reverses it. Validates first. */
+function applyDiagramFloors(bands, plates) {
+  const built = floorsFromBands(bands, data, plates);
+  pushHistory();
+  state.floors = built.floors; state.sel = null; editMix = null;
+  refresh();
+  return built;
+}
+function reviewPanel(read, ui, { source }) {
+  const box = h('div', { class: 'review', id: 'review' });
+  const rows = read.bands.map(b => ({ ...b, programmes: b.programmes.map(p => ({ ...p })) }));
+  const draw = () => {
+    const tbody = h('tbody', {}, rows.flatMap((b, bi) => {
+      const prs = b.programmes.length ? b.programmes : [{ text: '', programme_id: null, share: 1, confidence: 1 }];
+      if (!b.programmes.length) b.programmes = prs;
+      return prs.map((p, pi) => {
+        const sel = h('select', { 'aria-label': `Programme for “${p.text || 'word'}” in band ${bi + 1}` }, h('option', { value: '' }, 'Pick a programme…'), PROG_OPTIONS());
+        sel.value = p.programme_id || '';
+        sel.addEventListener('change', () => { p.programme_id = sel.value || null; p.flag = null; p.confidence = Math.max(p.confidence, 0.9); draw(); });
+        const share = h('input', { type: 'number', min: 0, max: 100, step: 1, value: Math.round(p.share * 100), 'aria-label': 'Share %', class: 'num-in' });
+        share.addEventListener('change', () => { p.share = Math.max(0, Math.min(100, Number(share.value) || 0)) / 100; });
+        const elev = (k, label) => { const i = h('input', { type: 'number', step: 0.1, value: b[k] ?? '', 'aria-label': `${label}, band ${bi + 1}`, class: 'num-in' }); i.addEventListener('change', () => { b[k] = i.value === '' ? null : Number(i.value); }); return i; };
+        const low = !p.programme_id || p.confidence < 0.6;
+        return h('tr', { class: low ? 'low' : null },
+          pi === 0 ? h('td', { rowspan: prs.length }, h('b', {}, `${bi + 1}`), h('div', { class: 'elev' }, elev('from_m', 'From m'), '–', elev('to_m', 'To m'), ' m'),
+            h('div', { class: 'toolbar' }, h('button', { type: 'button', onclick: () => { b.programmes.push({ text: '', programme_id: null, share: 0, confidence: 1 }); draw(); } }, '+ word'), h('button', { type: 'button', onclick: () => { rows.splice(bi, 1); draw(); } }, 'Remove band'))) : null,
+          h('td', {}, p.text || '—'),
+          h('td', { class: 'prog-cell' }, p.programme_id ? iconEl(p.programme_id, 22) : null, sel, p.flag ? h('div', { class: 'note neg' }, p.flag) : null),
+          h('td', {}, share, '%'),
+          h('td', {}, h('span', { class: `conf${low ? ' low' : ''}`, title: 'How sure the reading is' }, `${Math.round(p.confidence * 100)}%`), pi > 0 ? h('button', { type: 'button', 'aria-label': 'Remove word', onclick: () => { b.programmes.splice(pi, 1); draw(); } }, '×') : null));
+      });
+    }));
+    put(box,
+      h('h4', { style: 'margin:0' }, source === 'ai' ? 'Check what was read before it changes anything' : 'Type your bands'),
+      source === 'ai' ? h('p', { class: 'note' }, 'Rows in orange are unsure or need a programme. Fix elevations, mappings and shares, then apply. Nothing changes until you press Apply.') : h('p', { class: 'note' }, 'One row per band: bottom and top elevation in metres (negative below ground), then the programmes and their shares.'),
+      read.issues?.length ? h('ul', { class: 'note neg' }, read.issues.map(x => h('li', {}, x))) : null,
+      read.unreadable?.length ? h('p', { class: 'note' }, 'Could not read: ', read.unreadable.join(' · ')) : null,
+      read.notes ? h('p', { class: 'note' }, read.notes) : null,
+      h('div', { class: 'tbl' }, h('table', { class: 'review-tbl' }, h('thead', {}, h('tr', {}, h('th', {}, 'Band, from–to'), h('th', {}, 'Words read'), h('th', {}, 'Programme'), h('th', {}, 'Share'), h('th', {}, 'Sure'))), tbody)),
+      h('div', { class: 'toolbar' },
+        h('button', { type: 'button', onclick: () => { const last = rows[rows.length - 1]; rows.push({ from_m: last?.to_m ?? 0, to_m: (last?.to_m ?? 0) + 20, label_text: '', programmes: [{ text: '', programme_id: null, share: 1, confidence: 1 }] }); draw(); } }, '+ band'),
+        h('button', { class: 'primary', type: 'button', onclick: () => apply() }, 'Apply to section'),
+        h('button', { type: 'button', onclick: () => box.remove() }, 'Cancel')));
+  };
+  const apply = async () => {
+    let built;
+    try { built = applyDiagramFloors(rows, { ...PLATES[conceptAnswers?.plates || 'medium'] }); } catch (e) { toast(e.message); return; }
+    box.remove();
+    ui.msgs.append(h('div', { class: 'msg user' }, `Applied ${rows.length} band${rows.length > 1 ? 's' : ''} from ${source === 'ai' ? 'the diagram' : 'my table'} (${built.floors.length} floors, ${Math.round(built.height_m)} m). One Undo reverses it.${built.notes.length ? ' ' + built.notes.join(' ') : ''}`));
+    if (sample) {
+      const prompt = `${RULES}\n\nThe user just applied a stack ${source === 'ai' ? 'read from their concept diagram' : 'they typed as bands'}. Using get_results and get_floors, start with one line "Why this reads as …" (what kind of tower the stack makes), then:\n${EXPLAIN_FORMAT}\n\nCurrent summary (JSON):\n${JSON.stringify(summaryForAI())}`;
+      const out = await runAssistant(prompt, AI_TOOLS.filter(t => ['get_results', 'get_floors', 'get_programme'].includes(t.name)), ui, { label: 'Explaining the stack…' });
+      if (!(out && out.failed)) return;
+    }
+    ui.msgs.append(h('div', { class: 'msg ai starter' }, explainStack(result, data, { floors: state.floors, label: `Rule-based explanation (no AI) of the ${source === 'ai' ? 'diagram' : 'typed'} stack.` })));
+  };
+  draw();
+  return box;
+}
+async function readDiagram(file, ui, host) {
+  if (!imageLimits) return;
+  if (!imageLimits.mediaTypes.includes(file.type)) { toast(`Use ${imageLimits.mediaTypes.map(t => t.split('/')[1].toUpperCase()).join(', ')}.`); return; }
+  if (file.size > imageLimits.maxInputBytes) { toast(`That image is over ${Math.round(imageLimits.maxInputBytes / 1e6)} MB.`); return; }
+  ui.msgs.append(h('div', { class: 'msg user' }, `Read my concept diagram (${file.name})`));
+  const bubble = h('div', { class: 'msg ai' }, 'Reading the diagram… this can take a minute.'); ui.msgs.append(bubble);
+  aiState = 'busy'; ui.stop.hidden = false; chatCtl = new AbortController();
+  try {
+    const raw = await sample.json(readPrompt(data), { images: [file], modelTier: 'default', signal: chatCtl.signal, cache: false });
+    const read = normaliseDiagramRead(raw, data);
+    bubble.textContent = `Read ${read.bands.length} band${read.bands.length === 1 ? '' : 's'}${read.height_m ? `, about ${Math.round(read.height_m)} m tall` : ''}. Check the table below before applying.`;
+    host.querySelector('#review')?.remove(); host.append(reviewPanel(read, ui, { source: 'ai' }));
+    host.querySelector('#review')?.scrollIntoView({ block: 'start' });
+  } catch (e) {
+    bubble.textContent = FAIL_COPY[e.code] ?? (e.code === 'images_unavailable' ? 'Images cannot be sent from this view.' : 'The diagram could not be read. Try a clearer image, or type the bands yourself.');
+  } finally { aiState = 'idle'; ui.stop.hidden = true; }
+}
+function diagramCard(ui) {
+  const host = h('div', { class: 'concept diagram-card' });
+  const file = h('input', { type: 'file', id: 'diagramFile', class: 'sr', accept: 'image/png,image/jpeg,image/webp' });
+  file.addEventListener('change', () => { const f = file.files[0]; file.value = ''; if (f && aiState !== 'busy') readDiagram(f, ui, host); });
+  const upBtn = h('label', { for: 'diagramFile', class: 'drop up-btn', hidden: true }, 'Upload concept diagram', file);
+  const upNote = h('p', { class: 'note', hidden: true }, 'The image is sent to Claude on your own account to read the bands and words. Nothing changes until you check the table and press Apply.');
+  const manual = h('button', { type: 'button', onclick: () => { host.querySelector('#review')?.remove(); host.append(reviewPanel({ bands: [{ from_m: 0, to_m: 6, label_text: '', programmes: [{ text: '', programme_id: 'SE1', share: 1, confidence: 1 }] }], issues: [], unreadable: [], notes: '' }, ui, { source: 'manual' })); } }, 'Type bands yourself');
+  put(host, h('strong', {}, 'From a concept diagram'), h('p', { class: 'note' }, 'A section diagram of programme words (bands with elevations) can be read and put on the section, or type the bands yourself.'), h('div', { class: 'toolbar' }, upBtn, manual), upNote);
+  if (sample?.limits) sample.limits().then(l => { imageLimits = l?.images || null; if (imageLimits) { upBtn.hidden = false; upNote.hidden = false; file.accept = imageLimits.mediaTypes.join(','); } }).catch(() => {});
+  return host;
+}
+
 function renderAI() {
   const box = $('#tab-ai');
   if (box.dataset.ready) { return; }
@@ -1024,6 +1118,7 @@ function renderAI() {
   const stop = h('button', { id: 'aiStop', hidden: true }, 'Stop');
   const status = h('div', { class: 'note', id: 'aiStatus' });
   const ui = { msgs, status, stop };
+  const diagramSlot = h('div', { id: 'diagramSlot' });
   const explainBtn = h('button', { class: 'explain', onclick: () => { if (aiState !== 'busy') explainCurrent(ui); } }, 'Explain my current stack');
   const chips = h('div', { class: 'chips' }, explainBtn, ['Explain the verdict in plain words', 'Which floors lose the most money, and why?', 'How could this scheme meet the 9.0 FSR non-residential rule?', 'What are the weakest numbers in the data?'].map(q => h('button', { onclick: () => { ta.value = q; ask(); } }, q)));
   const ask = async () => {
@@ -1053,11 +1148,65 @@ function renderAI() {
   stop.addEventListener('click', () => chatCtl?.abort());
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) ask(); });
   put(box, 
-    conceptCard(ui),
+    conceptCard(ui), diagramSlot,
     h('p', { class: 'note' }, 'Ask questions about the current scheme or ask for changes. The assistant reads the same numbers you see and can edit the floor mix and assumptions (Undo reverses any change). It uses your own Claude account.'),
     chips, h('div', { class: 'chat' }, msgs, ta, h('div', { class: 'toolbar' }, send, stop, h('span', { class: 'note' }, '⌘/Ctrl + Enter to send')), status));
-  if (window.claude) window.claude.use('sample').then(s => { sample = s; if (!s) status.textContent = 'Ask AI is not available in this view.'; }).catch(() => { status.textContent = 'Ask AI is not available in this view.'; });
+  put(diagramSlot, diagramCard(ui));
+  if (window.claude) window.claude.use('sample').then(s => { sample = s; put(diagramSlot, diagramCard(ui)); if (!s) status.textContent = 'Ask AI is not available in this view.'; }).catch(() => { status.textContent = 'Ask AI is not available in this view.'; });
   else status.textContent = 'Ask AI works when this tool is opened on claude.ai. Everything else works here.';
+}
+
+// ---------- Programme word-stack diagram: preview and export ----------
+const diagramOpts = { colour: 'family', labels: 'names', groupBy: 'programme', showArea: false };
+function diagramLayout() { return wordStackLayout(result, data, { groupBy: diagramOpts.groupBy, labels: diagramOpts.labels, showArea: diagramOpts.showArea }); }
+function diagramSVG(embedFont = true) { return wordStackSVG(diagramLayout(), { colour: diagramOpts.colour, showArea: diagramOpts.showArea, families: data.families, embedFont, title: `Programme section · ${Math.round(result.height)} m` }); }
+/** Draw the same layout on a canvas (PNG export): the page has the display font loaded, an SVG image would not. */
+async function diagramPNG(scale = 3) {
+  try { await document.fonts.load(`700 40px Oswald`); await document.fonts.load(`500 13px Oswald`); } catch (e) { /* fall back to the next font in the stack */ }
+  const L = diagramLayout(), W = L.width, H = Math.ceil(L.height);
+  const c = document.createElement('canvas'); c.width = W * scale; c.height = H * scale;
+  const g = c.getContext('2d'); g.scale(scale, scale);
+  const PAPER = '#f6f3ec', INK = '#1d2730', RULE = '#b9b2a4', MUTED = '#6b6458', x1 = W - L.pad.right;
+  g.fillStyle = PAPER; g.fillRect(0, 0, W, H);
+  g.fillStyle = INK; g.font = `500 13px ${FONT_STACK}`; g.fillText(`PROGRAMME SECTION · ${Math.round(result.height)} M`, L.pad.left, 24);
+  const tag = (txt, yy) => { g.font = "9px 'IBM Plex Mono', Menlo, monospace"; g.fillStyle = MUTED; g.textAlign = 'right'; g.fillText(txt, W - 8, yy); g.textAlign = 'left'; };
+  for (const b of L.bands) {
+    g.strokeStyle = RULE; g.lineWidth = 0.6; g.beginPath(); g.moveTo(L.pad.left, b.y0); g.lineTo(x1, b.y0); g.stroke();
+    tag(`${b.z1 >= 0 ? '+' : '−'}${Math.abs(b.z1).toFixed(1)} m`, b.y0 + 3);
+    for (const w of b.words) {
+      g.font = `700 ${w.size}px ${FONT_STACK}`; g.fillStyle = diagramOpts.colour === 'family' ? inkOf(data.families.get(w.family)?.colour) : INK; g.fillText(w.text, w.x, w.y);
+      if (diagramOpts.showArea) { const ww = g.measureText(w.text).width; g.font = "9px 'IBM Plex Mono', Menlo, monospace"; g.fillStyle = MUTED; g.fillText(`${Math.round(w.gfa).toLocaleString('en-CA')} m²`, w.x + ww + 4, w.y); }
+    }
+  }
+  g.strokeStyle = INK; g.lineWidth = 1.6; g.beginPath(); g.moveTo(L.pad.left, L.ground); g.lineTo(x1, L.ground); g.stroke();
+  tag('±0.0 m', L.ground + 3);
+  g.font = "9px 'IBM Plex Mono', Menlo, monospace"; g.fillStyle = MUTED; g.fillText('Indicative early-design estimate · Program Value Visualizer', L.pad.left, H - 14);
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+function openDiagram() {
+  const dlg = $('#diagram');
+  const preview = h('div', { class: 'dg-preview' });
+  const draw = () => { preview.innerHTML = diagramSVG(false); };
+  const seg = (key, label, options) => h('div', { class: 'field' }, h('span', { class: 'flabel' }, label), h('div', { class: 'chips', role: 'radiogroup', 'aria-label': label }, options.map(([v, l]) => {
+    const b = h('button', { type: 'button', 'aria-pressed': String(diagramOpts[key] === v), class: 'prio' }, l);
+    b.addEventListener('click', () => { diagramOpts[key] = v; b.parentElement.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); draw(); });
+    return b;
+  })));
+  put(dlg, h('div', { class: 'help dg' },
+    h('div', { class: 'help-head' }, h('h2', { id: 'diagramTitle' }, 'Programme diagram'), h('button', { class: 'close', 'aria-label': 'Close', onclick: () => dlg.close() }, '×')),
+    h('p', { class: 'note' }, 'Your floors drawn to true height. Each band is written as its programmes; a word is larger when it takes more floor area. Elevations at the right.'),
+    h('div', { class: 'dg-tools' },
+      seg('colour', 'Colour', [['family', 'By family'], ['ink', 'Ink only']]),
+      seg('labels', 'Words', [['names', 'Programme names'], ['tenure', 'Tenure groups']]),
+      seg('groupBy', 'Bands by', [['programme', 'Main programme'], ['family', 'Family']]),
+      seg('showArea', 'Areas', [[false, 'Hide'], [true, 'Show m²']])),
+    preview,
+    h('div', { class: 'toolbar' },
+      h('button', { class: 'primary', onclick: () => offerFile('programme-section.svg', diagramSVG(true), 'image/svg+xml') }, 'Download SVG'),
+      h('button', { onclick: async () => { const blob = await diagramPNG(3); offerFile('programme-section.png', blob, 'image/png'); } }, 'Download PNG (3×)'),
+      h('button', { onclick: () => dlg.close() }, 'Close'))));
+  draw();
+  dlg.showModal();
 }
 
 // ---------- Help guide and "Show me" tour ----------
@@ -1076,7 +1225,7 @@ function openHelp() {
       step(2, 'Select floors.', 'Click a floor in the section (the tower drawing). Shift-click a second floor to select a range.'),
       step(3, 'Set the mix.', 'In the Floors tab, press “Add a programme…” and pick from the picture list (filter by family or search; arrow keys and Enter work too). It joins the mix. Set each share (they must add to 100%), then press Apply. The programme card shows its value and cost per m². Type your own number there if you know better.'),
       step(4, 'Read the verdict.', 'The Verdict tab compares what the building is worth with what it costs. Enter a land price, or read the land budget: what the scheme could pay for the land.'),
-      step(5, 'Check, then ask.', 'The City ledger shows what the City receives. Sensitivity shows which numbers move the result most. The Map shows the neighbouring roofs around a point you click. Method & sources shows where every number comes from. Ask AI (on claude.ai) explains the result and can edit the scheme for you.')),
+      step(5, 'Check, then ask.', 'The City ledger shows what the City receives. Sensitivity shows which numbers move the result most. The Map shows the neighbouring roofs around a point you click. “Diagram” (above the section) exports a programme word-stack drawing as SVG or PNG. Method & sources shows where every number comes from. Ask AI (on claude.ai) explains the result and can edit the scheme for you.')),
     h('h3', {}, 'What the verdict means'),
     h('ul', { class: 'help-list' },
       h('li', {}, pill('works', 'Works'), ' There is enough money for the land at a normal profit (15%).'),
@@ -1155,6 +1304,7 @@ async function boot() {
   $('#briefSel').addEventListener('change', e => { pushHistory(); state.brief = e.target.value; buildData(); refresh(); });
   $('#undoBtn').addEventListener('click', undo);
   $('#helpBtn').addEventListener('click', openHelp);
+  $('#diagramBtn').addEventListener('click', openDiagram);
   let seen = false; try { seen = !!localStorage.getItem(HELP_KEY); } catch (e) { seen = true; }
   $('#themeBtn').addEventListener('click', () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; if (activeTab === 'map') renderMap(); });
   $('#section').addEventListener('click', onSectionClick);
