@@ -1,5 +1,6 @@
 // Program Value Visualizer — page script. All maths lives in core/econ_core.js.
-import { drawIcon, SPECS } from './icons/icon_specs.js';
+import { glyphTile, hasGlyph, tileColour } from './icons/glyph_icons.js';
+import { uiIcon } from './icons/ui_icons.js';
 import { wordStackLayout, wordStackSVG, inkOf, FONT_STACK } from '../core/wordstack.js';
 import { readPrompt, normaliseDiagramRead, floorsFromBands } from '../core/diagram_read.js';
 import { optimiseMix, optimiserDefaults } from '../core/optimiser.js';
@@ -361,7 +362,7 @@ const iconCache = new Map();
 function iconSvg(id) {
   if (!iconCache.has(id)) {
     let s = '';
-    try { if (SPECS[id]) s = drawIcon(id, famColour(prog(id)?.family_id), 100).replace(' width="100" height="100"', ' width="100%" height="100%"').replace(' role="img"', ' aria-hidden="true" focusable="false"'); } catch (e) { s = ''; }
+    try { if (hasGlyph(id)) s = glyphTile(id, tileColour(famColour(prog(id)?.family_id)), '100%'); } catch (e) { s = ''; }
     iconCache.set(id, s);
   }
   return iconCache.get(id);
@@ -381,7 +382,7 @@ function tenureOf(id) {
   const t = TENURE[row?.earns_by ?? p?.earns_by] ?? TENURE.public;
   return { key: t[0], label: t[1] };
 }
-const tenureTag = id => { const t = tenureOf(id); return h('span', { class: `tenure ${t.key}`, title: `How it earns: ${t.label.toLowerCase()}` }, h('span', { class: 'tsym', 'aria-hidden': 'true', html: sym(t.key, 12) }), t.label); };
+const tenureTag = id => { const t = tenureOf(id); return h('span', { class: `tenure ${t.key}`, title: `How it earns: ${t.label.toLowerCase()}` }, h('span', { class: 'tsym', 'aria-hidden': 'true', html: sym(t.key, 12, '', { bare: true }) }), t.label); };
 const idTag = id => h('span', { class: 'pid', title: 'Programme code' }, id);
 let pickerOpen = false, pickerQuery = '';
 function addProgramme(id) {
@@ -791,6 +792,8 @@ function renderAbout() {
     h('h4', { style: 'margin:0' }, 'Sources'),
     h('div', { class: 'tbl' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Source'), h('th', {}, 'Published'), h('th', {}, 'How checked'))),
       h('tbody', {}, srcs.map(s => h('tr', { 'data-tip': s.note || '' }, h('td', {}, s.url ? h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.title) : s.title, s.publisher ? h('span', { class: 'note' }, ` · ${s.publisher}`) : null), h('td', {}, s.published || '—'), h('td', {}, s.checked)))))),
+    h('h4', { style: 'margin:0' }, 'Icons'),
+    h('p', { class: 'note' }, 'Programme icons and money symbols: drawn for this tool by GPT from a written style brief, then traced to vector (vtracer, MIT). Button icons: ', h('a', { href: 'https://phosphoricons.com', target: '_blank', rel: 'noopener' }, 'Phosphor Icons'), ' 2.1.1, MIT licence, © 2023 Phosphor Icons.'),
     h('h4', { style: 'margin:0' }, 'Typical estimates'),
     h('p', { class: 'note' }, 'Some uses have no figure in the pack’s main sources. So that you never have to invent a price, each has a typical estimate (grade C). “Researched” ones are built from a 2025–26 Vancouver, BC or Canadian figure found by web search; “analogy” ones borrow from a similar use because nothing usable was found. Both are marked wherever they appear. Type your own number in Floors to replace one. The full table of all 112 programmes is in docs/value_defaults.md.'),
     h('details', {}, h('summary', {}, `Values (${typRows.length}) and hard costs (${typLines.length})`),
@@ -1520,7 +1523,32 @@ async function boot() {
   $('#genBtn').addEventListener('click', () => { pushHistory(); state.floors = sampleTower({ height: +$('#gHeight').value, podiumFloors: +$('#gPodium').value, podiumPlate: +$('#gPodiumPlate').value, towerPlate: +$('#gTowerPlate').value, topPlate: +$('#gTopPlate').value, belowGrade: +$('#gBelow').value }); state.sel = null; editMix = null; refresh(); });
   $('#fileIn').addEventListener('change', e => importFile(e.target.files[0]));
   $('#tmplBtn').addEventListener('click', async () => { try { await navigator.clipboard.writeText(TEMPLATE); toast('CSV template copied.'); } catch (e) { toast('Copy failed; the columns are listed below the buttons.'); } });
+  decorateButtons();
+  new MutationObserver(() => { if (!decoratePending) { decoratePending = true; requestAnimationFrame(() => { decoratePending = false; decorateButtons(); }); } }).observe(document.body, { childList: true, subtree: true });
   refresh();
   if (!seen) openHelp();   // first visit: show the guide once
+}
+
+// ---------- Button and tab icons (Phosphor, regular weight; see app/icons/ui_icons.js) ----------
+// Buttons are matched by their visible text, so buttons built later (dialogs, tabs re-rendered) get icons too.
+// Text links (.linkish), chips and the small × buttons stay text-only.
+const TAB_ICONS = { verdict: 'seal-check', floors: 'rows', city: 'bank', map: 'map-trifold', sens: 'chart-bar-horizontal', assume: 'sliders-horizontal', ai: 'chat-circle-dots', about: 'book-open-text' };
+const BUTTON_ICONS = {
+  'Presets': 'buildings', 'Start from a precedent': 'buildings', 'Find a mix that works': 'magic-wand', 'Polish with Find a mix that works': 'magic-wand',
+  'Help': 'question', 'Undo': 'arrow-counter-clockwise', 'Theme': 'circle-half', 'Diagram': 'stack', 'Make sample tower': 'building-office',
+  'Copy CSV template': 'file-csv', 'Save project (JSON)': 'floppy-disk', 'Export floor results (CSV)': 'export', 'Download SVG': 'download-simple',
+  'Download PNG (3×)': 'image', 'Apply to section': 'check', 'Apply to my tower': 'check', 'Ask': 'paper-plane-right', 'Back': 'arrow-left',
+  'Cancel': 'x', 'Close': 'x', 'Clear point': 'crosshair', 'Clear selection': 'eraser', 'Enter estimated value': 'pencil-simple',
+  'Explain my current stack': 'lightbulb', 'Plan it with AI': 'sparkle', 'Rule-based starter (no AI)': 'list-checks', 'Fit downtown': 'arrows-out',
+  'Hide': 'eye-slash', 'How to read this': 'info', 'Remove band': 'trash', 'Show me': 'play', 'Stop': 'stop', 'Use pack defaults': 'arrow-u-up-left',
+  'Lock these floors': 'lock', 'Unlock these floors': 'lock-open',
+};
+let decoratePending = false;
+function decorateButtons(root = document) {
+  for (const b of root.querySelectorAll('button')) {
+    if (b.querySelector(':scope > .bi') || b.classList.contains('linkish') || b.classList.contains('close') || b.closest('.chips, .mchip, .pill')) continue;
+    const name = b.dataset.tab ? TAB_ICONS[b.dataset.tab] : BUTTON_ICONS[b.textContent.trim()];
+    if (name) b.insertAdjacentHTML('afterbegin', uiIcon(name));
+  }
 }
 boot();

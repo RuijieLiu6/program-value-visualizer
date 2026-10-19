@@ -159,7 +159,7 @@ test('the tool uses the same money stack, symbols and Help book', () => {
   const app = fs.readFileSync(path.join(ROOT, 'app/app.js'), 'utf8');
   assert.match(app, /moneyStackHTML\(moneySteps\(r\)/);
   assert.match(app, /trafficLight\(r\.verdict/);
-  assert.match(app, /html: sym\(t\.key, 12\)/);
+  assert.match(app, /html: sym\(t\.key, 12, '', \{ bare: true \}\)/);
   assert.match(app, /renderMoneyStory\(moneyView, \{ data, mode: 'guide'/);
   const page = fs.readFileSync(path.join(ROOT, 'money-book.html'), 'utf8');
   assert.match(page, /<title>Tower Money Book<\/title>/);

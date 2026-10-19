@@ -62,7 +62,7 @@ Results:
 | `catalogue/` | Activity-based programme catalogue: families and programmes, no prices |
 | `packs/vancouver-2026/` | Vancouver market values, construction costs, City charges, assumptions, sources |
 | `briefs/` | Optional rule sets. `vtc-2026/` holds the public Vancouver Tall Challenge brief (site area, minimum non-residential floor area, height range); `none/` means no brief. |
-| `app/` | The web page; `app/icons/` draws an original isometric icon for each programme (no external icon set) |
+| `app/` | The web page. `app/icons/glyphs.js` holds one icon per programme and money symbol (drawn by GPT, traced to vector, built by `scripts/build_glyphs.mjs`); `app/icons/ui_icons.js` holds the button icons (Phosphor Icons, MIT) |
 | `basemap/` | Downtown Vancouver base map for the Map tab (about 1 MB), with attribution; built by `scripts/build_basemap.py` |
 | `templates/` | Floor-list templates (CSV and JSON) |
 | `tests/` | Automated tests (`node --test`) |
