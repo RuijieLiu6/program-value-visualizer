@@ -10,7 +10,9 @@ It gives a verdict (**Works / Marginal / Doesn't work**), shows which floors cre
 
 Status: **working prototype (G4).** Engine, Vancouver 2026 data pack, web page and downtown map are built and tested (116 tests). See [Roadmap](#roadmap).
 
-Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. The **Tower Money Book** (how tower money works, in pictures; a Designer edition in plain adult language and a simpler Starter edition) is at http://localhost:8020/money-book.html and in the tool's Help → “How the money works”. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
+Use it online: https://ruijieliu6.github.io/program-value-visualizer/ (no account needed; the Tower Money Book is at https://ruijieliu6.github.io/program-value-visualizer/money-book.html).
+
+Run it on your computer: `python3 scripts/serve_local.py`, then open http://localhost:8020/. To rebuild the online copy: `python3 scripts/build_pages.py`, then push `_site/` to the `gh-pages` branch. The **Tower Money Book** (how tower money works, in pictures; a Designer edition in plain adult language and a simpler Starter edition) is at http://localhost:8020/money-book.html and in the tool's Help → “How the money works”. The Ask AI panel works only when the page is opened on claude.ai. New to the tool? Press **Help** in the header for a short guide and a guided tour (“Show me”).
 
 ---
 
