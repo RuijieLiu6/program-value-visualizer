@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "pack": "vancouver-2026",
+    "note": "Designer's reading of the 2025 Vancouver Building By-law (adopting the 2024 BC Building Code, aligned with NBC 2020) for early stacking. Not code advice: confirm with a code consultant.",
+    "source": "vbbl-2025"
+  },
+  "occupancy_groups": {
+    "A1": "Assembly, fixed seats (theatre, cinema)",
+    "A2": "Other assembly (restaurants, gyms, galleries, worship, schools, libraries, childcare)",
+    "A3": "Arena-type (rinks, pools, sports halls)",
+    "A4": "Open-air assembly (roof decks with seating)",
+    "B1": "Detention",
+    "B2": "Treatment (hospitals, day surgery)",
+    "B3": "Care (assisted living, residential care)",
+    "C": "Residential (homes, hotels, student housing)",
+    "D": "Business and personal services (office, clinics)",
+    "E": "Mercantile (shops, markets)",
+    "F1": "High-hazard industrial",
+    "F2": "Medium-hazard industrial",
+    "F3": "Low-hazard industrial (storage, light assembly, studios)"
+  },
+  "rules": [
+    {
+      "id": "high_building",
+      "text": "High-building measures apply when A, D, E or F floors are more than 36 m up, any B storey is above 18 m, B2 or B3 is above the 3rd storey, or residential floors are above 18 m.",
+      "source": "nrc-high-building",
+      "grade": "B",
+      "thresholds_m": {
+        "A": 36,
+        "D": 36,
+        "E": 36,
+        "F": 36,
+        "B": 18,
+        "C": 18
+      },
+      "b2_b3_max_storey": 3
+    },
+    {
+      "id": "f1_prohibited",
+      "text": "No F1 occupancy in a building with any A, B or C occupancy.",
+      "source": "bcbc-3-1",
+      "grade": "B",
+      "block": true
+    },
+    {
+      "id": "childcare_outdoor",
+      "text": "Childcare (A2) needs outdoor play: about 14 m2 per child under City guidelines (about 6 m2 provincial licensing); rooftop play is possible if contiguous and sunny.",
+      "source": "city-childcare-guidelines",
+      "grade": "B",
+      "m2_per_child": 14
+    },
+    {
+      "id": "separations",
+      "text": "Each change of occupancy group between floors needs a rated fire separation (typically 1-2 h). Grouping similar uses into bands saves separations.",
+      "source": "bcbc-3-1",
+      "grade": "B"
+    },
+    {
+      "id": "intensity_buffer",
+      "text": "Neighbouring floors whose activity intensity differs by 3 or more: consider a buffer floor (mechanical, refuge or structural belt).",
+      "source": "assumption",
+      "grade": "C",
+      "min_difference": 3
+    }
+  ]
+}

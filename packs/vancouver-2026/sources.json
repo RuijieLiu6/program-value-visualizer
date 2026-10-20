@@ -1,0 +1,587 @@
+{
+  "meta": {
+    "note": "Every number in this pack points to one of these sources by id. 'checked' says how far the source itself was read: pdf-read = full report read and the figure found on the page given; page-read = web page opened and read when the pack was compiled; summary = taken from a search summary (weaker). Accessed 17 October 2026 unless stated."
+  },
+  "sources": [
+    {
+      "id": "assumption",
+      "title": "Author's assumption or arithmetic",
+      "publisher": null,
+      "url": null,
+      "published": null,
+      "checked": "n/a",
+      "local_copy": false,
+      "note": "Always grade C. Replace with evidence when available."
+    },
+    {
+      "id": "altus-2026",
+      "title": "2026 Canadian Cost Guide",
+      "publisher": "Altus Group",
+      "url": "https://www.altusgroup.com/",
+      "published": "2026-01-31",
+      "checked": "pdf-read",
+      "local_copy": true,
+      "note": "Costs as at 31 Jan 2026 (p.4). Vancouver private-sector rates p.5, public-sector p.6. Above-grade scope incl. foundations; below grade priced separately (p.7). Excludes site development and premiums for unique architecture (p.12), VAT, and tariff impacts. Zoning floor area can understate cost by up to 12% (p.9)."
+    },
+    {
+      "id": "cbre-office-q3-2026",
+      "title": "Figures | Canada Office | Q3 2026",
+      "publisher": "CBRE Research",
+      "url": "https://www.cbre.ca/insights",
+      "published": "2026-Q3",
+      "checked": "pdf-read",
+      "local_copy": true,
+      "note": "Downtown Vancouver market stats p.10 and p.13."
+    },
+    {
+      "id": "cw-hotel-q2-2026",
+      "title": "Canada Hospitality Innsights Q2 2026",
+      "publisher": "Cushman & Wakefield",
+      "url": "https://www.cushmanwakefield.com/en/canada/insights",
+      "published": "2026-Q2",
+      "checked": "pdf-read",
+      "local_copy": true,
+      "note": "Hotel cap rates by market p.10 (chart, values read visually). National performance p.1; market ADR / occupancy changes p.4–5 (percent changes only, no ADR levels)."
+    },
+    {
+      "id": "cbre-caprates-q2-2026",
+      "title": "Canadian Cap Rates & Investment Insights Q2 2026",
+      "publisher": "CBRE",
+      "url": "https://www.cbre.ca/-/media/project/cbre/dotcom/americas/canada-emerald/insights/Reports/Cap-rate-report/Q2-2026-Canadian-Cap-Rate-Report-e",
+      "published": "2026-Q2",
+      "checked": "page-read",
+      "local_copy": false,
+      "note": "Read when the pack was compiled; no local copy to re-check."
+    },
+    {
+      "id": "costar-hotels-2025",
+      "title": "Canada hotels post record-setting performance in 2025",
+      "publisher": "CoStar",
+      "url": "https://www.costar.com/products/benchmark/resources/press-releases/canada-hotels-post-record-setting-performance-2025",
+      "published": "2026-01-15",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Vancouver 2025 ADR and occupancy."
+    },
+    {
+      "id": "raincity-2026",
+      "title": "New build vs resale Vancouver 2026 cost comparison",
+      "publisher": "Rain City Properties",
+      "url": "https://raincityproperties.com/journal/new-build-vs-resale-vancouver-2026-cost-comparison",
+      "published": "2026",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Broker blog; condo price per ft2."
+    },
+    {
+      "id": "livrent-2026-10",
+      "title": "Rent report, October 2026",
+      "publisher": "liv.rent",
+      "url": "https://liv.rent/blog/?p=69601",
+      "published": "2026-10",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "City of Vancouver asking rent per ft2."
+    },
+    {
+      "id": "cmhc-2025",
+      "title": "Rental market report (via CTV News)",
+      "publisher": "CMHC / CTV News",
+      "url": "https://www.ctvnews.ca/business/article/rent-growth-slowed-in-2025-as-national-vacancy-rate-continued-to-rise-cmhc/",
+      "published": "2025-12",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Rental vacancy 3.7%."
+    },
+    {
+      "id": "jll-office-q1-2026",
+      "title": "Office Market Dynamics Q1 2026 Vancouver",
+      "publisher": "JLL",
+      "url": "https://images.hello.jll.com/Web/JLLAmericas/%7B4eef8530-6453-45e7-bdd3-7c1654b69887%7D_Office_Market_Dynamics_Q1_2026_Vancouver_Local.pdf",
+      "published": "2026-Q1",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Downtown average net rent $34.73/ft2."
+    },
+    {
+      "id": "cresa-2026",
+      "title": "Cresa Vancouver market report 2026",
+      "publisher": "Cresa",
+      "url": "https://www.cresa.com/-/media/Cresa/Files/PDF-Market-Reports/Vancouver/Cresa_Vancouver_Industrial_Q2_2026.pdf",
+      "published": "2026",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Cited for downtown all-class office base rent ~$28/ft2, but the link points to an industrial report: unresolved, see docs/data_changes.md."
+    },
+    {
+      "id": "renx-retail",
+      "title": "The Vancouver retail CRE sector is roaring back",
+      "publisher": "RENX",
+      "url": "https://renx.ca/the-vancouver-retail-cre-sector-is-roaring-back",
+      "published": "2022",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Robson Street rents; older."
+    },
+    {
+      "id": "lee-retail-q4-2024",
+      "title": "Metro Vancouver Retail Snapshot Q4 2024",
+      "publisher": "Lee & Associates",
+      "url": "https://leevancouver.com/wp-content/uploads/2024.Q4-Lee-MetroVan-Retail-Snapshot.pdf",
+      "published": "2024-12-31",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Metro average NNN rent."
+    },
+    {
+      "id": "metro-parking-2025",
+      "title": "Regional Parking Study, final report",
+      "publisher": "Metro Vancouver",
+      "url": "https://metrovancouver.org/services/regional-planning/Documents/regional-parking-study-final-report-2025.pdf",
+      "published": "2025-06",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Underground stall cost about $117,000-137,000."
+    },
+    {
+      "id": "roomvu-2019",
+      "title": "Here is how much more you'll pay per floor in Metro Vancouver condo buildings",
+      "publisher": "Western Investor / Roomvu",
+      "url": "https://www.westerninvestor.com/news/british-columbia/here-is-how-much-more-you-ll-pay-per-floor-in-metro-vancouver-condo-buildings-1.24020689",
+      "published": "2019",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Raw sales data: +0.7%/floor (floors 10-25), +1.2% (25-35), +2.3% (35+)."
+    },
+    {
+      "id": "ubc-vertical-status",
+      "title": "Vertical Status (thesis)",
+      "publisher": "University of British Columbia, Open Collections",
+      "url": "https://open.library.ubc.ca/cIRcle/collections/52383/items/1.0433565",
+      "published": null,
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Controlled study: 6.4% bottom-to-top premium; +3.7% for a unit higher than all neighbours."
+    },
+    {
+      "id": "vancouver-lookout",
+      "title": "Vancouver Lookout visitor guide",
+      "publisher": "Vancouver Tourism",
+      "url": "https://www.vancouvertourism.org/?p=415",
+      "published": "2026",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Adult ticket about $20."
+    },
+    {
+      "id": "city-acc-bulletin-2026",
+      "title": "Amenity Cost Charges bulletin",
+      "publisher": "City of Vancouver",
+      "url": "https://guidelines.vancouver.ca/bulletins/bulletin-amenity-cost-charges.pdf",
+      "published": "2026-08",
+      "checked": "page-read",
+      "local_copy": false,
+      "note": "ACC rates, phase-in, exemptions, flat rate for childcare, library, community and cultural uses, rental waivers."
+    },
+    {
+      "id": "council-dcl-2025",
+      "title": "By-laws 1 to 10 (DCL rates)",
+      "publisher": "City of Vancouver Council",
+      "url": "https://council.vancouver.ca/20251210/documents/By-laws1to10.pdf",
+      "published": "2025-12-10",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "DCL and Utilities DCL after the 20% temporary reduction."
+    },
+    {
+      "id": "city-contributions-2026",
+      "title": "Update on housing, jobs and complete neighbourhoods (news release and Council report)",
+      "publisher": "City of Vancouver",
+      "url": "https://vancouver.ca/news-calendar/update-housing-jobs-complete-neighbourhoods-july-2026.aspx",
+      "published": "2026-07-14",
+      "checked": "page-read",
+      "local_copy": false,
+      "note": "New contributions framework; CAC still applies to large complex rezonings; 100% employment rezonings exempt from CAC."
+    },
+    {
+      "id": "city-rental-analysis-2019",
+      "title": "Rental incentive programs financial analysis",
+      "publisher": "City of Vancouver",
+      "url": "https://vancouver.ca/files/cov/2019-517-release.pdf",
+      "published": "2019",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "City's own 15% developer profit benchmark."
+    },
+    {
+      "id": "lincoln-cac-2018",
+      "title": "Negotiated value (case study)",
+      "publisher": "Lincoln Institute of Land Policy",
+      "url": "https://www.lincolninst.edu/es/case-studies/negotiated-value/",
+      "published": "2018",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "City historically took about 70-80% of land lift."
+    },
+    {
+      "id": "biv-land-2014",
+      "title": "Rising condo prices start with land",
+      "publisher": "Business in Vancouver",
+      "url": "https://biv.com/news/real-estate/rising-condo-prices-start-land-8241823",
+      "published": "2014",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Prime downtown land C$2,000-2,700 per buildable m2 (old)."
+    },
+    {
+      "id": "biv-presales-2026",
+      "title": "Zero concrete launches point to presale pressures in Metro Vancouver",
+      "publisher": "Business in Vancouver",
+      "url": "https://www.biv.com/news/real-estate/zero-concrete-launches-point-to-presale-pressures-in-metro-vancouver-12319770",
+      "published": "2026",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Zero new concrete condo launches in Q1 2026; lenders want 60-70% presold."
+    },
+    {
+      "id": "morehousing-130wb",
+      "title": "130 West Broadway",
+      "publisher": "More Housing (newsletter)",
+      "url": "https://morehousing.substack.com/p/130-west-broadway",
+      "published": "2023",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Turnkey 37-space childcare valued at C$6.49 M."
+    },
+    {
+      "id": "higher-buildings-h005",
+      "title": "Higher Buildings Policy (H005)",
+      "publisher": "City of Vancouver",
+      "url": "https://guidelines.vancouver.ca/H005.pdf",
+      "published": "2018",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Public legacy such as observation decks for higher buildings."
+    },
+    {
+      "id": "vbbl-2025",
+      "title": "Vancouver Building By-law 2025",
+      "publisher": "City of Vancouver",
+      "url": "https://vancouver.ca/your-government/vancouver-building-bylaw.aspx",
+      "published": "2025-09-15",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Adopts 2024 BC Building Code (aligned with NBC 2020) with Vancouver changes."
+    },
+    {
+      "id": "nrc-high-building",
+      "title": "NBC high-building application (3.2.6.1), code guide",
+      "publisher": "National Research Council Canada",
+      "url": "https://codes-guides.nrc.ca/IA/05NFC/nfc05ei001449.html",
+      "published": null,
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Triggers for high-building measures."
+    },
+    {
+      "id": "bcbc-3-1",
+      "title": "BC Building Code, Part 3, Section 3.1",
+      "publisher": "BC Publications",
+      "url": "https://free.bcpublications.ca/civix/document/id/public/bcbc2018/bcbc_2018dbp3s31",
+      "published": "2018",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Prohibited combinations (F1 with A, B or C); childcare as A2."
+    },
+    {
+      "id": "city-childcare-guidelines",
+      "title": "Childcare Design Guidelines; Council briefing May 2020",
+      "publisher": "City of Vancouver",
+      "url": "https://guidelines.vancouver.ca/guidelines-childcare-design.pdf",
+      "published": "2020",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "14 m2 outdoor play per child (City); about 6 m2 provincial licensing; rooftop play possible."
+    },
+    {
+      "id": "vtc-brief-2026",
+      "title": "Vancouver Tall Challenge, competition brief (English)",
+      "publisher": "Buildner",
+      "url": "https://buildner.com/",
+      "published": "2026",
+      "checked": "pdf-read",
+      "local_copy": true,
+      "note": "Site p.15; programme p.16; requirements p.19. Hypothetical site; no land price given."
+    },
+    {
+      "id": "knightfrank-branded-2025",
+      "title": "Branded residences reports (global premium for branded schemes), via press coverage",
+      "publisher": "Knight Frank (reported by Gulf News and others)",
+      "url": "https://gulfnews.com/business/property/why-bugatti-mercedes-benz-and-lamborghini-want-you-living-in-their-towers-1.500409617",
+      "published": "2025",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Global average premium about 30% over comparable non-branded homes; earlier range 25-35%. Not Vancouver evidence."
+    },
+    {
+      "id": "livrent-micro-2026",
+      "title": "Micro suite listing, 320 Abbott St., Vancouver",
+      "publisher": "liv.rent",
+      "url": "https://liv.rent/rental-listings/detail/apartment/vancouver/103844",
+      "published": "2026-10",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "200 ft2 renovated micro suite, $1,180/month, utilities included. One listing only."
+    },
+    {
+      "id": "cbre-industrial-q2-2026",
+      "title": "Vancouver Industrial Figures Q2 2026",
+      "publisher": "CBRE Research",
+      "url": "https://www.cbre.com/insights/figures/vancouver-industrial-figures-q2-2026",
+      "published": "2026-Q2",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Metro Vancouver average asking rate $19.14/ft2, down 3.9% year over year."
+    },
+    {
+      "id": "lee-industrial-q2-2026",
+      "title": "2026 Q2 Vancouver BC Industrial",
+      "publisher": "Lee & Associates",
+      "url": "https://www.lee-associates.com/wp-content/uploads/2026/07/2026-Q2-Vancouver-BC-Industrial.pdf",
+      "published": "2026-Q2",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Vancouver industrial cap rate 4.40% (Q1 2026: 4.20%); vacancy 4.5%."
+    },
+    {
+      "id": "hostelz-vancouver-2025",
+      "title": "Hostels in Vancouver: prices",
+      "publisher": "Hostelz",
+      "url": "https://www.hostelz.com/en/hostels/Canada/British-Columbia/Vancouver",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Dorm beds about $34-74 a night by month (Feb lowest, June highest); private rooms from about $90. Aggregator listings.",
+      "local_copy": false
+    },
+    {
+      "id": "seniors-advocate-ltc-2025",
+      "title": "Long-Term Care and Assisted Living Directory, summary report 2025",
+      "publisher": "Office of the Seniors Advocate BC",
+      "url": "https://www.seniorsadvocatebc.ca/app/uploads/sites/4/2026/01/ltc-al-directory-report-2025.pdf",
+      "published": "2026-01",
+      "checked": "summary",
+      "note": "2024/25: contracted long-term care per diem averaged $293.63 a bed-day (range $258.68-408.80); average resident client fee $2,215 a month.",
+      "local_copy": false
+    },
+    {
+      "id": "comfortlife-al-vancouver",
+      "title": "Assisted living costs in Vancouver",
+      "publisher": "Comfort Life",
+      "url": "https://comfortlife.ca/retirement-communities/vancouver-assisted-living",
+      "published": null,
+      "checked": "summary",
+      "note": "Private assisted living in Vancouver from about $4,070 a month (meals and housekeeping included, care extra). Survey year not stated.",
+      "local_copy": false
+    },
+    {
+      "id": "tagvenue-vancouver-2025",
+      "title": "Venue and studio hire prices, Vancouver",
+      "publisher": "Tagvenue",
+      "url": "https://www.tagvenue.com/ca/hire/large-event-venues/vancouver",
+      "published": "2025-12",
+      "checked": "summary",
+      "note": "Large venues (225+ guests) about C$3,000 per event; wedding venues C$175-400 an hour; recording studios average C$125 an hour (Dec 2025 listing data).",
+      "local_copy": false
+    },
+    {
+      "id": "cbre-hotel-spa-2024",
+      "title": "The role of hotel spa departments",
+      "publisher": "CBRE Hotels Research",
+      "url": "https://www.cbre.com/insights/articles/the-role-of-hotel-spa-departments",
+      "published": "2025",
+      "checked": "summary",
+      "note": "2024, 297 US hotels with spas: spa revenue US$9,847 per available room at luxury hotels (US$6,061 all); spa is about 4% of luxury hotel revenue.",
+      "local_copy": false
+    },
+    {
+      "id": "cineplex-2025",
+      "title": "Cineplex reports fourth quarter and annual 2025 results",
+      "publisher": "Cineplex",
+      "url": "https://mediafiles.cineplex.com/investor-relations/earnings-calls/Q4%202025%20Press%20Release.pdf",
+      "published": "2026-02",
+      "checked": "summary",
+      "note": "2025: attendance 42.18 million; box office per patron $13.29; concession per patron $9.72; 154 theatres, 1,606 screens.",
+      "local_copy": false
+    },
+    {
+      "id": "expatistan-gym-2025",
+      "title": "Price of a monthly gym membership in Vancouver",
+      "publisher": "Expatistan",
+      "url": "https://expatistan.com/price/gym/vancouver",
+      "published": "2025-11",
+      "checked": "summary",
+      "note": "Business-district gym about C$72 a month (six price points, updated 11 Nov 2025); city guides give $65-90.",
+      "local_copy": false
+    },
+    {
+      "id": "yyoga-classpack-2025",
+      "title": "YYOGA holiday class pack",
+      "publisher": "Daily Hive",
+      "url": "https://dailyhive.com/vancouver/yyoga-holiday-class-pack-2025",
+      "published": "2025-12",
+      "checked": "summary",
+      "note": "10-class pack $180 ($18 a class); boutique drop-in about $30.",
+      "local_copy": false
+    },
+    {
+      "id": "vancouver-parks-fees-2025",
+      "title": "2025 Fees and Charges, Parks and Recreation (Appendix A)",
+      "publisher": "Vancouver Board of Parks and Recreation",
+      "url": "https://parkboardmeetings.vancouver.ca/2024/20241125/REPORT-2025FeesCharges-ParksRecreation-APPENDIXA-20241125.pdf",
+      "published": "2024-11",
+      "checked": "summary",
+      "note": "Kerrisdale Play Palace drop-in $4.70-6.72 a child. City rink rental promotional rate $105 an hour (March 2025).",
+      "local_copy": false
+    },
+    {
+      "id": "playstreet-2025",
+      "title": "Play Street Museum Vancouver admission",
+      "publisher": "Play Street Museum",
+      "url": "https://book.playstreetmuseum.com/p/n/Cm3frgGt",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Admission $16 + tax a child (ages 1-8). Private play centre.",
+      "local_copy": false
+    },
+    {
+      "id": "edgewalk-ticket",
+      "title": "EdgeWalk at the CN Tower",
+      "publisher": "Lonely Planet",
+      "url": "https://www.lonelyplanet.com/pois/393191",
+      "published": null,
+      "checked": "summary",
+      "note": "Ticket about $195; runs May to October in small groups. No visitor count published.",
+      "local_copy": false
+    },
+    {
+      "id": "flyover-2026",
+      "title": "FlyOver Canada review: tickets",
+      "publisher": "Vancouver Tourism guide",
+      "url": "https://vancouvertourism.org/flyover-canada-review/",
+      "published": "2026",
+      "checked": "summary",
+      "note": "Adult tickets about $35 online, $40 at the door. No visitor count published.",
+      "local_copy": false
+    },
+    {
+      "id": "kitchendoor-vancouver",
+      "title": "Commercial kitchens for rent, Vancouver",
+      "publisher": "The Kitchen Door",
+      "url": "https://www.thekitchendoor.com/kitchen-rental/commercial-kitchen-for-rent-fully-equipped-vancouver",
+      "published": null,
+      "checked": "summary",
+      "note": "Keefer St kitchen $75/h day, $55/h evening, or $3,000-6,000 a month; another at $66/h. Listings undated.",
+      "local_copy": false
+    },
+    {
+      "id": "ubc-housing-2025",
+      "title": "UBC Vancouver residence fees 2025/26",
+      "publisher": "UBC Student Housing",
+      "url": "https://vancouver.housing.ubc.ca/applications/fees-payments/marine-drive/",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Studios about $1,230-1,490 a month (Green College, Marine Drive, Exchange, Iona House), utilities and internet included.",
+      "local_copy": false
+    },
+    {
+      "id": "courtenay-cemetery-2026",
+      "title": "Cemetery fees (bylaw 3205)",
+      "publisher": "City of Courtenay",
+      "url": "https://www.courtenay.ca/media/file/cemetery-fees-handout-bylaw-3205pdf",
+      "published": "2026",
+      "checked": "summary",
+      "note": "Columbarium niche $2,376 for residents, care fund included (municipal, Vancouver Island). Private Metro Vancouver cemeteries do not publish prices.",
+      "local_copy": false
+    },
+    {
+      "id": "coworking-vancouver-2025",
+      "title": "Coworking spaces in Vancouver: prices",
+      "publisher": "Hardbacon; LiquidSpace listings",
+      "url": "https://www.hardbacon.ca/en/business/coworking-spaces-vancouver/",
+      "published": "2025",
+      "checked": "summary",
+      "note": "Hot desks about $295-495 a month; dedicated desks $350-660 (e.g. Makeshift from $426). Listings partly undated.",
+      "local_copy": false
+    },
+    {
+      "id": "dodp-2026",
+      "title": "Downtown Official Development Plan (DD), consolidated by-law",
+      "publisher": "City of Vancouver",
+      "url": "https://bylaws.vancouver.ca/odp/odp-downtown.pdf",
+      "published": "2026-06",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Section 3: Area A total density not over 11.00 FSR; Areas B and F 9.00; Area G 6.00 with office not over 5.00. Read through a search summary (the PDF refused direct download); the density map was not checked."
+    },
+    {
+      "id": "colliers-land-2025",
+      "title": "Metro Vancouver land market commentary and top land deals, 2025",
+      "publisher": "Colliers (via Western Investor and Vancouver Market)",
+      "url": "https://www.westerninvestor.com/british-columbia/metro-vancouver-land-deals-slow-as-high-costs-low-demand-stall-projects-10740065",
+      "published": "2025",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Distressed residential land sales resetting price floors in 2025 (court-ordered sales 22% of land sales over $5 M in Q1 2025, Avison Young); Kitsilano site at $195 per buildable ft2."
+    },
+    {
+      "id": "altus-land-2019",
+      "title": "Construction, land costs greatly propel Vancouver's condo prices",
+      "publisher": "Altus Group (via Mortgage Professional)",
+      "url": "https://mpamag.com/ca/news/general/construction-land-costs-greatly-propel-vancouvers-condo-prices/284916",
+      "published": "2019",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Vancouver high-rise residential land about $325 per buildable ft2 in 2019. Old: a reference point only."
+    },
+    {
+      "id": "whitespot-sale",
+      "title": "Hong Kong company pays $245 million for downtown Vancouver White Spot site",
+      "publisher": "Georgia Straight",
+      "url": "https://www.straight.com/node/1010951",
+      "published": "2018",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "About 398,000 ft2 buildable residential at more than $615 per buildable ft2 (peak-market downtown sale)."
+    },
+    {
+      "id": "altus-cre-q2-2026",
+      "title": "Vancouver commercial real estate market update, Q2 2026",
+      "publisher": "Altus Group",
+      "url": "https://www.altusgroup.com/insights/vancouver-commercial-real-estate-market-update/",
+      "published": "2026-Q2",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Land transaction volume $1.2 billion, down 14% year over year; buyers favour sites with clear policy support and predictable density."
+    },
+    {
+      "id": "rennie-presale-2021",
+      "title": "Concrete pre-sale pricing snapshot as of April 2021",
+      "publisher": "rennie",
+      "url": "https://rennie.com/intelligence/pre-sale-resale/concrete-pre-sale-pricing-snapshot-as-of-april-2021",
+      "published": "2021-04",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Metro Vancouver concrete presale launches averaged about $1,106/ft² in early 2021."
+    },
+    {
+      "id": "remi-caprates-q4-2021",
+      "title": "Vancouver at epicentre of record low cap rates (CBRE Q4 2021)",
+      "publisher": "Real Estate Magazine (REMI), citing CBRE",
+      "url": "https://www.reminetwork.com/?p=12807",
+      "published": "2022-01",
+      "checked": "summary",
+      "local_copy": false,
+      "note": "Vancouver multifamily cap rates 2.00-2.75% in Q4 2021."
+    }
+  ]
+}

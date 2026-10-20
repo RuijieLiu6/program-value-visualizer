@@ -1,0 +1,17 @@
+{
+  "id": "vancouver-2026",
+  "name": "Vancouver, 2026",
+  "currency": "CAD",
+  "area_unit": "m2",
+  "ft2_per_m2": 10.764,
+  "as_of": "2026-10-17",
+  "files": {
+    "sources": "sources.json",
+    "values": "values.json",
+    "costs": "costs.json",
+    "charges": "charges.json",
+    "assumptions": "assumptions.json",
+    "code_rules": "code_rules.json"
+  },
+  "label": "Indicative early-design estimate. Not a feasibility study, appraisal or compliance check."
+}

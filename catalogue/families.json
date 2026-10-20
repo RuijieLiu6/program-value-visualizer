@@ -1,0 +1,268 @@
+{
+  "meta": {
+    "name": "Activity-based programme catalogue",
+    "version": "0.2-neutral",
+    "as_of": "2026-10-17",
+    "basis": "Designer's synthesis (grade C): activity families, users, rhythm, access, building-code occupancy group (NBC 2020 / VBBL 2025 letters) and where on the section each programme fits. No prices: money data lives in packs.",
+    "fits_legend": {
+      "B": "below grade",
+      "G": "ground / podium",
+      "L": "low (up to ~60 m)",
+      "M": "mid",
+      "H": "high",
+      "T": "top / crown",
+      "S": "seam (mechanical, transfer or belt level)"
+    },
+    "rhythm_legend": {
+      "24": "all day",
+      "Day": "weekday daytime",
+      "Eve": "evening",
+      "Wk": "weekend",
+      "Ev": "event / seasonal"
+    },
+    "value_status_legend": {
+      "linked": "value comes from the pack row named in value_ref",
+      "zero": "earns nothing; cost only",
+      "new": "no sourced value yet: user to supply",
+      "excluded": "not recommended in a tower; user to supply if used"
+    },
+    "programme_count": 112,
+    "family_count": 14
+  },
+  "families": [
+    {
+      "family_id": "MP",
+      "name": "Move & Play",
+      "description": "sport, fitness, recreation",
+      "intensity": 5,
+      "colour": "#d1495b",
+      "buffer_rule": true,
+      "typical_users": [
+        "Public",
+        "members",
+        "residents"
+      ],
+      "earns_by": [
+        "operate",
+        "public"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "GP",
+      "name": "Gather & Perform",
+      "description": "events, culture, assembly",
+      "intensity": 5,
+      "colour": "#e07a5f",
+      "buffer_rule": true,
+      "typical_users": [
+        "Visitors",
+        "public"
+      ],
+      "earns_by": [
+        "operate",
+        "public"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "LE",
+      "name": "Look & Experience",
+      "description": "decks, attractions, sky dining",
+      "intensity": 4,
+      "colour": "#f2a541",
+      "buffer_rule": true,
+      "typical_users": [
+        "Tourists",
+        "public"
+      ],
+      "earns_by": [
+        "operate"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "SE",
+      "name": "Shop & Eat",
+      "description": "retail, food, markets",
+      "intensity": 4,
+      "colour": "#e9c46a",
+      "buffer_rule": true,
+      "typical_users": [
+        "Public",
+        "workers",
+        "visitors"
+      ],
+      "earns_by": [
+        "lease"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "AM",
+      "name": "Arrive & Move",
+      "description": "transit, lobbies, bikes, parking",
+      "intensity": 4,
+      "colour": "#b5838d",
+      "buffer_rule": true,
+      "typical_users": [
+        "Everyone"
+      ],
+      "earns_by": [
+        "public",
+        "operate"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "MK",
+      "name": "Make & Produce",
+      "description": "studios, light industry, film",
+      "intensity": 3,
+      "colour": "#8d6e63",
+      "buffer_rule": true,
+      "typical_users": [
+        "Workers",
+        "makers"
+      ],
+      "earns_by": [
+        "lease"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "WK",
+      "name": "Work",
+      "description": "office, flexible work, labs",
+      "intensity": 3,
+      "colour": "#4f6d7a",
+      "buffer_rule": true,
+      "typical_users": [
+        "Workers"
+      ],
+      "earns_by": [
+        "lease"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "LN",
+      "name": "Learn",
+      "description": "school, university, institute, library",
+      "intensity": 3,
+      "colour": "#6a8eae",
+      "buffer_rule": true,
+      "typical_users": [
+        "Students",
+        "children",
+        "public"
+      ],
+      "earns_by": [
+        "lease",
+        "public"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "CH",
+      "name": "Care & Heal",
+      "description": "childcare, clinics, seniors care, hospital",
+      "intensity": 2,
+      "colour": "#81b29a",
+      "buffer_rule": true,
+      "typical_users": [
+        "Children",
+        "seniors",
+        "patients"
+      ],
+      "earns_by": [
+        "lease",
+        "operate",
+        "public"
+      ],
+      "placement_note": "Close to ground and to daylight; quiet neighbours"
+    },
+    {
+      "family_id": "GS",
+      "name": "Grow & Sustain",
+      "description": "urban farm, gardens, water, energy",
+      "intensity": 2,
+      "colour": "#5c946e",
+      "buffer_rule": true,
+      "typical_users": [
+        "Operators",
+        "public",
+        "residents"
+      ],
+      "earns_by": [
+        "support",
+        "operate"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "ST",
+      "name": "Stay",
+      "description": "hotel, serviced and extended stay",
+      "intensity": 2,
+      "colour": "#9c89b8",
+      "buffer_rule": true,
+      "typical_users": [
+        "Visitors"
+      ],
+      "earns_by": [
+        "operate"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "LV",
+      "name": "Live",
+      "description": "homes of every tenure",
+      "intensity": 1,
+      "colour": "#3d5a80",
+      "buffer_rule": true,
+      "typical_users": [
+        "Residents"
+      ],
+      "earns_by": [
+        "sell",
+        "lease",
+        "public"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "RR",
+      "name": "Reflect & Remember",
+      "description": "worship, quiet rooms, memorials, reserved space",
+      "intensity": 1,
+      "colour": "#7a7d8c",
+      "buffer_rule": true,
+      "typical_users": [
+        "Faith groups",
+        "public",
+        "partners"
+      ],
+      "earns_by": [
+        "public"
+      ],
+      "placement_note": null
+    },
+    {
+      "family_id": "SB",
+      "name": "Serve the building",
+      "description": "core, mechanical, refuge, structure",
+      "intensity": null,
+      "colour": "#a0a4a8",
+      "buffer_rule": false,
+      "typical_users": [
+        "Operators only"
+      ],
+      "earns_by": [
+        "support"
+      ],
+      "placement_note": null
+    }
+  ]
+}

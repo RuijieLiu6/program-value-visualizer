@@ -1,0 +1,3151 @@
+{
+  "meta": {
+    "pack": "vancouver-2026",
+    "currency": "CAD",
+    "ft2_per_m2": 10.764,
+    "basis": "Capitalised value per m2 of gross floor area, 2026 dollars, before construction cost. Each row keeps its market inputs so the value can be recomputed (see core/validate_data.js). Order-of-magnitude only.",
+    "methods": {
+      "sale": "price_ft2 x 10.764 x efficiency x (1 - selling_cost)",
+      "income": "rent_ft2_yr x 10.764 x (1 - vacancy) x (1 - leakage) x (1 - opex_ratio) - opex_ft2_yr x 10.764, / cap_rate x efficiency (monthly rent x 12)",
+      "per_key": "noi_per_key / cap_rate / m2_per_key",
+      "visitors": "visitors x ticket x (1 + fnb_uplift) x margin / cap_rate / deck_area_m2",
+      "per_stall_sale": "price_per_stall / m2_per_stall",
+      "per_stall_income": "rate_month x 12 x utilisation x margin / cap_rate / m2_per_stall",
+      "stated": "value given directly; no inputs to recompute",
+      "none": "earns nothing (public or support); cost only",
+      "user": "no default: user to supply"
+    },
+    "row_count": 39,
+    "value_basis": "sourced = the pack's original row, from cited market inputs and the author's stated assumptions; researched = a typical estimate built from a 2025-26 Vancouver, BC or Canadian figure found by web search (summary-level, grade C); analogy = a typical estimate borrowed from a similar use because no usable figure was found (grade C); no_income = the use earns nothing for the owner (cost only)."
+  },
+  "rows": [
+    {
+      "id": "R1",
+      "name": "Market condo",
+      "earns_by": "sell",
+      "method": "sale",
+      "city_charge_class": "residential",
+      "inputs": {
+        "sale_price_per_ft2_net": {
+          "value": 1400,
+          "unit": "CAD/ft2",
+          "source": "raincity-2026",
+          "grade": "B",
+          "as_of": "2026-10-17"
+        },
+        "selling_cost": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.82,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 11700,
+        "unit": "CAD/m2",
+        "source": "raincity-2026",
+        "grade": "B",
+        "as_of": "2026-10-17",
+        "note": "Grade B = weakest key input (sale price, broker source). Selling cost is minor and the derivation efficiency cancels out in the engine."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "R2",
+      "name": "Luxury / estate condo, penthouse",
+      "earns_by": "sell",
+      "method": "sale",
+      "city_charge_class": "residential",
+      "inputs": {
+        "sale_price_per_ft2_net": {
+          "value": 2200,
+          "unit": "CAD/ft2",
+          "source": "raincity-2026",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Source gives new build $1,200-1,800 and waterfront $1,800+; $2,200 for an estate floor is an assumption."
+        },
+        "selling_cost": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 18000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "R3",
+      "name": "Branded residence (hotel-serviced)",
+      "earns_by": "sell",
+      "method": "sale",
+      "city_charge_class": "residential",
+      "inputs": {
+        "sale_price_per_ft2_net": {
+          "value": 1820,
+          "unit": "CAD/ft2",
+          "source": "knightfrank-branded-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Market condo price (R1, $1,400) plus a 30% brand premium, the global average Knight Frank reports for branded schemes (secondary coverage; no Vancouver evidence)."
+        },
+        "selling_cost": {
+          "value": 0.06,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 14700,
+        "unit": "CAD/m2",
+        "source": "knightfrank-branded-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          11700,
+          18000
+        ],
+        "note": "Typical estimate (researched): Market condo (R1) + 30% brand premium (Knight Frank global average; no Vancouver evidence)."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "R4",
+      "name": "Market rental (purpose-built)",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "residential",
+      "inputs": {
+        "rent_per_ft2_net_month": {
+          "value": 4.0,
+          "unit": "CAD/ft2/month",
+          "source": "livrent-2026-10",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "City-wide asking rent was $3.50/ft2 in Oct 2026; $4.00 assumed for a new tower."
+        },
+        "vacancy": {
+          "value": 0.04,
+          "unit": "ratio",
+          "source": "cmhc-2025",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "CMHC vacancy 3.7%, rounded up."
+        },
+        "opex_ratio": {
+          "value": 0.28,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.0425,
+          "unit": "ratio",
+          "source": "cbre-caprates-q2-2026",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "CBRE new-construction multifamily 4.00-4.50%."
+        },
+        "efficiency": {
+          "value": 0.82,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 6900,
+        "unit": "CAD/m2",
+        "source": "livrent-2026-10",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Grade C = weakest key input: the rent is assumed above the observed city-wide asking rent, and the operating-cost ratio is assumed."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "R5",
+      "name": "Below-market rental (20% below market)",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "below_market_inclusionary",
+      "inputs": {
+        "rent_per_ft2_net_month": {
+          "value": 3.2,
+          "unit": "CAD/ft2/month",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "80% of the R4 rent."
+        },
+        "vacancy": {
+          "value": 0.04,
+          "unit": "ratio",
+          "source": "cmhc-2025",
+          "grade": "B",
+          "as_of": "2026-10-17"
+        },
+        "opex_per_ft2_year": {
+          "value": 12.9,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Same operating cost as R4 in dollars: 28% of R4 effective rent (4.00 x 12 x 0.96 x 0.28)."
+        },
+        "cap_rate": {
+          "value": 0.0425,
+          "unit": "ratio",
+          "source": "cbre-caprates-q2-2026",
+          "grade": "B",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.82,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 5000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "R6",
+      "name": "Social housing (turned over at nominal price)",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "social_housing",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "No income to the owner; turned over to the City or a non-profit. Cost only."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "R7",
+      "name": "Student housing",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "residential",
+      "inputs": {
+        "rent_per_ft2_net_month": {
+          "value": 4.0,
+          "unit": "CAD/ft2/month",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Like R4."
+        },
+        "vacancy": {
+          "value": 0.04,
+          "unit": "ratio",
+          "source": "cmhc-2025",
+          "grade": "B",
+          "as_of": "2026-10-17"
+        },
+        "opex_ratio": {
+          "value": 0.28,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.045,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 6500,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "R8",
+      "name": "Seniors / assisted living",
+      "earns_by": "operate",
+      "method": "income",
+      "city_charge_class": "residential",
+      "inputs": {
+        "rent_per_ft2_net_month": {
+          "value": 11.0,
+          "unit": "CAD/ft2/month",
+          "source": "comfortlife-al-vancouver",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "All-in monthly fee per ft2: private assisted living in Vancouver from about $4,070 a month (Comfort Life) plus care packages, about $5,000 for a 450 ft2 suite."
+        },
+        "vacancy": {
+          "value": 0.08,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "opex_ratio": {
+          "value": 0.65,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Care, meals and staff take about 65% of revenue."
+        },
+        "cap_rate": {
+          "value": 0.055,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Seniors housing cap rates compressed in 2025 (Cushman & Wakefield); no published Canadian figure found, 5.5% assumed."
+        },
+        "efficiency": {
+          "value": 0.75,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 6200,
+        "unit": "CAD/m2",
+        "source": "comfortlife-al-vancouver",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          4000,
+          8000
+        ],
+        "note": "Typical estimate (researched): Vancouver assisted-living fees, operated with 65% costs; cap rate assumed."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "R9",
+      "name": "Co-living / micro units",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "residential",
+      "inputs": {
+        "rent_per_ft2_net_month": {
+          "value": 5.5,
+          "unit": "CAD/ft2/month",
+          "source": "livrent-micro-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Furnished micro suite, utilities included: a 200 ft2 suite listed at $1,180/month in Oct 2026 ($5.90/ft2)."
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "opex_ratio": {
+          "value": 0.35,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "cap_rate": {
+          "value": 0.045,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.75,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 7300,
+        "unit": "CAD/m2",
+        "source": "livrent-micro-2026",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          5000,
+          8500
+        ],
+        "note": "Typical estimate (researched): Vancouver micro-suite rent (liv.rent, Oct 2026), higher running costs than market rental."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "H1",
+      "name": "Luxury hotel (5-star)",
+      "earns_by": "operate",
+      "method": "per_key",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "adr": {
+          "value": 540,
+          "unit": "CAD/night",
+          "source": "costar-hotels-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vancouver all-hotel ADR $284.44 in 2025 (CoStar) x 1.9 for a five-star hotel (assumption)."
+        },
+        "occupancy": {
+          "value": 0.75,
+          "unit": "ratio",
+          "source": "costar-hotels-2025",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "noi_per_key": {
+          "value": 73912,
+          "unit": "CAD/key/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "ADR x 365 x occupancy x 50%. NOI is about 30% of total revenue and rooms are about 60% of it, so NOI is about 50% of rooms revenue."
+        },
+        "cap_rate": {
+          "value": 0.0575,
+          "unit": "ratio",
+          "source": "cw-hotel-q2-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vancouver full-service downtown 5.00-6.50% (C&W Q2 2026)."
+        },
+        "m2_per_key": {
+          "value": 110,
+          "unit": "m2/key",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Gross area per room including shared space."
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 11700,
+        "unit": "CAD/m2",
+        "source": "costar-hotels-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          8000,
+          13000
+        ],
+        "note": "Typical estimate (researched): Vancouver market ADR (CoStar 2025) scaled by 1.9 for five-star, luxury NOI margin, C&W cap rate."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "H2",
+      "name": "Upscale / select-service hotel",
+      "earns_by": "operate",
+      "method": "per_key",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "adr": {
+          "value": 284,
+          "unit": "CAD/night",
+          "source": "costar-hotels-2025",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "Vancouver 2025 average. C&W reports Vancouver ADR growth of roughly 8-10% in H1 2026 (p.5), so 2026 may be higher."
+        },
+        "occupancy": {
+          "value": 0.784,
+          "unit": "ratio",
+          "source": "costar-hotels-2025",
+          "grade": "B",
+          "as_of": "2026-10-17"
+        },
+        "noi_per_key": {
+          "value": 33600,
+          "unit": "CAD/key/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "cw-hotel-q2-2026",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "C&W Vancouver select-service 6.00-7.50% (p.10); CBRE focused-service 6.50-8.00%."
+        },
+        "m2_per_key": {
+          "value": 60,
+          "unit": "m2/key",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 8000,
+        "unit": "CAD/m2",
+        "source": "costar-hotels-2025",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Grade C = weakest key input: NOI per key and area per key are assumptions."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "H3",
+      "name": "Extended-stay / serviced apartments",
+      "earns_by": "operate",
+      "method": "stated",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "cw-hotel-q2-2026",
+          "grade": "B",
+          "as_of": "2026-10-17"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 7300,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Similar to H2; no separate inputs."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "H4",
+      "name": "Conference, ballroom, meeting rooms",
+      "earns_by": "operate",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 60,
+          "unit": "CAD/ft2/yr",
+          "source": "tagvenue-vancouver-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Hire income per ft2: about 100 events a year at about $3,000 each (large Vancouver venues, Tagvenue Dec 2025) in a 5,000 ft2 hall. Catering profit not counted."
+        },
+        "vacancy": {
+          "value": 0,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Already in the event count."
+        },
+        "opex_ratio": {
+          "value": 0.5,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Set-up, staff and cleaning."
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.75,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 3500,
+        "unit": "CAD/m2",
+        "source": "tagvenue-vancouver-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1500,
+          6000
+        ],
+        "note": "Typical estimate (researched): Vancouver venue hire fees (Tagvenue 2025) x 100 events a year, half to operating costs."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "H5",
+      "name": "Spa and hotel wellness",
+      "earns_by": "operate",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 270,
+          "unit": "CAD/ft2/yr",
+          "source": "cbre-hotel-spa-2024",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Spa revenue per ft2: luxury hotels earn about US$9,847 a room a year from the spa (CBRE, 2024); for a 200-room hotel with a 10,000 ft2 spa that is about C$270/ft2."
+        },
+        "vacancy": {
+          "value": 0,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "opex_ratio": {
+          "value": 0.83,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Spa departments keep about 17% as profit."
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 5600,
+        "unit": "CAD/m2",
+        "source": "cbre-hotel-spa-2024",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2500,
+          7000
+        ],
+        "note": "Typical estimate (researched): Hotel spa revenue per room (CBRE 2024, US) turned into revenue per ft2, 17% departmental profit."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "O1",
+      "name": "Office, Class AAA / A",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 50,
+          "unit": "CAD/ft2/yr",
+          "source": "cbre-office-q3-2026",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "New trophy floor assumed at $50 (an assumption above the published figure); CBRE downtown Class A average net rent $43.26 in Q3 2026 (p.13)."
+        },
+        "vacancy": {
+          "value": 0.1,
+          "unit": "ratio",
+          "source": "cbre-office-q3-2026",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "Trophy vacancy 10.5%, Class A 9.8%, overall 13.1% (p.13)."
+        },
+        "leakage": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.054,
+          "unit": "ratio",
+          "source": "cbre-caprates-q2-2026",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "CBRE office AA 5.00-5.75%, A 5.50-6.25%."
+        },
+        "efficiency": {
+          "value": 0.78,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 6600,
+        "unit": "CAD/m2",
+        "source": "cbre-office-q3-2026",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "range": [
+          5700,
+          6600
+        ],
+        "note": "5,700 at the Class A average rent. Grade C = weakest key input: the $50 rent is assumed above the published average."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "O2",
+      "name": "Office, Class B",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 28,
+          "unit": "CAD/ft2/yr",
+          "source": "cresa-2026",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Cited as Cresa Q1 2026 downtown all-class base rent, but the link points to an industrial report: unresolved, so graded C."
+        },
+        "vacancy": {
+          "value": 0.18,
+          "unit": "ratio",
+          "source": "cbre-office-q3-2026",
+          "grade": "A",
+          "as_of": "2026-10-17",
+          "note": "Downtown Class B/C vacancy 18.0% (p.13)."
+        },
+        "cap_rate": {
+          "value": 0.064,
+          "unit": "ratio",
+          "source": "cbre-caprates-q2-2026",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "CBRE office B 6.00-6.75%."
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 3100,
+        "unit": "CAD/m2",
+        "source": "cresa-2026",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "O3",
+      "name": "Flexible office / coworking",
+      "earns_by": "operate",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 83,
+          "unit": "CAD/ft2/yr",
+          "source": "coworking-vancouver-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Desk income per ft2: about $450 a desk a month (Vancouver hot desks $295-495, dedicated $350-660) at 65 ft2 net a desk."
+        },
+        "vacancy": {
+          "value": 0.25,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Desks empty a quarter of the time."
+        },
+        "opex_ratio": {
+          "value": 0.55,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Staff, utilities, amenities and fit-out renewal."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.75,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 3500,
+        "unit": "CAD/m2",
+        "source": "coworking-vancouver-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2500,
+          5500
+        ],
+        "note": "Typical estimate (researched): Vancouver coworking desk prices (2025 listings), 75% occupied, 55% operating costs."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "O4",
+      "name": "Lab / life-science office",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 55,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Class A office average ($43.26, CBRE Q3 2026) plus about 30% for lab-ready space. No 2026 Vancouver lab rent was found; a 2021 report gave a 50% premium in a tight market. Vancouver lab supply is now large, hence 12% vacancy."
+        },
+        "vacancy": {
+          "value": 0.12,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "leakage": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "cap_rate": {
+          "value": 0.0625,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.78,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 6200,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          4000,
+          8000
+        ],
+        "note": "Typical estimate (analogy): No 2025-26 Vancouver lab rent found (searched broker reports; only a 2021 '50% premium' quote). Analogy: Class A office with a lab rent premium and a higher cap rate."
+      },
+      "value_basis": "analogy"
+    },
+    {
+      "id": "O5",
+      "name": "Medical / dental clinic",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 45,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.0575,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 6000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "O6",
+      "name": "Education / institute campus floors",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 34.73,
+          "unit": "CAD/ft2/yr",
+          "source": "jll-office-q1-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Downtown Vancouver average net office rent $34.73/ft2 (JLL Q1 2026), for a long institutional lease."
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.06,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Institutional tenant on a long lease: a little below Class A."
+        },
+        "efficiency": {
+          "value": 0.78,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 4600,
+        "unit": "CAD/m2",
+        "source": "jll-office-q1-2026",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          3500,
+          6000
+        ],
+        "note": "Typical estimate (researched): Downtown average office rent (JLL Q1 2026) on a long institutional lease."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "T1",
+      "name": "Street retail (CRU), ground floor",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 75,
+          "unit": "CAD/ft2/yr",
+          "source": "renx-retail",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Robson 1000 block reported at $180-240/ft2 (older source); $75 assumed for a typical frontage."
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.055,
+          "unit": "ratio",
+          "source": "cbre-caprates-q2-2026",
+          "grade": "B",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.9,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 12500,
+        "unit": "CAD/m2",
+        "source": "renx-retail",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "range": [
+          12500,
+          30000
+        ],
+        "note": "Prime Robson frontage up to 30,000. Ground floor only: see the retail floor rule in assumptions."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "T2",
+      "name": "Large-format retail / grocery anchor",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 35,
+          "unit": "CAD/ft2/yr",
+          "source": "lee-retail-q4-2024",
+          "grade": "B",
+          "as_of": "2026-10-17",
+          "note": "Metro average NNN $37.86 (Q4 2024)."
+        },
+        "cap_rate": {
+          "value": 0.055,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.9,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 5900,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "T3",
+      "name": "Food hall / market hall",
+      "earns_by": "lease",
+      "method": "stated",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "cap_rate": {
+          "value": 0.06,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.75,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 8000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Blended stall rents; no rent input."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "T4",
+      "name": "Restaurant / bar at grade",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 60,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.0575,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.9,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 10000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "A1",
+      "name": "Observation deck, ticketed",
+      "earns_by": "operate",
+      "method": "visitors",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "visitors_per_year": {
+          "value": 500000,
+          "unit": "visitors/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "No visitor study exists; the most fragile number in the pack."
+        },
+        "ticket_price": {
+          "value": 45,
+          "unit": "CAD/visitor",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Vancouver Lookout adult ticket is about $20 (source vancouver-lookout); $45 assumed for a new 300 m deck."
+        },
+        "fnb_uplift": {
+          "value": 0.2,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "operating_margin": {
+          "value": 0.4,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.08,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Operating risk."
+        },
+        "deck_area_m2": {
+          "value": 3000,
+          "unit": "m2",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 45000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "range": [
+          10000,
+          45000
+        ],
+        "note": "Treat as a ceiling, not a central estimate, until a visitor study exists."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "A2",
+      "name": "Observation deck, free public",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "commercial",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Cost only; running cost and payer set by the user."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "A3",
+      "name": "Sky restaurant / sky bar",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 60,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Operator lease."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 9000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "A4",
+      "name": "Event venue / sky hall",
+      "earns_by": "operate",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 94,
+          "unit": "CAD/ft2/yr",
+          "source": "tagvenue-vancouver-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Hire income per ft2: about 120 events a year at about $3,900 (large-venue average $3,000, Tagvenue Dec 2025, +30% for a view) in a 5,000 ft2 hall."
+        },
+        "vacancy": {
+          "value": 0,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Already in the event count."
+        },
+        "opex_ratio": {
+          "value": 0.55,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Set-up, staff, cleaning and marketing."
+        },
+        "cap_rate": {
+          "value": 0.08,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 4800,
+        "unit": "CAD/m2",
+        "source": "tagvenue-vancouver-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2500,
+          8000
+        ],
+        "note": "Typical estimate (researched): Vancouver venue hire fees (Tagvenue 2025) with a 30% view premium, 120 events a year."
+      },
+      "value_basis": "researched"
+    },
+    {
+      "id": "A5",
+      "name": "Gallery / museum / cultural venue",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "civic_flat",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          3000
+        ],
+        "note": "Earns nothing: Usually a cultural amenity run by a non-profit. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      },
+      "value_basis": "no_income"
+    },
+    {
+      "id": "C1",
+      "name": "Childcare",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "civic_flat",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "No income to the owner; cost only."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "C2",
+      "name": "Library branch",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "civic_flat",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "No income to the owner; cost only."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "C3",
+      "name": "Community / recreation centre, public baths",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "civic_flat",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "No income to the owner; cost only."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "C4",
+      "name": "Transit concourse / station link",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "unknown",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "No income to the owner; cost only."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "C5",
+      "name": "Reserved civic or cultural space (envelope only)",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "unknown",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "No income to the owner; cost only."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "P1",
+      "name": "Parking, residential (below grade)",
+      "earns_by": "sell",
+      "method": "per_stall_sale",
+      "city_charge_class": "unknown",
+      "inputs": {
+        "price_per_stall": {
+          "value": 50000,
+          "unit": "CAD/stall",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Sold with homes."
+        },
+        "m2_per_stall": {
+          "value": 35,
+          "unit": "m2/stall",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 1400,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "P2",
+      "name": "Parking, commercial / public pay",
+      "earns_by": "operate",
+      "method": "per_stall_income",
+      "city_charge_class": "unknown",
+      "inputs": {
+        "rate_per_stall_month": {
+          "value": 300,
+          "unit": "CAD/stall/month",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "note": "Open data gap: downtown monthly rates not sourced."
+        },
+        "utilisation": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "operating_margin": {
+          "value": 0.7,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "cap_rate": {
+          "value": 0.06,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "m2_per_stall": {
+          "value": 35,
+          "unit": "m2/stall",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 1000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "S1",
+      "name": "Core, lobbies, sky lobbies, mechanical, refuge / belt floors",
+      "earns_by": "support",
+      "method": "none",
+      "city_charge_class": "unknown",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "S2",
+      "name": "Resident amenity (gym, lounge, pool)",
+      "earns_by": "support",
+      "method": "none",
+      "city_charge_class": "residential",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Raises home prices; no direct income."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "S3",
+      "name": "Rooftop telecom, signage, naming rights",
+      "earns_by": "support",
+      "method": "none",
+      "city_charge_class": "commercial",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17",
+        "note": "Small lease income, not counted."
+      },
+      "value_basis": "sourced"
+    },
+    {
+      "id": "MP1t",
+      "name": "Fitness club / gym",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 21.6,
+          "unit": "CAD/ft2/yr",
+          "source": "expatistan-gym-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Members pay about $72 a month (Vancouver, Nov 2025); about one member per 10 ft2 gives $86/ft2 of revenue; rent is about 25% of revenue."
+        },
+        "vacancy": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.0625,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2900,
+        "unit": "CAD/m2",
+        "source": "expatistan-gym-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2000,
+          5000
+        ],
+        "note": "Typical estimate (researched): Vancouver gym membership price (2025), one member per 10 ft2, rent 25% of revenue."
+      }
+    },
+    {
+      "id": "MP4t",
+      "name": "Sky sports court",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 18,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.1,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.0675,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.9,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2300,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1000,
+          4000
+        ],
+        "note": "Typical estimate (analogy): No Vancouver court-rental or operator rent found (only $10 drop-in sessions). Analogy: a large low-rent area leased to a sports operator."
+      }
+    },
+    {
+      "id": "MP5t",
+      "name": "Climbing / bouldering wall",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 20,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.1,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.0675,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.9,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2600,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1200,
+          4000
+        ],
+        "note": "Typical estimate (analogy): No 2025-26 climbing-gym figure found (only an older ~$21 drop-in). Analogy: leased to a climbing operator at a low rent."
+      }
+    },
+    {
+      "id": "MP7t",
+      "name": "Dance, yoga, martial-arts studios",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 25,
+          "unit": "CAD/ft2/yr",
+          "source": "yyoga-classpack-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "About 20 classes a week x 12 people x $20 ($18 pack, $30 drop-in) in 2,000 ft2 gives about $125/ft2; rent is about 20% of revenue."
+        },
+        "vacancy": {
+          "value": 0.08,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 3200,
+        "unit": "CAD/m2",
+        "source": "yyoga-classpack-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2000,
+          5000
+        ],
+        "note": "Typical estimate (researched): Vancouver class prices (2025), 20 classes a week, rent 20% of revenue."
+      }
+    },
+    {
+      "id": "MP8t",
+      "name": "Small ice rink / skate deck",
+      "earns_by": "operate",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 31,
+          "unit": "CAD/ft2/yr",
+          "source": "vancouver-parks-fees-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "About 1,500 rental hours a year at $105 an hour (City of Vancouver rink rate, 2025) plus public skating, over a 6,500 ft2 rink."
+        },
+        "vacancy": {
+          "value": 0,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Already in the hours."
+        },
+        "opex_ratio": {
+          "value": 0.7,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Refrigeration, ice care and staff."
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 1200,
+        "unit": "CAD/m2",
+        "source": "vancouver-parks-fees-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          2500
+        ],
+        "note": "Typical estimate (researched): City of Vancouver ice rental rate (2025) x 1,500 hours, 70% operating costs."
+      }
+    },
+    {
+      "id": "MP9t",
+      "name": "Indoor kids' play / family centre",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 22.5,
+          "unit": "CAD/ft2/yr",
+          "source": "playstreet-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "About 60,000 child visits a year at about $15 ($16 Play Street Museum; $10-15 Kids Market) in 6,000 ft2 gives about $150/ft2; rent is about 15% of revenue."
+        },
+        "vacancy": {
+          "value": 0.1,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.0675,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2700,
+        "unit": "CAD/m2",
+        "source": "playstreet-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1500,
+          4500
+        ],
+        "note": "Typical estimate (researched): Vancouver play-centre admission (2025), 60,000 visits a year, rent 15% of revenue."
+      }
+    },
+    {
+      "id": "GP1t",
+      "name": "Theatre / concert hall",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "civic_flat",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          3000
+        ],
+        "note": "Earns nothing: Usually a cultural amenity run by a non-profit. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "GP3t",
+      "name": "Cinema",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 18.9,
+          "unit": "CAD/ft2/yr",
+          "source": "cineplex-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Cineplex 2025: 42.18 M visits over 154 theatres at $23.01 a visit (tickets + food) is about $6.3 M a theatre, about $126/ft2 over 50,000 ft2; rent is about 15% of revenue."
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.0675,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2400,
+        "unit": "CAD/m2",
+        "source": "cineplex-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1500,
+          4500
+        ],
+        "note": "Typical estimate (researched): Cineplex 2025 revenue per theatre, 50,000 ft2 a theatre, rent 15% of revenue."
+      }
+    },
+    {
+      "id": "GP9t",
+      "name": "Esports / gaming arena",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 22,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.15,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2400,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1000,
+          4000
+        ],
+        "note": "Typical estimate (analogy): No esports venue economics found for Canada. Analogy: leased to an operator with higher vacancy risk."
+      }
+    },
+    {
+      "id": "LE4t",
+      "name": "Edge walk / glass floor / sky bridge",
+      "earns_by": "operate",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 270,
+          "unit": "CAD/ft2/yr",
+          "source": "edgewalk-ticket",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "About 6,000 walkers a year (6 a group, 8 groups a day, 180 days, 70% full) at about $195 (CN Tower EdgeWalk) over 4,400 ft2 net."
+        },
+        "vacancy": {
+          "value": 0,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Already in the visitor count."
+        },
+        "opex_ratio": {
+          "value": 0.6,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Guides, safety equipment and insurance."
+        },
+        "cap_rate": {
+          "value": 0.08,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.9,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 13100,
+        "unit": "CAD/m2",
+        "source": "edgewalk-ticket",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          20000
+        ],
+        "note": "Typical estimate (researched): CN Tower EdgeWalk ticket price, capacity-based visitor count (assumed), 40% margin."
+      }
+    },
+    {
+      "id": "LE5t",
+      "name": "Immersive / digital attraction",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 21.6,
+          "unit": "CAD/ft2/yr",
+          "source": "flyover-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "About 60,000 visitors a year at about $30 (FlyOver Canada adult $35, 2026) over 15,000 ft2 gives about $120/ft2; rent is about 18% of revenue."
+        },
+        "vacancy": {
+          "value": 0.1,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2500,
+        "unit": "CAD/m2",
+        "source": "flyover-2026",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1500,
+          5000
+        ],
+        "note": "Typical estimate (researched): Vancouver attraction ticket price (2026), 60,000 visitors, rent 18% of revenue."
+      }
+    },
+    {
+      "id": "LE6t",
+      "name": "Planetarium / observatory",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "civic_flat",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          3000
+        ],
+        "note": "Earns nothing: Usually a science or cultural amenity. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "SE6t",
+      "name": "Night market / pop-up flex hall",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 25,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.25,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2500,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1000,
+          5000
+        ],
+        "note": "Typical estimate (analogy): No 2025-26 stall fee found (only an undated $5,000-11,000 a season). Analogy: food hall (T3), let part-time."
+      }
+    },
+    {
+      "id": "AM11t",
+      "name": "Drone / parcel landing pad",
+      "earns_by": "support",
+      "method": "none",
+      "city_charge_class": "excluded_mechanical",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          1000
+        ],
+        "note": "Earns nothing: No established market: a building service. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "AM12t",
+      "name": "Fire hall / ambulance station",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "unknown",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          0
+        ],
+        "note": "Earns nothing: Delivered to the City as an in-kind amenity. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "MK1t",
+      "name": "Artist studios",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "civic_flat",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 16,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2100,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1000,
+          3500
+        ],
+        "note": "Typical estimate (analogy): No 2025-26 studio rent found; older City figures of $1.25-2.00/ft2 a month support the $16/ft2 a year used. Analogy: below industrial rent."
+      }
+    },
+    {
+      "id": "MK2t",
+      "name": "Maker space / fab lab",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 20,
+          "unit": "CAD/ft2/yr",
+          "source": "cbre-industrial-q2-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Metro Vancouver industrial average asking rent $19.14/ft2 (CBRE, Q2 2026)."
+        },
+        "vacancy": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.06,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2800,
+        "unit": "CAD/m2",
+        "source": "cbre-industrial-q2-2026",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1500,
+          4000
+        ],
+        "note": "Typical estimate (researched): Regional industrial rent (CBRE Q2 2026) for industrial-flex space."
+      }
+    },
+    {
+      "id": "MK3t",
+      "name": "Stacked light industrial / production",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 22,
+          "unit": "CAD/ft2/yr",
+          "source": "cbre-industrial-q2-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Industrial average $19.14/ft2 (CBRE, Q2 2026) plus a premium for new stacked space."
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.045,
+          "unit": "ratio",
+          "source": "lee-industrial-q2-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vancouver industrial cap rate 4.40% in Q2 2026 (Lee & Associates)."
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 4200,
+        "unit": "CAD/m2",
+        "source": "cbre-industrial-q2-2026",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2500,
+          5500
+        ],
+        "note": "Typical estimate (researched): New industrial space at the regional rent (CBRE) and cap rate (Lee), Q2 2026."
+      }
+    },
+    {
+      "id": "MK4t",
+      "name": "Film / TV sound stage or LED volume",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 30,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.1,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.9,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 4000,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2000,
+          5500
+        ],
+        "note": "Typical estimate (analogy): No 2025-26 stage lease rate found (an older $6/ft2 a month short-term gross figure only). Analogy: leased to a studio operator above industrial rent."
+      }
+    },
+    {
+      "id": "MK5t",
+      "name": "Recording and media studios",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 33,
+          "unit": "CAD/ft2/yr",
+          "source": "tagvenue-vancouver-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "About 1,200 booked hours a year at about $110 (Vancouver recording studios average $125, Tagvenue Dec 2025) in 600 ft2 gives about $220/ft2; rent is about 15% of revenue."
+        },
+        "vacancy": {
+          "value": 0.08,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 4000,
+        "unit": "CAD/m2",
+        "source": "tagvenue-vancouver-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2500,
+          6000
+        ],
+        "note": "Typical estimate (researched): Vancouver studio hourly rates (2025), 1,200 booked hours a year, rent 15% of revenue."
+      }
+    },
+    {
+      "id": "MK6t",
+      "name": "Commercial / community kitchen",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 60,
+          "unit": "CAD/ft2/yr",
+          "source": "kitchendoor-vancouver",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "A 1,200 ft2 kitchen let full-time for about $6,000 a month (Vancouver listings: $3,000-6,000 a month, $55-75 an hour), utilities included."
+        },
+        "vacancy": {
+          "value": 0.3,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Let 70% of the time."
+        },
+        "opex_ratio": {
+          "value": 0.45,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Utilities, cleaning and equipment."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 3300,
+        "unit": "CAD/m2",
+        "source": "kitchendoor-vancouver",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2000,
+          5000
+        ],
+        "note": "Typical estimate (researched): Vancouver shared-kitchen rental prices, 70% let, 45% operating costs."
+      }
+    },
+    {
+      "id": "MK7t",
+      "name": "Edge data room",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 45,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.0575,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.7,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 5600,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          3000,
+          8000
+        ],
+        "note": "Typical estimate (analogy): No Vancouver rack or per-kW price found. Analogy: powered space at a premium rent."
+      }
+    },
+    {
+      "id": "LN1t",
+      "name": "Elementary school",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "unknown",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          0
+        ],
+        "note": "Earns nothing: Public school space, delivered in-kind or sold at about cost. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "LN2t",
+      "name": "Secondary school / college",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "unknown",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          5500
+        ],
+        "note": "Earns nothing: Public school or college space, delivered in-kind or sold at about cost. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "CH3t",
+      "name": "Urgent care / day surgery",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 50,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.06,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.78,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 6600,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          4500,
+          8000
+        ],
+        "note": "Typical estimate (analogy): No Vancouver urgent-care rent found. Analogy: medical clinic (O5) with a higher rent for surgical fit-out."
+      }
+    },
+    {
+      "id": "CH5t",
+      "name": "Long-term care",
+      "earns_by": "operate",
+      "method": "per_key",
+      "city_charge_class": "unknown",
+      "value_basis": "researched",
+      "inputs": {
+        "adr": {
+          "value": 366,
+          "unit": "CAD/night",
+          "source": "seniors-advocate-ltc-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Revenue per bed-day: contracted per diem $293.63 (2024/25) + client fee $2,215 a month ($72.82 a day), BC Seniors Advocate."
+        },
+        "occupancy": {
+          "value": 0.97,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "noi_per_key": {
+          "value": 12958,
+          "unit": "CAD/key/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "ADR x 365 x occupancy x 10%. Thin margin on funded care."
+        },
+        "cap_rate": {
+          "value": 0.065,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "m2_per_key": {
+          "value": 75,
+          "unit": "m2/key",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Gross area per bed including dining, lounges and support."
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 2700,
+        "unit": "CAD/m2",
+        "source": "seniors-advocate-ltc-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1500,
+          4500
+        ],
+        "note": "Typical estimate (researched): BC long-term care funding per bed-day (Seniors Advocate 2025), 10% margin, 75 m2 per bed."
+      }
+    },
+    {
+      "id": "CH6t",
+      "name": "Vertical hospital wing",
+      "earns_by": "public",
+      "method": "none",
+      "city_charge_class": "unknown",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          0
+        ],
+        "note": "Earns nothing: A health-authority facility, delivered in-kind or sold at about cost. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "GS3t",
+      "name": "Urban farm / hydroponic floor",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 12,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.1,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.07,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.85,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 1400,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          500,
+          2500
+        ],
+        "note": "Typical estimate (analogy): No grower rent found (only company revenue projections). Analogy: low-rent lease to a growing operator."
+      }
+    },
+    {
+      "id": "GS4t",
+      "name": "Greenhouse crown",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "commercial",
+      "value_basis": "analogy",
+      "inputs": {
+        "rent_per_ft2_net_year": {
+          "value": 14,
+          "unit": "CAD/ft2/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "vacancy": {
+          "value": 0.15,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "cap_rate": {
+          "value": 0.075,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 1400,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          2500
+        ],
+        "note": "Typical estimate (analogy): No evidence found. Analogy: leased glasshouse at a low rent."
+      }
+    },
+    {
+      "id": "GS7t",
+      "name": "Wind turbines / solar crown",
+      "earns_by": "support",
+      "method": "none",
+      "city_charge_class": "excluded_mechanical",
+      "value_basis": "no_income",
+      "inputs": {},
+      "value_per_m2_gfa": {
+        "value": 0,
+        "unit": "CAD/m2",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0,
+          500
+        ],
+        "note": "Earns nothing: Energy savings are not counted as value: building plant. No income to the owner, cost only. Enter a value if a paying operator leases it."
+      }
+    },
+    {
+      "id": "ST4t",
+      "name": "Hostel / budget stay",
+      "earns_by": "operate",
+      "method": "per_key",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "adr": {
+          "value": 180,
+          "unit": "CAD/night",
+          "source": "hostelz-vancouver-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "A 4-bed dorm room at about $45 a bed ($34-74 by season, Hostelz); private rooms from about $90."
+        },
+        "occupancy": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "noi_per_key": {
+          "value": 15768,
+          "unit": "CAD/key/yr",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "ADR x 365 x occupancy x 30%. NOI margin."
+        },
+        "cap_rate": {
+          "value": 0.075,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "m2_per_key": {
+          "value": 28,
+          "unit": "m2/key",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Gross area per room including shared space."
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 7500,
+        "unit": "CAD/m2",
+        "source": "hostelz-vancouver-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          4500,
+          9000
+        ],
+        "note": "Typical estimate (researched): Room-night income from Vancouver hostel bed prices, 30% NOI margin."
+      }
+    },
+    {
+      "id": "ST5t",
+      "name": "Artist or researcher residency",
+      "earns_by": "lease",
+      "method": "income",
+      "city_charge_class": "residential",
+      "value_basis": "researched",
+      "inputs": {
+        "rent_per_ft2_net_month": {
+          "value": 3.4,
+          "unit": "CAD/ft2/month",
+          "source": "ubc-housing-2025",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "UBC studios cost $1,230-1,490 a month in 2025/26 (about $4.50/ft2 for 300 ft2); a residency charges about 75% of that."
+        },
+        "vacancy": {
+          "value": 0.05,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "Vacancy, or for operated space the share of the year it earns nothing."
+        },
+        "opex_ratio": {
+          "value": 0.3,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "cap_rate": {
+          "value": 0.0475,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.78,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 4800,
+        "unit": "CAD/m2",
+        "source": "ubc-housing-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          3000,
+          6000
+        ],
+        "note": "Typical estimate (researched): UBC studio fees 2025/26 at a 25% residency discount."
+      }
+    },
+    {
+      "id": "RR4t",
+      "name": "Columbarium / memorial floor",
+      "earns_by": "sell",
+      "method": "sale",
+      "city_charge_class": "commercial",
+      "value_basis": "researched",
+      "inputs": {
+        "sale_price_per_ft2_net": {
+          "value": 1486,
+          "unit": "CAD/ft2",
+          "source": "courtenay-cemetery-2026",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "About 4 niches per m2 of net floor at about $4,000 each ($16,000/m2 net, $1,486/ft2): above the $2,376 municipal niche on Vancouver Island (Courtenay, 2026), below US urban prices. Half is allowed for marketing and a slow sell-out."
+        },
+        "selling_cost": {
+          "value": 0.5,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18"
+        },
+        "efficiency": {
+          "value": 0.6,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-18",
+          "note": "net / gross area used in this row's derivation"
+        }
+      },
+      "value_per_m2_gfa": {
+        "value": 4800,
+        "unit": "CAD/m2",
+        "source": "courtenay-cemetery-2026",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          2000,
+          10000
+        ],
+        "note": "Typical estimate (researched): Niche price between a BC municipal fee (2026) and urban private prices, 4 niches per m2, half lost to a slow sell-out."
+      }
+    }
+  ]
+}

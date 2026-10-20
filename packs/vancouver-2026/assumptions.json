@@ -1,0 +1,594 @@
+{
+  "meta": {
+    "pack": "vancouver-2026",
+    "note": "Project-level assumptions. Everything here can be changed in the tool."
+  },
+  "efficiency_curve": {
+    "note": "Net / gross by floor band, used for office and residential uses when the floor input is gross. Grade C: check against CTBUH data. Floors above the last band use the last band (flagged).",
+    "applies_to": {
+      "office": [
+        "O1",
+        "O2",
+        "O3",
+        "O4",
+        "O5",
+        "O6"
+      ],
+      "residential": [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9"
+      ]
+    },
+    "bands": [
+      {
+        "from_floor": 1,
+        "to_floor": 20,
+        "office": {
+          "value": 0.8,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "residential": {
+          "value": 0.84,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        }
+      },
+      {
+        "from_floor": 21,
+        "to_floor": 45,
+        "office": {
+          "value": 0.76,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "residential": {
+          "value": 0.82,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        }
+      },
+      {
+        "from_floor": 46,
+        "to_floor": 75,
+        "office": {
+          "value": 0.72,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        },
+        "residential": {
+          "value": 0.78,
+          "unit": "ratio",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17"
+        }
+      }
+    ]
+  },
+  "height_premium": {
+    "note": "Linear premium per floor above the podium top, applied to value.",
+    "groups": {
+      "condo": {
+        "rows": [
+          "R1",
+          "R2",
+          "R3"
+        ],
+        "per_floor": {
+          "value": 0.007,
+          "unit": "ratio/floor",
+          "source": "roomvu-2019",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "range": [
+            0.001,
+            0.015
+          ],
+          "note": "Between the UBC controlled study (~0.1%/floor) and raw Roomvu data (0.7-2.3%/floor). Show both ends."
+        }
+      },
+      "rental": {
+        "rows": [
+          "R4",
+          "R5",
+          "R7",
+          "R9"
+        ],
+        "per_floor": {
+          "value": 0.003,
+          "unit": "ratio/floor",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "range": [
+            0.0,
+            0.007
+          ],
+          "note": "Rents respond less to views than sale prices."
+        }
+      },
+      "luxury_hotel": {
+        "rows": [
+          "H1"
+        ],
+        "per_floor": {
+          "value": 0.003,
+          "unit": "ratio/floor",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "range": [
+            0.0,
+            0.01
+          ]
+        }
+      },
+      "select_hotel": {
+        "rows": [
+          "H2",
+          "H3"
+        ],
+        "per_floor": {
+          "value": 0.0,
+          "unit": "ratio/floor",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "range": [
+            0.0,
+            0.003
+          ]
+        }
+      },
+      "office": {
+        "rows": [
+          "O1",
+          "O2",
+          "O6"
+        ],
+        "per_floor": {
+          "value": 0.002,
+          "unit": "ratio/floor",
+          "source": "assumption",
+          "grade": "C",
+          "as_of": "2026-10-17",
+          "range": [
+            0.0,
+            0.005
+          ],
+          "note": "Large plates and lift zones favour lower floors."
+        }
+      }
+    },
+    "above_neighbours_bonus": {
+      "value": 0.037,
+      "unit": "ratio",
+      "source": "ubc-vertical-status",
+      "grade": "B",
+      "as_of": "2026-10-17",
+      "note": "Extra premium for condo units higher than all neighbouring roofs (UBC study).",
+      "rows": [
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    "retail_floor_factor": {
+      "rows": [
+        "T1",
+        "T4"
+      ],
+      "note": "Industry rule of thumb (grade C).",
+      "below_grade": {
+        "value": 0.3,
+        "unit": "ratio",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "level_1": {
+        "value": 1.0,
+        "unit": "ratio",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "level_2": {
+        "value": 0.4,
+        "unit": "ratio",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      },
+      "above_level_2": {
+        "value": 0.0,
+        "unit": "ratio",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-17"
+      }
+    }
+  },
+  "finance": {
+    "rate": {
+      "value": 0.065,
+      "unit": "ratio/yr",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "range": [
+        0.06,
+        0.075
+      ],
+      "note": "Prime was 4.45% in Q2 2026 (CBRE); construction loans about prime + 1.5-2%."
+    },
+    "build_years": {
+      "value": 6,
+      "unit": "years",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "range": [
+        4,
+        8
+      ],
+      "note": "Build period for a ~300 m tower."
+    },
+    "draw_factor": {
+      "value": 0.5,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "note": "Average share of cost outstanding during the build."
+    }
+  },
+  "profit_on_cost": {
+    "value": 0.15,
+    "unit": "ratio",
+    "source": "city-rental-analysis-2019",
+    "grade": "A",
+    "as_of": "2019-01-01",
+    "range": [
+      0.12,
+      0.2
+    ],
+    "note": "The City's own test uses 15% of total cost."
+  },
+  "selling_cost": {
+    "value": 0.05,
+    "unit": "ratio",
+    "source": "assumption",
+    "grade": "C",
+    "as_of": "2026-10-17",
+    "note": "Applied to sale uses."
+  },
+  "public_running_cost": {
+    "capitalisation_rate": {
+      "value": 0.05,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "note": "Yearly cost / 5% = value removed. C$1 M a year removes about C$20 M."
+    },
+    "cost_per_m2_year": {
+      "value": null,
+      "unit": "CAD/m2/yr",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "note": "No sourced figure. Enter the yearly running cost of free public floors.",
+      "needs_user_value": true
+    },
+    "payer_options": [
+      "cross_subsidy",
+      "cac_endowment",
+      "ticketed_deck",
+      "city_or_partner"
+    ]
+  },
+  "land": {
+    "price": {
+      "value": null,
+      "unit": "CAD",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "note": "If you leave it empty, the tool estimates it: current-zoning land value x (1 + purchase premium). Type a price to override.",
+      "needs_user_value": true
+    },
+    "value_under_current_zoning": {
+      "value": null,
+      "unit": "CAD",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-17",
+      "note": "Used for the CAC land-lift test. If you leave it empty, the tool estimates it: site area x current-zoning FSR x land rate per buildable m2.",
+      "needs_user_value": true
+    },
+    "reference_per_buildable_m2": {
+      "value": 2350,
+      "unit": "CAD/m2",
+      "source": "biv-land-2014",
+      "grade": "B",
+      "as_of": "2014-01-01",
+      "range": [
+        2000,
+        2700
+      ],
+      "note": "Prime downtown land in 2014. Historical reference only; the estimate uses land.estimate.rate_per_buildable_m2."
+    },
+    "estimate": {
+      "note": "Default land estimate when the user enters none: current-zoning value = site area x current_zoning_fsr x rate_per_buildable_m2; land price = that value x (1 + purchase_premium). Order of magnitude only: check with an appraiser.",
+      "current_zoning_fsr": {
+        "value": 11.0,
+        "unit": "ratio",
+        "source": "dodp-2026",
+        "grade": "B",
+        "as_of": "2026-10-18",
+        "range": [
+          9.0,
+          11.0
+        ],
+        "note": "Downtown Official Development Plan (consolidated June 2026): total density in Area A, the central business district, must not exceed 11.00 FSR; Areas B and F are 9.00. The competition site is hypothetical: Area A (CBD) is assumed. Heritage and amenity bonuses are not added. The by-law was read through a search summary; the map was not checked."
+      },
+      "rate_per_buildable_m2": {
+        "value": 3230,
+        "unit": "CAD/m2",
+        "source": "colliers-land-2025",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          1610,
+          6620
+        ],
+        "note": "C$300 per buildable ft2 (x 10.764). Anchors: a 2025 Kitsilano site at $195/ft2 buildable as distressed sales reset price floors (Colliers, 2025); Altus put Vancouver high-rise land at $325/ft2 in 2019; downtown peak sales above $600/ft2 (White Spot site, about 2018). Land volume fell 14% a year to Q2 2026 (Altus). No 2025-26 downtown CBD sale per buildable ft2 was found, so grade C. Range: $150-615/ft2."
+      },
+      "purchase_premium": {
+        "value": 0.0,
+        "unit": "ratio",
+        "source": "assumption",
+        "grade": "C",
+        "as_of": "2026-10-18",
+        "range": [
+          0.0,
+          0.25
+        ],
+        "note": "Extra a buyer may pay over current-zoning value to assemble a site or for rezoning hope. 0% by default: the City's CAC is meant to capture the lift from rezoning, and paying for it twice makes schemes fail. Up to about 25% in competitive assemblies (assumption; no source found)."
+      }
+    }
+  },
+  "presales": {
+    "lender_requirement": {
+      "value": 0.65,
+      "unit": "ratio",
+      "source": "biv-presales-2026",
+      "grade": "B",
+      "as_of": "2026-10-17",
+      "range": [
+        0.6,
+        0.7
+      ],
+      "note": "Share of condo units presold before a construction loan."
+    },
+    "market_note": "Q1 2026: zero new concrete condo launches in Metro Vancouver (BIV). Any scheme relying on condo presales is flagged 'market-dependent'."
+  },
+  "verdict": {
+    "works": {
+      "rlv_vs_land": "rlv_after_cac >= land_price",
+      "min_profit_on_cost": 0.15,
+      "presale": "reachable",
+      "public_payer": "every public floor has a named payer"
+    },
+    "marginal": {
+      "rlv_shortfall_max": 0.1,
+      "profit_on_cost_range": [
+        0.1,
+        0.15
+      ],
+      "presale": "depends on a weak market"
+    },
+    "doesnt_work": "anything worse than marginal"
+  },
+  "sensitivity": {
+    "office_rent": [
+      -0.2,
+      0.2
+    ],
+    "cap_rate_points": [
+      -0.01,
+      0.01
+    ],
+    "condo_price": [
+      -0.15,
+      0.15
+    ],
+    "hard_cost": [
+      -0.15,
+      0.15
+    ],
+    "condo_height_premium": [
+      0.001,
+      0.015
+    ],
+    "deck_visitors": [
+      100000,
+      800000
+    ]
+  },
+  "optimiser": {
+    "note": "Market caps and settings for 'Find a mix that works'. Assumptions (grade C): edit them in the optimiser panel.",
+    "max_hotel_keys": {
+      "value": 450,
+      "unit": "count",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Most hotel rooms one tower can fill in this market; downtown hotels of 400-500 keys are large. Assumption.",
+      "range": [
+        150,
+        800
+      ]
+    },
+    "max_deck_floors": {
+      "value": 2,
+      "unit": "count",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Observation deck floors at most (the visitor total does not grow with area).",
+      "range": [
+        0,
+        3
+      ]
+    },
+    "max_luxury_condo_share": {
+      "value": 0.4,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Luxury / penthouse condos at most this share of sale housing (thin buyer pool). Assumption.",
+      "range": [
+        0,
+        1
+      ]
+    },
+    "min_band_floors": {
+      "value": 3,
+      "unit": "count",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Shortest run of one use, except in the podium and the crown (lift zones and stacking). Assumption.",
+      "range": [
+        1,
+        6
+      ]
+    },
+    "switch_penalty_share": {
+      "value": 0.01,
+      "unit": "ratio",
+      "source": "assumption",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Penalty for each change of use between neighbouring floors, as a share of an average floor's value (transfers, separations, lift zones). Assumption.",
+      "range": [
+        0,
+        0.05
+      ]
+    },
+    "inclusionary_share": {
+      "value": 0.2,
+      "unit": "ratio",
+      "source": "city-contributions-2026",
+      "grade": "C",
+      "as_of": "2026-10-18",
+      "note": "Optional: share of housing kept as below-market rental. Off by default. The 2026 contributions framework (City of Vancouver) asks large rezonings for public benefits; this is a simple proxy, not the policy text.",
+      "range": [
+        0,
+        0.4
+      ]
+    }
+  },
+  "scenarios": {
+    "note": "Named market scenarios. Optional overlays on the 2026 defaults; the page shows which one is on.",
+    "now_2026": {
+      "label": "2026 now",
+      "items": []
+    },
+    "strong_2021": {
+      "label": "Strong market (about 2021)",
+      "items": [
+        {
+          "setting": "presaleMarket",
+          "source": "rennie-presale-2021",
+          "grade": "B",
+          "note": "Concrete presales sold steadily in 2021 (average about $1,106/ft² across Metro Vancouver launches).",
+          "to": "normal",
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R4",
+          "source": "remi-caprates-q4-2021",
+          "grade": "B",
+          "note": "Vancouver multifamily cap rates were 2.00-2.75% in Q4 2021 (CBRE via REMI), against 4.25% in the pack: rental values about 1.5x (rounded down).",
+          "to": 1.5,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R5",
+          "source": "remi-caprates-q4-2021",
+          "grade": "B",
+          "note": "Same cap-rate shift for below-market rental.",
+          "to": 1.5,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "hardCostScale",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Construction costs were roughly 12% lower in 2021 (assumption; Altus guides rose year on year since).",
+          "to": 0.88,
+          "as_of": "2026-10-18"
+        }
+      ]
+    },
+    "recovery_2028": {
+      "label": "Recovery (about 2028)",
+      "items": [
+        {
+          "setting": "presaleMarket",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Assumes presales recover to lender thresholds.",
+          "to": "normal",
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R1",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Condo prices about 5% higher (assumption).",
+          "to": 1.05,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.R4",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Cap rates about 0.25 points lower (assumption).",
+          "to": 1.06,
+          "as_of": "2026-10-18"
+        },
+        {
+          "setting": "valueScale.O1",
+          "source": "assumption",
+          "grade": "C",
+          "note": "Office leasing recovers a little (assumption).",
+          "to": 1.05,
+          "as_of": "2026-10-18"
+        }
+      ]
+    }
+  }
+}

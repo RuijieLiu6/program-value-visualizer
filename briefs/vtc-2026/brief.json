@@ -1,0 +1,51 @@
+{
+  "id": "vtc-2026",
+  "name": "Vancouver Tall Challenge 2026 (public brief)",
+  "source": "vtc-brief-2026",
+  "pack": "vancouver-2026",
+  "site": {
+    "width_m": 79.2,
+    "length_m": 144.8,
+    "area_m2": {
+      "value": 11468,
+      "unit": "m2",
+      "source": "vtc-brief-2026",
+      "grade": "A",
+      "as_of": "2026-06-01",
+      "note": "Approximately 79.2 m x 144.8 m (brief p.15). Hypothetical full-block site."
+    }
+  },
+  "height_m": {
+    "min": 244,
+    "max": 305,
+    "source": "vtc-brief-2026",
+    "page": 19
+  },
+  "rules": [
+    {
+      "id": "min_nonres_fsr",
+      "text": "Minimum 9.0 FSR of non-residential, high-employment floor area (brief p.19).",
+      "fsr": 9.0,
+      "page": 19
+    },
+    {
+      "id": "no_overall_fsr_cap",
+      "text": "No overall FSR limit (brief p.19).",
+      "page": 19
+    },
+    {
+      "id": "tower_height",
+      "text": "One or more towers within 244-305 m (brief p.19).",
+      "page": 19
+    }
+  ],
+  "hotel_classification": {
+    "default": "non_residential",
+    "report_both": true,
+    "note": "The brief does not say how hotel counts. City of Vancouver zoning generally treats hotel as a commercial (non-residential) use; the tool reports the 9.0 FSR check both ways and states which it used. Grade C until a City source is cited."
+  },
+  "land_price": {
+    "given": false,
+    "note": "The brief describes a hypothetical site and gives no land price: land is a user input."
+  }
+}
